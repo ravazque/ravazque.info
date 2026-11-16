@@ -301,14 +301,15 @@
 :where(body:not(.site)) .stat-sessions { list-style: none; margin: 10px 0 0; padding: 0; }
 :where(body:not(.site)) .stat-sessions li { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--rule); }
 :where(body:not(.site)) .stat-sessions .when { color: var(--text-2); white-space: nowrap; }
-:where(body:not(.site)) .radar-pair { display: flex; gap: 28px; align-items: center; margin-top: 10px; }
+:where(body:not(.site)) .radar-pair { display: flex; gap: 28px; align-items: center; justify-content: center; margin-top: 10px; } /* radar and bars as one centred group */
 :where(body:not(.site)) .radar-fig { flex: 0 0 auto; width: min(100%, 480px); }
 :where(body:not(.site)) .radar-fig .radar { display: block; width: 100%; height: auto; max-height: 480px; }
-:where(body:not(.site)) .radar-bars { flex: 1 1 0; min-width: 0; max-height: 480px; overflow-y: auto; border-left: var(--divider-line) solid var(--rule); padding-left: 28px; }
-@container (max-width: 620px) {
+:where(body:not(.site)) .radar-bars { flex: 0 1 600px; min-width: 0; max-height: 480px; overflow-y: auto; border-left: var(--divider-line) solid var(--rule); padding-left: 28px; }
+@container (min-width: 480px) { :where(body:not(.site)) .radar-bars .hb-track { padding-right: 0; } } /* wide bars (.hchart is the container): the longest level's room (×1.3) holds its label, no empty strip on the right */
+@container (max-width: 899.98px) {  /* under the radar (480) + room for the bars' names and levels */
   :where(body:not(.site)) .radar-pair { flex-direction: column; }
   :where(body:not(.site)) .radar-fig { width: 100%; max-width: 400px; margin: 0 auto; }
-  :where(body:not(.site)) .radar-bars { max-height: none; width: 100%; border-left: 0; border-top: var(--divider-line) solid var(--rule); padding-left: 0; padding-top: 18px; }
+  :where(body:not(.site)) .radar-bars { flex: none; max-height: none; width: 100%; border-left: 0; border-top: var(--divider-line) solid var(--rule); padding-left: 0; padding-top: 18px; }
 }
 :where(body:not(.site)) .graph-wide .graph, :where(body:not(.site)) .graph-mid .graph, :where(body:not(.site)) .graph-narrow .graph { display: block; width: 100%; height: auto; }
 /* Connections at its own scale on every width: 1200 wide, 840 on a tablet, 420 on a phone */
@@ -472,7 +473,7 @@
 :where(body:not(.site)) .block-head .legend { margin-top: 0; }
 
 /* your circle: a smaller drawing, no glow; you sit under the chords and dim when the one in focus never met you */
-:where(body:not(.site)) [data-panel="network"] .graph.net { max-width: 640px; margin: 0 auto; }
+:where(body:not(.site)) [data-panel="network"] .graph.net { max-width: 640px; margin: 0 auto; overflow: visible; } /* a long login beside the ring may pass its square */
 :where(body:not(.site)) [data-panel="network"] .plot, :where(body:not(.site)) [data-panel="network"] .graph-wide, :where(body:not(.site)) [data-panel="network"] .graph-narrow { height: auto; }
 :where(body:not(.site)) .net .net-me .net-node.me .core { fill-opacity: .85; transition: opacity var(--motion-fast) ease-out; }
 :where(body:not(.site)) .net.me-off .net-me { opacity: .3; }
@@ -590,7 +591,7 @@ html body:not(.site) [data-panel="low-feedback"]:only-child { grid-column: span 
 
 /* your circle: the key and its counts on the left, the ring on the right; stacked on narrow screens */
 /* everything in the key is in em: its size is the one font-size below */
-:where(body:not(.site)) .net-wrap { display: grid; grid-template-columns: minmax(240px, 320px) minmax(0, 1fr); gap: 24px 40px; align-items: center; }
+:where(body:not(.site)) .net-wrap { display: grid; grid-template-columns: minmax(240px, 320px) minmax(0, 640px); gap: var(--ring-key-gap-y, 24px) var(--ring-key-gap, 40px); align-items: center; }
 :where(body:not(.site)) .net-side { align-self: center; font-size: 17px; }
 :where(body:not(.site)) .net-side h3 { margin: .9em 0 .4em; font-size: 1.05em; }
 :where(body:not(.site)) .net-side ul { list-style: none; margin: 0; padding: 0; }

@@ -532,6 +532,8 @@ main[data-page="web-people"] #circle {
   --ring-line: 2px;            /* over the ring and its key */
   --block-pad: 12px;           /* each of those lines → what is under it */
   --list-line: 1px;            /* between the rows of the key */
+  --ring-key-gap: 200px;        /* the key → the ring, side by side (laptops; both stay centred as one group) */
+  --ring-key-gap-y: 24px;      /* the key → the ring under it (tablets; phones show no key) */
 }
 /* the bubbles of Connections, in the graph's units (about px on a laptop; the graph scales with the screen):
      --bubbles-gap    two bubbles of the same group (smaller packs them tighter)

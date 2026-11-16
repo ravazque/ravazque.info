@@ -328,6 +328,10 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
 :where(body:not(.site)) .recip-row .rate-bar { margin: 8px 0 6px; }
 /* Your circle a little lower than its key */
 :where(body:not(.site)) [data-panel="network"] .net-plot { margin-top: 48px; } /* centred on the key under "Who", not on its heading */
+@media (max-width: 599.98px) {  /* phones: the ring alone, its tips name each group */
+  :where(body:not(.site)) [data-panel="network"] .net-side { display: none; }
+  :where(body:not(.site)) [data-panel="network"] .net-plot { margin-top: 0; }
+}
 
 /* Evaluations outside the 42cursus, folded under the feedback */
 :where(body:not(.site)) details.apart { margin-top: 14px; }

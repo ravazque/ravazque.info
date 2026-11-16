@@ -163,7 +163,7 @@ export function people(pg: Page): Section[] {
       + (d === "both" ? '<line class="gap" x1="1" y1="5" x2="29" y2="5"/>' : "") + "</svg>", f.t(`network.dir_${d}`))).join("") + "</ul>";
   out.push({ id: "circle", nav: f.t("nav.network"), html: section("circle", "", cols(`<div class="block" data-panel="network">`
     + (has ? `<div class="net-wrap"><aside class="net-side" aria-label="${esc(f.t("network.key_who"))}">${side}</aside><div class="net-plot graph-panel">`
-      + `<div class="graph-wide">${ring(f, net, { width: 720, height: 640, compact: false, uid: "w", label: ringLabel })}</div><div class="graph-narrow">${ring(f, net, { width: 400, height: 400, compact: true, uid: "n", label: ringLabel })}</div></div></div>`
+      + `<div class="graph-wide">${ring(f, net, { width: 640, height: 640, compact: false, uid: "w", label: ringLabel })}</div><div class="graph-narrow">${ring(f, net, { width: 400, height: 400, compact: true, uid: "n", label: ringLabel })}</div></div></div>`
       : `<p class="note">${esc(f.t("network.empty"))}</p>`) + "</div>"), { head: `<h2>${esc(f.t("network.title"))}</h2>`, lede: esc(f.t("network.lede")) }) });
   return out;
 }
