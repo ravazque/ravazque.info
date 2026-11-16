@@ -47,7 +47,7 @@ async function yes() {
     <div class="boot-panel">
       <h2>{{ f.t(`${kind}.title`) }}</h2>
       <template v-if="result">
-        <p v-if="result.ok">{{ f.t("publish.done") }} · <a :href="result.url" target="_blank" rel="noopener">{{ f.t("publish.view") }}</a></p>
+        <p v-if="result.ok">{{ f.t("publish.done") }} · <a :href="result.url" target="_blank" rel="noopener">{{ f.t("publish.view") }}</a> · <a href="https://ravazque.github.io/ravazque/" target="_blank" rel="noopener">{{ f.t("publish.page") }}</a></p>
         <p v-else>{{ f.t(`publish.error_${result.error}`) }}</p>
         <p class="row-btns"><RouterLink class="btn secondary" to="/app">{{ f.t("brand.name") }}</RouterLink></p>
       </template>

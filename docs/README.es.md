@@ -9,7 +9,8 @@ En marcha en **https://ravazque.info**. Es un proyecto independiente: no está h
 ni por 42 Madrid Fundación Telefónica.
 
 Este repositorio también contiene la página pública con el CV del autor (`site/`, servida en
-https://ravazque.github.io), que muestra un pequeño resumen de 42 publicado desde la aplicación.
+https://ravazque.github.io) y una página con un pequeño resumen de 42 publicado desde la aplicación
+(https://ravazque.github.io/ravazque/).
 
 *<p align="left"> <c>Selector de idioma del README.md ➜</c> <b>Español</b> · <a href="../README.md">English</a></p>*
 

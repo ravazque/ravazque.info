@@ -7,8 +7,8 @@ the 42 blue or your coalition's colour.
 
 Live at **https://ravazque.info**. An independent project: not made, run or endorsed by 42 or 42 Madrid Fundación Telefónica.
 
-This repository also holds the owner's public CV page (`site/`, served at https://ravazque.github.io), which shows a
-small 42 snapshot published from the app.
+This repository also holds the owner's public CV page (`site/`, served at https://ravazque.github.io), and a page with a
+small 42 snapshot published from the app (https://ravazque.github.io/ravazque/).
 
 *<p align="left"> <c>Language selector for README.md ➜</c> <a href="docs/README.es.md">Español</a> · <b>English</b></p>*
 
