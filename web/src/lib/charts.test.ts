@@ -80,3 +80,11 @@ test("a long line chart names months evenly, counted back from the month the dat
   expect(Math.min(...gaps)).toBeGreaterThan(0.8 * Math.max(...gaps)); // the last two were 7 months apart among gaps of 9
   expect(new Set(at.map(([, n]) => n)).size).toBe(at.length);
 });
+
+test("bar tips: each bar's whole lane, above it too, opens its own series' tip; the column none", () => {
+  const html = vbars(new Fmt("en"), ["c1", "c2"], [["You", [3, 0], "blue"], ["Them", [1, 2], "grey"]],
+    { label: "x", barTips: [["c1 you", "c2 you"], ["c1 them", "c2 them"]] });
+  expect([...html.matchAll(/<span class="lane"[^>]*data-tip="([^"]+)"[^>]*><i /g)].map((m) => m[1])).toEqual(["c1 you", "c1 them", "c2 you", "c2 them"]);
+  expect(html).not.toMatch(/<i [^>]*data-tip/);
+  expect(html).not.toMatch(/class="ch-col"[^>]*data-tip/);
+});

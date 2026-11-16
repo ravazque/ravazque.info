@@ -4,7 +4,7 @@ import { radar } from "../lib/graphs";
 import { ARROW, badge, esc } from "../lib/h";
 import { pyRound } from "../fmt";
 import { csv, facts, table } from "../lib/table";
-import { Page, Section, block, cols, filters, headBlock, info, radios, search, section, select } from "./page";
+import { Page, Section, aboveShare, block, cols, filters, headBlock, info, radios, search, section, select } from "./page";
 
 const PROJECT_GROUPS = ["rank-00", "rank-01", "rank-02", "rank-03", "rank-04", "rank-05", "rank-06", "outer-core", "outside", "piscine"];
 
@@ -95,7 +95,8 @@ export function projects(pg: Page): Section[] {
     legend([[f.t("pace.xp"), S1], [f.t("pace.cumulative"), S2]]), vbars(f, months.map((m: any) => f.monthLabel(m.month)), [[f.t("pace.xp"), months.map((m: any) => m.xp), S1]],
       { label: f.t("pace.xp_title"), line: [f.t("pace.cumulative"), months.map((m: any) => m.cumulative), S2], fmt: (v) => f.num(v), emptyText: f.t("empty.period") })),
     // the same shape as XP per month beside it: title and key on one line, then the plot (its sentence is the title's ⓘ)
-    promo ? `<div class="block" data-panel="promo"><div class="block-head"><h3>${esc(f.t("standing.promo"))} ${info(f.t("standing.promo_lede", { rank: f.num(promo.rank), size: f.num(promo.size), pct: f.num(promo.percentile, 1) }))}</h3>`
+    promo ? `<div class="block" data-panel="promo"><div class="block-head"><h3>${esc(f.t("standing.promo"))} ${info(f.t("standing.promo_lede", { rank: f.num(promo.rank), size: f.num(promo.size), pct: f.num(aboveShare(promo, promo.percentile), 1) })
+      + (promo.tied ? " " + f.plural(promo.tied, "standing.promo_tied") : ""))}</h3>`
       + legend([[f.t("standing.per_level"), S2], [f.t("standing.your_level"), S1]]) + "</div>" + promoChart(pg, promo) + "</div>" : "")) });
 
   const cursus = pg.q("cursus", pg.period === "piscine" ? "C Piscine" : "42cursus", ["42cursus", "C Piscine"]);

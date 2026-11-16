@@ -890,8 +890,6 @@
  "where.s_you": "Tú",
  "where.s_corrector": "Tu corrector",
  "where.s_evaluated": "A quién evaluaste",
- "where.cov_me": "Tu asiento: conocido en {me} de {n} evaluaciones.",
- "where.cov_none": "El de la otra persona: no hubo evaluaciones en ese tiempo.",
  "where.cov_light": "Aquí no se busca el asiento de la otra persona.",
  "nav.crossed": "Personas",
  "who.rating_tip": "Les diste {mine} · te dieron {theirs} (– = sin valoración)",
@@ -899,8 +897,6 @@
  "days.l_span": "{days} en el campus, del {first} al {last}.",
  "days.l_avg": "Media por día: {avg}.",
  "days.l_longest": "Sesión más larga: {longest}.",
- "where.cov_other": "El de la otra persona: conocido en {x} de {y}.",
- "where.cov_window": "Solo de los últimos {days} días.",
  "where.note_not_logged": "No tenías sesión abierta, como en una evaluación de grupo en el ordenador del líder del equipo.",
  "common.exception": "[Excepción]:",
  "who.erased": "Cuenta borrada",
@@ -1017,5 +1013,11 @@
  "widgets.down": "Baja “{name}”",
  "standing.per_level": "Estudiantes por nivel",
  "projects.lane_work": "Experiencia laboral",
- "projects.outside": "Otros cursus (Discovery, Reload…)"
+ "projects.outside": "Otros cursus (Discovery, Reload…)",
+ "where.cov_me": "Asiento conocido: tú, {me} de {n}",
+ "where.cov_corrector": "tu corrector, {x} de {y} en los últimos {days} días",
+ "where.cov_evaluated": "a quién evaluaste, {x} de {y} en los últimos {days} días",
+ "where.cov_none": "la otra persona: sin evaluaciones en los últimos {days} días",
+ "profile.promo_tied": "Mismo nivel que todo tu kickoff",
+ "standing.promo_tied": {"one": "{n} más en tu nivel.", "other": "{n} más en tu nivel."}
 }

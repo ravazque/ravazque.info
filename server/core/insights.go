@@ -268,13 +268,16 @@ func PromoStanding(levels []float64, mine float64) any {
 		return nil
 	}
 	hist := newCounted()
-	above, atOrBelow := 0, 0
+	above, atOrBelow, below := 0, 0, 0
 	for _, l := range levels {
 		hist.add(int(l), 1)
 		if l > mine {
 			above++
 		} else {
 			atOrBelow++
+		}
+		if l < mine {
+			below++
 		}
 	}
 	keys := slices.Clone(hist.keys)
@@ -283,8 +286,9 @@ func PromoStanding(levels []float64, mine float64) any {
 	for _, k := range keys {
 		h = append(h, M("level", k, "count", int(hist.n[k])))
 	}
+	// percentile (v1's) counts ties as below you; below and tied (the others at your level, you are in levels) do not
 	return M("size", len(levels), "rank", 1+above, "percentile", pyRound(100*float64(atOrBelow)/float64(len(levels)), 1),
-		"median", pyRound(median(levels), 2), "mine", mine, "histogram", h)
+		"median", pyRound(median(levels), 2), "mine", mine, "histogram", h, "below", below, "tied", max(0, atOrBelow-below-1))
 }
 
 // CoalitionStandings ranks the campus coalitions by score, with yours marked, each with its logo and banner when the
@@ -602,11 +606,13 @@ func MadridStanding(levels []float64, mine float64) *OMap {
 	if len(levels) == 0 {
 		return nil
 	}
-	above := 0
+	above, below := 0, 0
 	for _, l := range levels {
 		if l > mine {
 			above++
+		} else if l < mine {
+			below++
 		}
 	}
-	return M("size", len(levels), "rank", 1+above, "top", pyRound(100*float64(1+above)/float64(len(levels)), 1))
+	return M("size", len(levels), "rank", 1+above, "top", pyRound(100*float64(1+above)/float64(len(levels)), 1), "below", below)
 }

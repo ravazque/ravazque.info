@@ -1,5 +1,5 @@
-import { beforeEach, expect, test } from "vitest";
-import { hasPin, loadPins, moveWidget, pins, relabelStars, setWidget, togglePin } from "./state";
+import { beforeEach, expect, test, vi } from "vitest";
+import { api, hasPin, loadPins, moveWidget, pins, relabelStars, setWidget, togglePin } from "./state";
 
 beforeEach(() => { localStorage.clear(); pins.login = ""; });
 
@@ -150,4 +150,21 @@ test("a new profile starts with five starred sections; taking them away, or havi
   pins.login = "";
   loadPins("peer21");
   expect(pins.stars.map((p) => p.id)).toEqual(["who"]);
+});
+
+test("a GET that fails on the network (ERR_NETWORK_CHANGED, a dev restart or wifi to mobile data) is asked again; a POST never", async () => {
+  vi.useFakeTimers();
+  let calls = 0;
+  vi.stubGlobal("fetch", async () => { if (++calls === 1) throw new TypeError("Failed to fetch"); return new Response('{"ok":true}'); });
+  const got = api("/api/me/view");
+  await vi.runAllTimersAsync();
+  expect(await got).toEqual({ ok: true });
+  expect(calls).toBe(2);
+  calls = 0;
+  const posted = api("/api/me/refresh", { method: "POST" }).catch((e) => e);
+  await vi.runAllTimersAsync();
+  expect(await posted).toBeInstanceOf(TypeError);
+  expect(calls).toBe(1);
+  vi.unstubAllGlobals();
+  vi.useRealTimers();
 });

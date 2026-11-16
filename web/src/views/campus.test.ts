@@ -39,6 +39,27 @@ test("Where · evaluations draws received and given apart, side by side (no swit
   expect(html.indexOf(f.t("where.title_received"))).toBeGreaterThan(0);
   expect(html.indexOf(f.t("where.title_given"))).toBeGreaterThan(html.indexOf(f.t("where.title_received")));
   expect(html).not.toContain('class="seg"');
-  expect(html.match(/class="vchart col-tips"/g)?.length).toBe(2);
+  expect(html).not.toContain("col-tips");
   expect(html).toContain(f.t("where.cov_me", { me: all.place.me_located_given, n: all.summary.given }));
+  // each bar its own side, on its full-height lane: yours says your count, the corrector's theirs, never both in one tip
+  const tips = [...html.matchAll(/<span class="lane"[^>]*data-tip="([^"]+)"/g)].map((m) => m[1]);
+  expect(tips.length).toBeGreaterThan(0);
+  expect(tips.some((t) => t.includes("You:") && t.includes("Your corrector:"))).toBe(false);
+  expect(tips.some((t) => t.includes("Your corrector:"))).toBe(true);
+  expect(html.match(/<div class="legend">/g)?.length).toBe(2);
+});
+
+test("Where · evaluations with none yet: the empty note alone, no key and no seat counts", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { Fmt } = await import("../fmt");
+  const { Page } = await import("./page");
+  const { campus } = await import("./campus");
+  const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8"));
+  const all = { ...doc.periods.all, received: [], given: [], summary: { ...doc.periods.all.summary, received: 0, given: 0 },
+    place: { ...doc.periods.all.place, received_my_cluster: {}, given_my_cluster: {} } }, f = new Fmt("en");
+  const view = { period: "all", report: all, derive: {}, layout: doc.layout, all_projects: all.projects, all_cursus: all.extras.cursus, seat_days: 60 } as any;
+  const html = campus(new Page(f, view, "campus", {})).find((s) => s.id === "where")!.html;
+  expect(html).not.toContain('class="legend"');
+  expect(html).not.toContain("Seat known");
+  expect(html.match(new RegExp(f.t("empty.period"), "g"))?.length).toBe(2);
 });

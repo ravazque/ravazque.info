@@ -52,12 +52,14 @@ var profiles = []struct {
 	{"migrated", "mid", 990007, "tmigrant", "Mia Migrant", "", "2026-02-11"},
 	{"few", "new", 990008, "tfew", "Fran Few", "", ""},
 	{"many", "mid", 990009, "tmany", "Max Many", "", ""},
+	{"empty", "new", 990010, "tempty", "Ena Empty", "", ""},
+	{"full", "mid", 990011, "tfull", "Fia Full", "", ""},
 }
 
 // fill makes two of them show what a side table or list does with little and with a lot (owner, 2026-11-10): few keeps
 // three coalition awards and two logtime bonuses, so the lists, the reasons and the corrected projects leave templates
 // down to their base; many adds every kind of correction point move, a bonus every week for a year and every source of
-// coalition points, so they scroll. Dataset times, before shift.
+// coalition points, so they scroll. empty and full are the two ends (fillEmpty, fillFull). Dataset times, before shift.
 var fill = map[string]func(data map[string]any){
 	"few": func(data map[string]any) {
 		given := asList(data["evals_given"]) // one project corrected, three times
@@ -75,57 +77,232 @@ var fill = map[string]func(data map[string]any){
 		data["coalition_scores"] = append(scores, score(scores[0], 997001, "Location", 7, 500, "2026-10-12T19:00:00.000Z"),
 			score(scores[0], 997002, "Location", 7, 500, "2026-10-26T19:00:00.000Z"))
 	},
-	"many": func(data map[string]any) {
-		cps := asList(data["correction_points"])
-		moves := []struct {
-			reason string
-			sum    float64
-			times  int
-		}{{"Provided points to the pool.", -2, 12}, {"Evaluator cancelled a defense", -1, 6}, {"Refund during sales", 1, 9},
-			{"Refund for evaluator missing", 1, 3}, {"Discovery", 1, 4}, {"Piscine Pedago", -6, 1}, {"Reajuste", 6, 1}}
-		id, at := 996001.0, time.Date(2025, 9, 20, 15, 0, 0, 0, time.UTC)
-		for _, m := range moves {
-			for k := 0; k < m.times; k++ {
-				cps = append(cps, map[string]any{"id": id, "scale_team_id": nil, "reason": m.reason, "sum": m.sum, "total": 0.0,
-					"created_at": at.Format("2006-01-02T15:04:05.000Z"), "updated_at": at.Format("2006-01-02T15:04:05.000Z")})
-				id++
-				at = at.Add(9*24*time.Hour + 5*time.Hour)
+	"many":  fillMany,
+	"empty": fillEmpty,
+	"full":  func(data map[string]any) { fillMany(data); fillFull(data) },
+}
+
+// fillEmpty: a student two days past the kickoff (owner, 2026-11-16): nothing after the Piscine is kept, the 42cursus
+// starts at level 0 and the promo with it.
+func fillEmpty(data map[string]any) {
+	user := data["user"].(map[string]any)
+	var cut string
+	for _, c := range user["cursus_users"].([]any) {
+		c := c.(map[string]any)
+		switch c["cursus_id"] {
+		case float64(core.PiscineCursus):
+			cut = c["end_at"].(string)
+		case float64(core.MainCursus):
+			c["begin_at"], c["level"] = datasetNow.AddDate(0, 0, -2).Format("2006-01-02T15:04:05.000Z"), 0.0
+		}
+	}
+	before := func(list any, at func(map[string]any) any) []any {
+		out := []any{}
+		for _, x := range asList(list) {
+			if s, _ := at(x.(map[string]any)).(string); s < cut {
+				out = append(out, x)
 			}
 		}
-		// the balance after each move, from the first one's
-		sort.SliceStable(cps, func(i, j int) bool {
-			return cps[i].(map[string]any)["created_at"].(string) < cps[j].(map[string]any)["created_at"].(string)
-		})
-		first := cps[0].(map[string]any)
-		total := asFloat(first["total"]) - asFloat(first["sum"])
+		return out
+	}
+	field := func(k string) func(map[string]any) any { return func(x map[string]any) any { return x[k] } }
+	if cps := asList(data["correction_points"]); len(cps) > 0 { // the balance before the first move after the Piscine
 		for _, c := range cps {
-			c := c.(map[string]any)
-			total += asFloat(c["sum"])
-			c["total"] = total
-		}
-		data["correction_points"] = cps
-		data["user"].(map[string]any)["correction_point"] = total
-		scores := asList(data["coalition_scores"])
-		base := scores[0]
-		sid, week := 997101.0, time.Date(2025, 10, 6, 19, 0, 0, 0, time.UTC)
-		for k := 0; !week.After(datasetNow); k, week = k+1, week.Add(7*24*time.Hour) {
-			calc, value := 7.0, 500.0
-			if k%3 == 2 {
-				calc, value = 20, 1000
+			if c := c.(map[string]any); c["created_at"].(string) >= cut {
+				user["correction_point"] = asFloat(c["total"]) - asFloat(c["sum"])
+				break
 			}
-			scores = append(scores, score(base, sid, "Location", calc, value, week.Format("2006-01-02T15:04:05.000Z")))
-			sid++
 		}
-		for k, x := range []struct {
-			kind  string
-			calc  float64
-			value float64
-		}{{"Transaction", 0, 30}, {"Transaction", 0, 50}, {"CommunityService", 11, -42}, {"CommunityService", 11, -42}, {"Event", 0, 25}, {"Location", 0, 12}} {
-			scores = append(scores, score(base, sid, x.kind, x.calc, x.value, time.Date(2026, time.Month(1+k), 15, 12, 0, 0, 0, time.UTC).Format("2006-01-02T15:04:05.000Z")))
-			sid++
+	}
+	for k, f := range map[string]string{"projects_users": "created_at", "teams": "created_at", "evals_received": "begin_at", "evals_given": "begin_at",
+		"locations": "begin_at", "correction_points": "created_at", "coalition_scores": "created_at", "achievements_users": "created_at",
+		"quests_users": "created_at", "feedbacks_api": "created_at"} {
+		data[k] = before(data[k], field(f))
+	}
+	user["projects_users"] = before(user["projects_users"], field("created_at"))
+	data["events_users"] = before(data["events_users"], func(x map[string]any) any { return x["event"].(map[string]any)["begin_at"] })
+	stats := map[string]any{}
+	for day, v := range data["locations_stats"].(map[string]any) {
+		if day < cut {
+			stats[day] = v
 		}
-		data["coalition_scores"] = scores
-	},
+	}
+	data["locations_stats"] = stats
+	user["location"] = nil
+	for _, p := range asList(data["promo"]) {
+		p.(map[string]any)["level"] = 0.0
+	}
+}
+
+// clusters: the shape of 42 Madrid's three clusters (rows, seats per row), as the real profiles' plans draw them.
+var clusters = []struct{ c, rows, seats int }{{1, 17, 6}, {2, 19, 6}, {3, 14, 6}}
+
+// fillFull: everything at once (owner, 2026-11-16), on top of many: every seat of the three clusters used, two
+// computers off the plan (named like the real "bocal-NN" and "dump-…" ones), and the last SeatDays days full of
+// evaluations both ways, so Where · evaluations has both sides on every cluster and off the plan, not logged on each
+// side, and late logins (you on received ones, the evaluated on given ones). The other side's sessions go in
+// peer_locations (fake42 answers from them), so they move with the data and not with the hour make runs. Dataset times.
+func fillFull(data map[string]any) {
+	var seats []string
+	for _, c := range clusters {
+		for r := 1; r <= c.rows; r++ {
+			for s := 1; s <= c.seats; s++ {
+				seats = append(seats, fmt.Sprintf("c%dr%ds%d", c.c, r, s))
+			}
+		}
+	}
+	from := datasetNow.AddDate(0, 0, -api42.SeatDays+2)
+	iso := func(t time.Time) string { return t.Format("2006-01-02T15:04:05.000Z") }
+	// your sessions before the window move round every seat; the ones in it give way to one per evaluation (below)
+	var locs, peers []any
+	for k, l := range asList(data["locations"]) {
+		l := l.(map[string]any)
+		if l["end_at"] != nil && l["begin_at"].(string) >= iso(from) {
+			continue
+		}
+		if l["end_at"] != nil {
+			l["host"] = seats[(k*7)%len(seats)]
+		}
+		locs = append(locs, l)
+	}
+	user := data["user"].(map[string]any)
+	id := 998001.0
+	session := func(to *[]any, who any, host string, a, b time.Time) {
+		*to = append(*to, map[string]any{"id": id, "begin_at": iso(a), "end_at": iso(b), "primary": true, "host": host, "campus_id": 22.0, "user": who})
+		id++
+	}
+	me := map[string]any{"id": user["id"], "login": user["login"]}
+	// copies of older evaluations spread over the window; around each, your session (on a seat, at a computer off the
+	// plan, 12 minutes late, or none) and the other side's (on a seat, off the plan, 15 minutes late, or none)
+	clone := func(key string, n, hour int) {
+		src := asList(data[key])
+		for k := 0; k < n; k++ {
+			e := src[k%len(src)].(map[string]any)
+			at := from.Add(time.Duration(k) * (time.Duration(api42.SeatDays-3) * 24 * time.Hour) / time.Duration(n)).Truncate(24 * time.Hour)
+			at = at.Add(time.Duration(hour+k%5) * time.Hour)
+			t0, _ := time.Parse(time.RFC3339Nano, e["begin_at"].(string))
+			c := shift(e, at.Sub(t0)).(map[string]any)
+			c["id"] = id
+			for _, fb := range asList(data["feedbacks_api"]) { // yours on the ones you received
+				if fb := fb.(map[string]any); fb["feedbackable_id"] == e["id"] {
+					dup := shift(fb, at.Sub(t0)).(map[string]any)
+					dup["id"], dup["feedbackable_id"] = id+0.5, id
+					data["feedbacks_api"] = append(asList(data["feedbacks_api"]), dup)
+				}
+			}
+			// the corrector earns a point, the evaluated pays one
+			reason, sum := "Earning after defense", 1.0
+			if key == "evals_received" {
+				reason, sum = "Defense plannification", -1.0
+			}
+			data["correction_points"] = append(asList(data["correction_points"]), map[string]any{"id": id + 0.25, "scale_team_id": id,
+				"reason": reason, "sum": sum, "total": 0.0, "created_at": c["created_at"], "updated_at": c["created_at"]})
+			id++
+			data[key] = append(asList(data[key]), c)
+			seat := seats[(k*13)%len(seats)]
+			switch {
+			case k%10 == 6:
+				session(&locs, me, "bocal-02", at.Add(-time.Hour), at.Add(2*time.Hour))
+			case k%10 == 7:
+				session(&locs, me, "dump-kiosk", at.Add(-time.Hour), at.Add(2*time.Hour))
+			case k%10 == 8 && key == "evals_received":
+				session(&locs, me, seat, at.Add(12*time.Minute), at.Add(2*time.Hour))
+			case k%10 != 9:
+				session(&locs, me, seat, at.Add(-time.Hour), at.Add(2*time.Hour))
+			}
+			others := asList(c["correcteds"])
+			if key == "evals_received" {
+				others = []any{c["corrector"]}
+			}
+			for j, p := range others {
+				switch m := k + 3*j; {
+				case m%7 == 5: // not logged
+				case m%13 == 4:
+					session(&peers, p, "bocal-02", at.Add(-time.Hour), at.Add(3*time.Hour))
+				case m%11 == 3 && key == "evals_given":
+					session(&peers, p, seats[(m*29)%len(seats)], at.Add(15*time.Minute), at.Add(3*time.Hour))
+				default:
+					session(&peers, p, seats[(m*29)%len(seats)], at.Add(-time.Hour), at.Add(3*time.Hour))
+				}
+			}
+		}
+	}
+	// three in four of the older evaluations get a session of yours around them (the dataset has most not logged)
+	covered := func(at string) bool {
+		for _, l := range locs {
+			if l := l.(map[string]any); l["begin_at"].(string) <= at && (l["end_at"] == nil || l["end_at"].(string) > at) {
+				return true
+			}
+		}
+		return false
+	}
+	for k, e := range append(append([]any{}, asList(data["evals_received"])...), asList(data["evals_given"])...) {
+		at, _ := time.Parse(time.RFC3339Nano, e.(map[string]any)["begin_at"].(string))
+		if k%4 != 3 && at.Before(from) && !covered(iso(at)) {
+			session(&locs, me, seats[(k*31)%len(seats)], at.Add(-time.Hour), at.Add(2*time.Hour))
+		}
+	}
+	clone("evals_received", 45, 9) // 9–13h, your sessions 8–15h
+	clone("evals_given", 55, 16)   // 16–20h, your sessions 15–22h
+	data["locations"], data["peer_locations"] = locs, peers
+	retotal(data)
+}
+
+// retotal: the balance after each correction point move, from the first one's.
+func retotal(data map[string]any) {
+	cps := asList(data["correction_points"])
+	sort.SliceStable(cps, func(i, j int) bool {
+		return cps[i].(map[string]any)["created_at"].(string) < cps[j].(map[string]any)["created_at"].(string)
+	})
+	first := cps[0].(map[string]any)
+	total := asFloat(first["total"]) - asFloat(first["sum"])
+	for _, c := range cps {
+		c := c.(map[string]any)
+		total += asFloat(c["sum"])
+		c["total"] = total
+	}
+	data["user"].(map[string]any)["correction_point"] = total
+}
+
+func fillMany(data map[string]any) {
+	cps := asList(data["correction_points"])
+	moves := []struct {
+		reason string
+		sum    float64
+		times  int
+	}{{"Provided points to the pool.", -2, 12}, {"Evaluator cancelled a defense", -1, 6}, {"Refund during sales", 1, 9},
+		{"Refund for evaluator missing", 1, 3}, {"Discovery", 1, 4}, {"Piscine Pedago", -6, 1}, {"Reajuste", 6, 1}}
+	id, at := 996001.0, time.Date(2025, 9, 20, 15, 0, 0, 0, time.UTC)
+	for _, m := range moves {
+		for k := 0; k < m.times; k++ {
+			cps = append(cps, map[string]any{"id": id, "scale_team_id": nil, "reason": m.reason, "sum": m.sum, "total": 0.0,
+				"created_at": at.Format("2006-01-02T15:04:05.000Z"), "updated_at": at.Format("2006-01-02T15:04:05.000Z")})
+			id++
+			at = at.Add(9*24*time.Hour + 5*time.Hour)
+		}
+	}
+	data["correction_points"] = cps
+	retotal(data)
+	scores := asList(data["coalition_scores"])
+	base := scores[0]
+	sid, week := 997101.0, time.Date(2025, 10, 6, 19, 0, 0, 0, time.UTC)
+	for k := 0; !week.After(datasetNow); k, week = k+1, week.Add(7*24*time.Hour) {
+		calc, value := 7.0, 500.0
+		if k%3 == 2 {
+			calc, value = 20, 1000
+		}
+		scores = append(scores, score(base, sid, "Location", calc, value, week.Format("2006-01-02T15:04:05.000Z")))
+		sid++
+	}
+	for k, x := range []struct {
+		kind  string
+		calc  float64
+		value float64
+	}{{"Transaction", 0, 30}, {"Transaction", 0, 50}, {"CommunityService", 11, -42}, {"CommunityService", 11, -42}, {"Event", 0, 25}, {"Location", 0, 12}} {
+		scores = append(scores, score(base, sid, x.kind, x.calc, x.value, time.Date(2026, time.Month(1+k), 15, 12, 0, 0, 0, time.UTC).Format("2006-01-02T15:04:05.000Z")))
+		sid++
+	}
+	data["coalition_scores"] = scores
 }
 
 // score is one coalition award like base (same coalition and member), of another kind.

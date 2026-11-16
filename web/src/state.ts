@@ -50,10 +50,21 @@ export async function api<T = any>(path: string, init: RequestInit = {}): Promis
     if (answer === null) throw new HttpError(404, { error: "offline" });
     return answer as T;
   }
-  const headers = new Headers(init.headers);
-  if (init.method && init.method !== "GET" && state.session?.user) headers.set("X-CSRF-Token", state.session.user.csrf);
-  const r = await fetch(path, { credentials: "same-origin", ...init, headers });
-  const text = await r.text();
+  const headers = new Headers(init.headers), get = !init.method || init.method === "GET";
+  if (!get && state.session?.user) headers.set("X-CSRF-Token", state.session.user.csrf);
+  // a GET the network dropped (ERR_NETWORK_CHANGED: a new interface on the machine, wifi to mobile data) is asked again
+  // twice; a POST is not, it may have reached the server
+  let r: Response, text = "";
+  for (let tries = 0; ; tries++) {
+    try {
+      r = await fetch(path, { credentials: "same-origin", ...init, headers });
+      text = await r.text();
+      break;
+    } catch (e) {
+      if (!get || tries === 2 || !(e instanceof TypeError) || init.signal?.aborted) throw e;
+      await new Promise((ok) => setTimeout(ok, 400 * 3 ** tries));
+    }
+  }
   let body: any = text;
   try { body = text ? JSON.parse(text) : null; } catch { /* not JSON */ }
   if (!r.ok) throw new HttpError(r.status, body);

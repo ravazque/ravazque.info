@@ -70,4 +70,51 @@ func TestProfilesCoverEveryKindAndTrack(t *testing.T) {
 	if n := len(many.Obj("correction_points").Obj("reasons").Keys()); n < 9 || len(cp.Os("bonuses")) < 40 || !srcs["wallet"] || !srcs["other"] || !srcs["logtime_80"] {
 		t.Fatalf("many: %d reasons, %d bonuses, sources %v", n, len(cp.Os("bonuses")), srcs)
 	}
+	// empty: two days past the kickoff, nothing in the student period yet, the Piscine still in all
+	empty := student("empty")
+	if n := len(empty.Os("received")) + len(empty.Os("given")) + len(empty.Os("projects")) + len(empty.Obj("logtime").Os("log")); n != 0 {
+		t.Fatalf("empty: %d things in the student period", n)
+	}
+	b, _ := os.ReadFile(filepath.Join(dir, "test-empty.json"))
+	r, _ := core.ParseOrdered(b)
+	if len(r.Obj("periods").Obj("all").Obj("logtime").Os("log")) == 0 {
+		t.Fatal("empty: no Piscine sessions")
+	}
+	// full: both sides of Where · evaluations looked up, off-plan computers, late logins, every seat of the clusters
+	full := student("full")
+	located, late, offPlan := map[string]int{}, map[string]int{}, map[string]bool{}
+	for _, e := range full.Os("received") {
+		if e.V("other_host_checked") == true && e.V("other_host") != nil {
+			located["received"]++
+		}
+		if e.V("my_late_min") != nil {
+			late["received"]++
+		}
+	}
+	for _, e := range full.Os("given") {
+		if e.V("other_host_checked") == true {
+			for _, c := range e.Os("correcteds") {
+				if c.V("host") != nil {
+					located["given"]++
+				}
+				if c.V("late_min") != nil {
+					late["given"]++
+				}
+			}
+		}
+	}
+	for _, s := range full.Obj("logtime").Os("seats") {
+		if !strings.HasPrefix(s.S("host"), "c") {
+			offPlan[s.S("host")] = true
+		}
+	}
+	mine := full.Obj("place").Obj("received_my_cluster")
+	if located["received"] < 30 || located["given"] < 30 || late["received"] == 0 || late["given"] == 0 || len(offPlan) < 2 || mine.V("bocal-02") == nil || mine.V("not logged") == nil {
+		t.Fatalf("full: located %v, late %v, off the plan %v, received by cluster %v", located, late, offPlan, mine.Keys())
+	}
+	b, _ = os.ReadFile(filepath.Join(dir, "test-full.json"))
+	r, _ = core.ParseOrdered(b)
+	if l := r.Obj("layout"); l.Obj("c1").I("rows") != 17 || l.Obj("c2").I("rows") != 19 || l.Obj("c3").I("rows") != 14 || l.Obj("c3").I("seats") != 6 {
+		t.Fatalf("full: layout %v", l)
+	}
 }

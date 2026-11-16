@@ -224,6 +224,10 @@
 :where(body:not(.site)) .col-tips .ch-col { cursor: default; }
 :where(body:not(.site)) .col-tips .ch-col:hover { background: color-mix(in oklab, var(--ink) 7%, transparent); }
 :where(body:not(.site)) .col-tips .ch-col:hover i { filter: brightness(1.15) saturate(1.1); }
+/* a bar told on its own (Where's clusters): its lane, the plot's whole height, lights up and opens its tip */
+:where(body:not(.site)) .ch-col .lane { flex: 1 1 0; max-width: var(--bar-max, var(--c-chart-bar-max)); height: 100%; display: flex; align-items: flex-end; cursor: default; }
+:where(body:not(.site)) .ch-col .lane:hover { background: color-mix(in oklab, var(--ink) 7%, transparent); }
+:where(body:not(.site)) .ch-col .lane:hover i { filter: brightness(1.15) saturate(1.1); }
 :where(body:not(.site)) .has-line .ch-cols:hover ~ .ch-line, :where(body:not(.site)) .has-line .ch-cols:hover ~ .ch-dot { opacity: .4; }
 :where(body:not(.site)) .ch-line polyline { stroke-width: 3; }  /* the total line, a touch bolder than the plain line charts */
 :where(body:not(.site)) .ch-dot { position: absolute; width: 6px; height: 6px; border-radius: 50%; transform: translate(-50%, 50%); z-index: 1; pointer-events: none; }
@@ -449,6 +453,8 @@
   :where(body:not(.site)) .ch-x span.alt { visibility: hidden; }
   :where(body:not(.site)) .ch-x span:last-child { display: flex; justify-content: flex-end; }
   :where(body:not(.site)) .line-end { display: block; }
+  /* Where's clusters are names, not a time line: every one shows, a long one ("not logged", "dump-…") on two lines */
+  :where(body:not(.site)) [data-panel="where-clusters"] .ch-x span { visibility: visible; display: block; white-space: normal; line-height: 1.2; }
 }
 
 /* bars and timelines read from the left: labels only as wide as the longest one needs, not a wide centred column */

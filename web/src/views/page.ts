@@ -112,6 +112,10 @@ export const block = (panel: string, body: string, title = "", note = "") =>
   `<div class="block" data-panel="${panel}">${title ? `<h3>${esc(title)}</h3>` : ""}${note ? `<p class="note">${esc(note)}</p>` : ""}${body}</div>`;
 
 /** A block whose key sits on its title's line, at the right: the one place for every chart's key. */
+/** The share of the others strictly below you in a standing (ties are not below: a whole kickoff at level 0 is above no
+ * one); reports from before the server sent below keep their own figure. */
+export const aboveShare = (s: any, old: number) => (typeof s.below === "number" && s.size > 1 ? (100 * s.below) / (s.size - 1) : old);
+
 export const headBlock = (panel: string, title: string, key: string, body: string, note = "") =>
   `<div class="block" data-panel="${panel}"><div class="block-head"><h3>${esc(title)}</h3>${key}</div>${note ? `<p class="note">${esc(note)}</p>` : ""}${body}</div>`;
 

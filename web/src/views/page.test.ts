@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { Fmt } from "../fmt";
-import { Page, daysTo, erased, monthsBetween, myTrack, projectName, shortProject } from "./page";
+import { Page, aboveShare, daysTo, erased, monthsBetween, myTrack, projectName, shortProject } from "./page";
 
 const ex = (quests: [string, boolean][]) => ({ cursus: [{ name: "42cursus" }], quests: quests.map(([name, v]) => ({ name, validated: v ? "2026-01-01" : null })) });
 
@@ -105,4 +105,10 @@ test("a project's name keeps to 28 characters in whole words, the dots apart; th
   const html = projectName("Bgp At Doors of Autonomous Systems is <Simple>");
   expect(html).toMatch(/^<details class="pop who-pop name-pop" data-float><summary>Bgp At Doors of Autonomous\.\.\.<\/summary>/);
   expect(html).toContain("Bgp At Doors of Autonomous Systems is &lt;Simple&gt;");
+});
+
+test("above share: only who is strictly below, out of the others; older reports keep their own figure", () => {
+  expect(aboveShare({ size: 422, below: 0, tied: 421 }, 100)).toBe(0);
+  expect(aboveShare({ size: 5, below: 2, tied: 1 }, 80)).toBe(50);
+  expect(aboveShare({ size: 368, rank: 104 }, 72)).toBe(72);
 });

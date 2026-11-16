@@ -144,7 +144,7 @@ function where(pg: Page): Section {
   const clus = (h: string | null) => (h && h.startsWith("c") && h.includes("r") ? h.split("r")[0] : h || "not logged");
   const count = (xs: (string | null)[]) => { const o: Record<string, number> = {}; for (const x of xs) o[clus(x)] = (o[clus(x)] || 0) + 1; return o; };
   const series: [string, Record<string, number>, string][] = [[f.t("where.s_you"), recv ? PL.received_my_cluster : PL.given_my_cluster, S1]];
-  if (pg.seats && checked.length) series.push([f.t(recv ? "where.s_corrector" : "where.s_evaluated"), count(theirs), S2]);
+  if (pg.seats) series.push([f.t(recv ? "where.s_corrector" : "where.s_evaluated"), count(theirs), S2]); // its key even with no bars: both charts read alike
   const ckeys = [...new Set(series.flatMap(([, v]) => Object.keys(v)))].sort((a, b) => Number(a === "not logged") - Number(b === "not logged") || a.localeCompare(b));
   const lab = (k: string) => (k === "not logged" ? f.t("log.not_logged") : k);
   // group evaluations happen at the leader's computer: how many of the received ones you led
@@ -159,25 +159,28 @@ function where(pg: Page): Section {
       { k: "me", t: f.t("col.nl_you"), num: true, cls: "ctr", f: (r) => linked(r.me, { project: r.project, seat: "me" }) },
       { k: "other", t: f.t(recv ? "col.nl_corrector" : "col.nl_evaluated"), num: true, cls: "ctr", f: (r) => linked(r.other, { project: r.project, seat: "other" }) },
     ], away, { label: f.t("where.nl_title"), sort: ["me", -1] })}</div>`, pg.seats ? f.t("where.nl_note", { days: pg.seats }) : "") : "";
-  // the "not logged" bar: each side's count with its projects beside it; a cluster: how many of the evaluated side logged in late
-  const late = lateByCluster(role, (recv ? D.received : D.given).map(withoutWorkLate));
-  const tips = ckeys.map((k) => [lab(k), ...series.map(([n, v], i) => `${n}: ${f.num(v[k] || 0)}` + (k === "not logged" && awayLists[i] ? ` · ${awayLists[i]}` : "")),
-    ...(k !== "not logged" ? [`${f.t(recv ? "log.late_you" : "log.late_them")}: ${f.num(late[k] || 0)}`] : []),
-    ...(k === "not logged" && recv ? [f.t("where.note_not_logged"), f.plural(led, "where.leader")] : [])].join("\n"));
+  // each bar tells its own side (owner, 2026-11-16): its count, on "not logged" its projects, on a cluster how many of
+  // the evaluated side logged in late (you on received ones, the students you evaluated on given ones)
+  const late = lateByCluster(role, (recv ? D.received : D.given).map(withoutWorkLate)), lateSide = recv ? 0 : 1;
+  const barTips = series.map(([n, v], i) => ckeys.map((k) => [lab(k), `${n}: ${f.num(v[k] || 0)}` + (k === "not logged" && awayLists[i] ? ` · ${awayLists[i]}` : ""),
+    ...(k !== "not logged" && i === lateSide ? [`${f.t(recv ? "log.late_you" : "log.late_them")}: ${f.num(late[k] || 0)}`] : []),
+    ...(k === "not logged" && recv && i === 0 ? [f.t("where.note_not_logged"), f.plural(led, "where.leader")] : [])].join("\n")));
   // the seat plan of evaluations is kept but not drawn (WHERE_PLAN): the cluster chart says it more plainly
   const shown: Record<string, number> = {};
   for (const h of theirs) if (h) shown[h] = (shown[h] || 0) + 1;
   const [wplan, wscale] = WHERE_PLAN ? seatPlan(f, layout, shown, { unit: f.t("unit.evals"), detail: (h, v) => `${h}\n${f.plural(v, "count.evaluations")}` }) : ["", ""];
   const total = recv ? S.received : S.given;
-  const cover = [f.t("where.cov_me", { me: recv ? PL.me_located_received : PL.me_located_given, n: total }),
-    !pg.seats ? f.t("where.cov_light") : checked.length || (recv ? PL.corrector_checked : PL.evaluated_checked)
-      ? f.t("where.cov_other", { x: recv ? PL.corrector_located : PL.evaluated_located, y: recv ? PL.corrector_checked : PL.evaluated_checked })
-      : f.t("where.cov_none"), pg.seats ? f.t("where.cov_window", { days: pg.seats }) : "",
-    (recv ? PL.received_away : PL.given_away) ? f.plural(recv ? PL.received_away : PL.given_away, "where.away") : ""].filter(Boolean).join(" ");
+  // one short line under each chart, its parts named as its key (owner, 2026-11-16: they had run to three lines)
+  const y = recv ? PL.corrector_checked : PL.evaluated_checked;
+  const cover = [f.t("where.cov_me", { me: recv ? PL.me_located_received : PL.me_located_given, n: total }) + " · "
+    + (!pg.seats ? f.t("where.cov_light") : checked.length || y
+      ? f.t(recv ? "where.cov_corrector" : "where.cov_evaluated", { x: recv ? PL.corrector_located : PL.evaluated_located, y, days: pg.seats })
+      : f.t("where.cov_none", { days: pg.seats })),
+    (recv ? PL.received_away : PL.given_away) ? f.plural(recv ? PL.received_away : PL.given_away, "where.away") : ""].filter(Boolean).join(". ");
   return [
     ...(WHERE_PLAN ? [`<div class="block" data-panel="where-plan"><div class="block-head">${wscale}</div>${wplan}</div>`] : []),
-    headBlock("where-clusters", f.t(`where.title_${role}`), series.length > 1 ? legend(series.map(([n, , c]) => [n, c])) : "",
-      vbars(f, ckeys.map(lab), series.map(([n, v, c]) => [n, ckeys.map((k) => v[k] || 0), c]), { label: f.t(`where.title_${role}`), fmt: (v) => f.num(v), tips, colTips: true, emptyText: f.t("empty.period") }), cover),
+    headBlock("where-clusters", f.t(`where.title_${role}`), series.length > 1 && total ? legend(series.map(([n, , c]) => [n, c])) : "",
+      vbars(f, ckeys.map(lab), series.map(([n, v, c]) => [n, ckeys.map((k) => v[k] || 0), c]), { label: f.t(`where.title_${role}`), fmt: (v) => f.num(v), barTips, emptyText: f.t("empty.period") }), total ? cover : ""), // none yet: the empty note alone
     awayTable];
   };
   return { id: "where", nav: f.t("nav.where"), html: section("where", "", cols(...one("received"), ...one("given")),

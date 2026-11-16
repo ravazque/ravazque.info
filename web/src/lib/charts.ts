@@ -38,7 +38,8 @@ function yaxis(f: Fmt, top: number, steps = 4) {
 }
 
 type VOpts = {
-  label: string; stacked?: boolean; tight?: boolean; xtitle?: string; peak?: string; line?: [string, number[], string]; barTips?: boolean;
+  label: string; stacked?: boolean; tight?: boolean; xtitle?: string; peak?: string; line?: [string, number[], string];
+  barTips?: string[][]; // each bar its own series' tip ([series][label]) on its full-height lane, the column none
   colTips?: boolean; // the whole column's strip opens the tip (a stacked month told whole), the others dim
   fmt?: (v: number) => string; every?: number; tips?: string[]; emptyText?: string;
 };
@@ -58,8 +59,10 @@ export function vbars(f: Fmt, labels: string[], series: Series[], o: VOpts): str
     const tip = o.tips ? o.tips[i]
       : [lab, ...series.map(([n, v]) => `${n} ${fmt(v[i] || 0)}`), ...(line ? [`${line[0]} ${fmt(line[1][i])}`] : [])].join(" · ");
     let k = 0; // a stack grows from the bottom up, each part in its turn (--k: its place among the parts it has)
-    const bars = series.map(([, v, c]) =>
-      `<i style="height:${pct(v[i] || 0, top)};background:${c}${o.stacked && v[i] ? `;--k:${k++}` : ""}"${v[i] && !colTip ? tipAttr(tip) : ""}></i>`).join("");
+    const bars = series.map(([, v, c], si) => {
+      const bar = `<i style="height:${pct(v[i] || 0, top)};background:${c}${o.stacked && v[i] ? `;--k:${k++}` : ""}"${v[i] && !colTip && !o.barTips ? tipAttr(tip) : ""}></i>`;
+      return o.barTips ? `<span class="lane"${tipAttr(o.barTips[si][i])}>${bar}</span>` : bar; // the bar's whole height opens its tip, like a column
+    }).join("");
     const cap = o.peak && i === best
       ? `<b class="peak">${esc(o.peak.replace("{v}", fmt(totals[i])).replace("{label}", lab))}</b>` : "";
     return `<div class="ch-col${o.stacked ? " stack" : ""}"${colTip ? tipAttr(tip) : ""}>${cap}${bars}</div>`;

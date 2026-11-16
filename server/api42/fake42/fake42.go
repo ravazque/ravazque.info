@@ -83,6 +83,17 @@ func Handler(d map[string]any, miss func(path string)) http.HandlerFunc {
 			v = d["blocs"]
 		case scores.MatchString(p):
 			v = d["coalition_scores"]
+		case p == "/v2/locations" && d["peer_locations"] != nil: // the profile sets its peers' sessions itself
+			span, want := strings.Split(q.Get("range[begin_at]"), ","), ids(q.Get("filter[user_id]"))
+			out := []any{}
+			for _, x := range d["peer_locations"].([]any) {
+				l := x.(map[string]any)
+				who, _ := l["user"].(map[string]any)
+				if b, _ := time.Parse(time.RFC3339Nano, l["begin_at"].(string)); who != nil && want[who["id"].(float64)] && len(span) == 2 && b.Format("2006-01-02T15:04:05Z") >= span[0] && b.Format("2006-01-02T15:04:05Z") <= span[1] {
+					out = append(out, l)
+				}
+			}
+			v = out
 		case p == "/v2/locations": // a peer is at the same computer all that day, one in five not logged in
 			first, _ := time.Parse("2006-01-02T15:04:05Z", strings.Split(q.Get("range[begin_at]"), ",")[0])
 			day := first.AddDate(0, 0, 1)

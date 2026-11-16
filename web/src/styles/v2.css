@@ -338,7 +338,7 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
    no box, 16 px above the chart */
 :where(body:not(.site)) .block-head .legend, :where(body:not(.site)) .block-head .scale { margin: 0; }
 :where(body:not(.site)) .block-head .scale .grp:last-child { margin-right: 0; }
-:where(body:not(.site)) .block-head > :only-child { margin-left: auto; }
+:where(body:not(.site)) .block-head > :only-child:not(h3) { margin-left: auto; } /* a key alone, never a title alone */
 :where(body:not(.site)) .block-head:has(.legend, .scale, .head-figure) { margin-bottom: 16px; }
 :where(body:not(.site)) :is([data-panel="correctors"], [data-panel="where-clusters"]) .block-head .legend { padding: 5px 12px; border: var(--key-box) solid var(--rule); }
 /* a panel with no title of its own right under the section's title: no second rule */

@@ -890,8 +890,6 @@
  "where.s_you": "You",
  "where.s_corrector": "Your corrector",
  "where.s_evaluated": "Whom you evaluated",
- "where.cov_me": "Your seat: known for {me} of {n} evaluations.",
- "where.cov_none": "The other side's seat: no evaluations in that window.",
  "where.cov_light": "The other side's seat is not looked up here.",
  "nav.crossed": "People",
  "who.rating_tip": "You rated them {mine} · they rated you {theirs} (– = no rating)",
@@ -899,8 +897,6 @@
  "days.l_span": "{days} on campus, from {first} to {last}.",
  "days.l_avg": "Average per day: {avg}.",
  "days.l_longest": "Longest session: {longest}.",
- "where.cov_other": "The other side's seat: known for {x} of {y}.",
- "where.cov_window": "Only the last {days} days.",
  "where.note_not_logged": "No session of yours was open, as in a group evaluation at the team leader's computer.",
  "common.exception": "[Exception]:",
  "who.erased": "Deleted account",
@@ -1017,5 +1013,11 @@
  "widgets.down": "Move “{name}” down",
  "standing.per_level": "Students per level",
  "projects.lane_work": "Work experience",
- "projects.outside": "Other cursus (Discovery, Reload…)"
+ "projects.outside": "Other cursus (Discovery, Reload…)",
+ "where.cov_me": "Seat known: you, {me} of {n}",
+ "where.cov_corrector": "your corrector, {x} of {y} in the last {days} days",
+ "where.cov_evaluated": "whom you evaluated, {x} of {y} in the last {days} days",
+ "where.cov_none": "the other side: no evaluations in the last {days} days",
+ "profile.promo_tied": "Same level as your whole kickoff",
+ "standing.promo_tied": {"one": "{n} more at your level.", "other": "{n} more at your level."}
 }

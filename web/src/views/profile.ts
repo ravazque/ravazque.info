@@ -1,7 +1,7 @@
 // Profile (the home page): who you are, three figures of your history, the path so far, and the sections of other pages
 // kept as widgets (in this browser; Contribution, Rhythm and the bonus to begin with; Activity is one of them).
 import { badge, esc, initials } from "../lib/h";
-import { Page, type PageKey, type Section, block, cols, info, myRank, myTrack, section } from "./page";
+import { Page, type PageKey, type Section, aboveShare, block, cols, info, myRank, myTrack, section } from "./page";
 import { projects } from "./projects";
 import { evaluations } from "./evaluations";
 import { coalition } from "./coalition";
@@ -34,7 +34,7 @@ function card(pg: Page): string {
   // and the correction points earned and spent in the period, with what the balance holds from the other one
   const CP = D.correction_points, M = pg.v.madrid, hundredths = main ? Math.round(main.level * 100) : 0;
   const level = !main ? "" : M ? esc(M.top <= 50 ? f.t("profile.madrid_top", { pct: f.num(M.top, 1) })
-    : f.t("profile.madrid_above", { pct: f.num((100 * (M.size - M.rank)) / M.size, 1) }))
+    : f.t("profile.madrid_above", { pct: f.num(aboveShare(M, (100 * (M.size - M.rank)) / M.size), 1) }))
     : esc(f.t("profile.level_next", { pct: hundredths % 100, next: Math.floor(hundredths / 100) + 1 }));
   // what the balance holds from outside the period (the Piscine's, seen from the student period) goes into earned or
   // spent, so that the line adds up to the figure (the historics' sums do; their running totals don't)
@@ -44,7 +44,8 @@ function card(pg: Page): string {
     ["level", main && M ? `<span class="tab-t">${esc(f.t("home.k_level"))}${info(f.t("profile.madrid_tip", { n: f.num(M.size) }))}</span>` : esc(f.t("home.k_level")),
       main?.grade || "42cursus", main ? num(f, main.level, 2) : "–", level],
     ["promo", esc(f.t("standing.promo")), P.campus_current || "", promo ? `#${num(f, promo.rank)}<small> / ${esc(f.num(promo.size))}</small>` : "–",
-      promo ? esc(f.t("profile.promo_line", { pct: f.num(promo.percentile, 1) })) : ""],
+      !promo ? "" : promo.size > 1 && promo.tied === promo.size - 1 ? esc(f.t("profile.promo_tied")) // the whole kickoff at your level
+        : esc(f.t("profile.promo_line", { pct: f.num(aboveShare(promo, promo.percentile), 1) }))],
     ["wallet", esc(f.t("head.wallet")), "", has(P.wallet) ? num(f, P.wallet, 0, " ₳") : "–", has(P.wallet) ? esc(f.t("profile.wallet_line")) : ""],
     ["points", esc(f.t("head.points")), "", has(P.correction_point) ? num(f, P.correction_point) : "–", points]] as [string, string, string, string, string][])
     .map(([k, t, aside, v, line]) => `<article class="module" data-module="${k}"><h3 class="tab">${t}${aside ? `<span>${esc(aside)}</span>` : ""}</h3><p class="figure">${v}</p>`
