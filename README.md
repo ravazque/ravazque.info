@@ -139,6 +139,7 @@ make dev-logs        # follow dev's logs
                      # every dev level attaches to a dev already up, unless the code, settings or level changed; make dev-down lowers a level
 make dev-down        # stop dev (browsers keep their reports)
 make test            # Go tests, type check and Vitest, the site's and the evaluation report's tests
+make update          # update base images, npm packages and Actions (patch and minor), then make test; every dev level lists what is out of date
 make production      # build and start https://ravazque.info through the Cloudflare tunnel
 make production-down # stop production (the consent log stays in its volume)
 make logs            # follow production's logs
@@ -253,7 +254,10 @@ Every push and pull request runs `.github/workflows/ci.yml`:
 
 `main` is protected: all four checks must pass, and force-push and deletion are blocked. When CI passes on `main`,
 `pages.yml` deploys `site/` to GitHub Pages. CodeQL scans Go, TypeScript and the workflows, and Dependabot alerts
-report vulnerable dependencies; updates are applied by hand. Actions are pinned to commit SHAs.
+report vulnerable dependencies. Updates are applied by hand with `make update` (`tools/update.sh`): image digests,
+cloudflared, npm packages and Actions to the newest patch or minor version, then `make test`; newer major versions
+are only listed. Every `make dev*` lists what is out of date (asked at most once a day). Actions are pinned to commit
+SHAs.
 
 The web app itself is not deployed by CI: production runs on the owner's machine and is updated with
 `make production`.

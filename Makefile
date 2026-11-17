@@ -8,7 +8,7 @@ OPEN_DEV := nohup $(CHROME) https://localhost >/dev/null 2>&1 &
 TEST_PROFILES := /preview/test-*.json
 REAL_PROFILES := /preview/real-*.json
 .DEFAULT_GOAL := help
-.PHONY: help dev dev-build dev-real dev-live dev-up dev-vite profiles-test profiles-real dev-down dev-fclean dev-logs production production-down logs down ps test preview snapshot eval-report report site certs clean fclean re
+.PHONY: help dev dev-build dev-real dev-live dev-up dev-vite profiles-test profiles-real dev-down dev-fclean dev-logs production production-down logs down ps test preview snapshot eval-report report site certs clean fclean re update
 
 help: ## Show this help
 	@echo "ravazque.info — dev at https://localhost, production at https://ravazque.info (both sign in with FT_UID)"
@@ -55,6 +55,7 @@ profiles-real: profiles-test
 # It keeps a running dev that already serves this level's profiles, replaces one that does not answer, and restarts
 # the server when a profile changed after it started (it reads them only at the start).
 dev-up: .env web/Caddyfile.local
+	@(timeout 60 bash tools/update.sh check >/dev/null 2>&1 &)
 	@mkdir -p web/preview
 	@set -f; api=ravazque-info-dev-api-1; state() { docker inspect -f "$$1" $$api 2>/dev/null; }; \
 	 before=$$(state '{{.State.StartedAt}}'); serve='$(SERVE)'; force=; \
@@ -68,6 +69,7 @@ dev-up: .env web/Caddyfile.local
 	 if [ -n "$$(find web/preview \( -name 'test-*.json' -o -name 'real-*.json' \) -newermt "$$(state '{{.State.StartedAt}}')")" ]; then $(COMPOSE_DEV) restart api; fi; \
 	 timeout 60 sh -c 'until curl -sfk -o /dev/null https://localhost/healthz; do sleep 1; done' || { echo "Dev did not answer in 60 s: make dev-logs"; exit 1; }; \
 	 [ "$$before" != "$$(state '{{.State.StartedAt}}')" ] || echo "Nothing to update: attached to the running dev"
+	@[ ! -s .update-check ] || sed 's/^/  /' .update-check
 
 dev-down: ## Stop dev and remove its containers (its sessions and server copies go; browsers keep theirs)
 	@$(COMPOSE_DEV) down --remove-orphans
@@ -95,11 +97,19 @@ down: dev-down production-down ## Stop dev and production
 ps: ## Show the services of both
 	@$(COMPOSE) --profile tunnel ps; $(COMPOSE_DEV) ps
 
-test: ## Run every test: Go (server), the browser app (web), the site's scripts and the evaluation report
+test: ## Run every test: Go (server), the browser app (web), the site's scripts, the evaluation report and tools/update.sh
+	@bash tools/update.sh selftest
 	@cd server && go vet ./... && go test ./...
 	@cd web && npm ci --no-audit --no-fund --silent && npx vue-tsc --noEmit && npx vitest run
 	@node --test site/tests/*.test.mjs
 	@python3 tools/evaluation-report/test_evaluation_report.py
+
+# the make dev* targets list what is out of date (asked at most once a day, in the background); this applies it
+update: ## Update base images, npm packages and Actions (patch and minor; majors are only listed), then make test
+	@bash tools/update.sh apply
+	@$(MAKE) --no-print-directory test
+	@git status --short -- Dockerfile compose.yaml .github/workflows web/package.json web/package-lock.json
+	@echo "Next: make dev-build to try it, commit, push; on the EC2: git pull && make production"
 
 preview: .env ## Save a real extraction to web/preview/data.json for make snapshot (UID=<42 user id>, about 120 requests)
 	@mkdir -p web/preview && $(DEVTOOLS) fetch $(UID) $(CURDIR)/web/preview/data.json
