@@ -268,8 +268,9 @@ Cada push y cada pull request ejecutan `.github/workflows/ci.yml`:
   resultados de compilación, carpetas locales).
 
 `main` está protegida: los cuatro checks tienen que pasar, y el force-push y el borrado están bloqueados. Cuando el
-CI pasa en `main`, `pages.yml` despliega `site/` en GitHub Pages. CodeQL analiza Go, TypeScript y los workflows, y
-Dependabot propone actualizaciones semanales para Go, npm, Docker y Actions. Las Actions van fijadas por SHA de commit.
+CI pasa en `main`, `pages.yml` despliega `site/` en GitHub Pages. CodeQL analiza Go, TypeScript y los workflows, y las
+alertas de Dependabot avisan de dependencias vulnerables; las actualizaciones se aplican a mano. Las Actions van
+fijadas por SHA de commit.
 
 La aplicación web no la despliega el CI: producción corre en la máquina del autor y se actualiza con
 `make production`.

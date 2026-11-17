@@ -252,8 +252,8 @@ Every push and pull request runs `.github/workflows/ci.yml`:
   is tracked.
 
 `main` is protected: all four checks must pass, and force-push and deletion are blocked. When CI passes on `main`,
-`pages.yml` deploys `site/` to GitHub Pages. CodeQL scans Go, TypeScript and the workflows, and Dependabot proposes
-weekly updates for Go, npm, Docker and Actions. Actions are pinned to commit SHAs.
+`pages.yml` deploys `site/` to GitHub Pages. CodeQL scans Go, TypeScript and the workflows, and Dependabot alerts
+report vulnerable dependencies; updates are applied by hand. Actions are pinned to commit SHAs.
 
 The web app itself is not deployed by CI: production runs on the owner's machine and is updated with
 `make production`.
