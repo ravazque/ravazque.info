@@ -27,9 +27,9 @@ Six pages. Every choice (period, filters, views) lives in the address, so any vi
   (Activity among them: achievements, events, titles and quests beside your campuses), remove, resize and drag them into
   place; it is kept in your browser.
 - **Projects**: your pace (time in the 42cursus, XP per month, your promo by level), skills, every project and attempt
-  with filters (status among them), grouped by milestone (0 = Libft … 6) for the C and the Python Common Core (a project
-  done in both tracks says which), each group shut with its count, projects of other cursus (Discovery, Reload…) apart,
-  CSV export, exams, technical domains (the intra's RNCP tags) and a timeline of every attempt, a row per milestone.
+  in one register with its milestone (0 = Libft … 6, for the C and the Python Common Core; a project done in both
+  tracks says which) and filters by status and milestone, projects of other cursus (Discovery, Reload…) apart, CSV
+  export, exams, technical domains (the intra's RNCP tags) and a timeline of every attempt, a row per milestone.
 - **Evaluations**: what you give back (hours, people, rating, how many ended below 50, Outstanding both ways, by the
   other person's milestone), received and given over time, when they happen (weekday × hour, duration, how far
   ahead they were booked), your feedback (as a student, only the 42cursus counts; Discovery
@@ -125,7 +125,7 @@ The full policy is on the Privacy page of the app. Security issues: see [SECURIT
 - **Serving**: Docker Compose, Caddy 2.11 (HTTPS, headers, compression) and, in production, a Cloudflare tunnel. The
   image is built in stages (Node 26 → Go 1.27 → distroless) and runs as a non-root user; every base image is pinned by
   digest.
-- **Tests**: Go's `testing`, Vitest 5 and `node --test`.
+- **Tests**: Go's `testing`, Vitest 5 and Python's `unittest`.
 
 ## Build and run
 
@@ -139,7 +139,7 @@ make dev-live        # dev-real plus editing live: opens the browser app from we
 make dev-logs        # follow dev's logs
                      # every dev level attaches to a dev already up, unless the code, settings or level changed; make dev-down lowers a level
 make dev-down        # stop dev (browsers keep their reports)
-make test            # Go tests, type check and Vitest, the site's and the evaluation report's tests
+make test            # Go tests, type check and Vitest, the evaluation report's and tools/update.sh's tests
 make update          # update base images, npm packages and Actions (patch and minor), then make test; every dev level lists what is out of date
 make production      # build and start https://ravazque.info through the Cloudflare tunnel
 make production-down # stop production (the consent log stays in its volume)
@@ -161,9 +161,9 @@ for `make test` and the dev tools.
 
 ### First run
 
-1. Register the 42 applications at https://profile.intra.42.fr/oauth/applications (scope `public`): one for dev with
-   the redirect URI `https://localhost/auth/callback`, one for production with `https://ravazque.info/auth/callback`.
-   A third one is optional and only adds request budget.
+1. Register a 42 application at https://profile.intra.42.fr/oauth/applications (scope `public`) with both redirect
+   URIs, `https://ravazque.info/auth/callback` and `https://localhost/auth/callback`: it signs users in on both. Up to
+   two more are optional and only add request budget.
 2. Run `make`: it copies `.env.example` to `.env`. Fill it (below) and keep it private (`chmod 600 .env`).
 3. `make certs`, then `make dev-build`: https://localhost opens in Chrome.
 
@@ -182,20 +182,22 @@ TUNNEL_TOKEN                 # production: the Cloudflare tunnel's token
 DEV_REAL_LOGINS              # dev: 42 logins (comma-separated) whose real reports make dev-real serves
 OPTOUT_LOGINS                # optional: logins shown as "Hidden"
 ISSUES_URL                   # optional: "Report an issue" link
-OWNER_LOGIN, GITHUB_TOKEN,   # optional: the publish button (hidden unless OWNER_LOGIN
-GITHUB_REPO, GITHUB_BRANCH   #   and GITHUB_TOKEN are set)
+OWNER_LOGIN, GITHUB_TOKEN,   # optional: the publish button (hidden unless OWNER_LOGIN,
+GITHUB_REPO, GITHUB_BRANCH   #   GITHUB_TOKEN and GITHUB_REPO are set)
 ```
 
 ## Modes
 
-- **Dev** (`make dev-build`, https://localhost) signs in with the second 42 app. The landing also offers nine
-  **Test** profiles (a new student, one halfway through the Common Core, an Outer Core transcender, an alumni, a
-  Python-track student, a Python-track transcender, a student who moved from C to Python, and two to check the side
-  tables and lists: one with very little, which fills them with templates, and one with a lot, which makes them scroll): synthetic data moved to
+- **Dev** (`make dev-build`, https://localhost) signs in with the same 42 app as production. The landing also offers
+  eleven **Test** profiles (a new student, one halfway through the Common Core, an Outer Core transcender, an alumni, a
+  Python-track student, a Python-track transcender, a student who moved from C to Python, two to check the side tables
+  and lists, one with very little, which fills them with templates, and one with a lot, which makes them scroll, one
+  two days past the kickoff with nothing after the Piscine, and one with everything: every seat of the clusters and a
+  hundred recent evaluations): synthetic data moved to
   today's date, never real people, never able to publish or refresh. `make dev-real` adds **Real · login** for the
   logins in `DEV_REAL_LOGINS`, saved in `web/preview/` (local only). A code change needs `make dev-build` again; `make dev-live` shows the
   browser app's changes at once (`ui.json` and the server still need the rebuild).
-- **Production** (`make production`, https://ravazque.info) signs in with the first app and is served through a named
+- **Production** (`make production`, https://ravazque.info) is served through a named
   Cloudflare tunnel (Zero Trust → Networks → Tunnels: a Docker connector whose public hostname points to
   `http://caddy:8080`; its token goes in `TUNNEL_TOKEN`). Dev and production are separate Compose projects and can run
   side by side. It runs on one machine, today an AWS EC2 in Stockholm.
@@ -263,7 +265,7 @@ cloudflared, npm packages and Actions to the newest patch or minor version, then
 are only listed. Every `make dev*` lists what is out of date (asked at most once a day). Actions are pinned to commit
 SHAs.
 
-The web app itself is not deployed by CI: production runs on the owner's machine and is updated with
+The web app itself is not deployed by CI: production runs on one machine (today an AWS EC2) and is updated there with
 `make production`.
 
 ## Tests

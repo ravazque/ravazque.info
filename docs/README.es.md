@@ -29,9 +29,9 @@ guardar o compartir.
   ocurren las evaluaciones. Añade más desde el selector del final (Actividad entre ellas: logros, eventos, títulos y
   quests junto a tus campus), quítalos, cambia su tamaño y arrástralos a su sitio; se guarda en tu navegador.
 - **Proyectos**: tu avance (tiempo en el 42cursus, XP por mes, tu promo por nivel), skills, cada proyecto e intento
-  con filtros (también por estado), agrupados por milestone (0 = Libft … 6) para el Common Core de C y el de Python (un
-  proyecto hecho en los dos cursos dice cuál es cuál), cada grupo cerrado con su número, los proyectos de otros cursus
-  (Discovery, Reload…) aparte, exportación a CSV, exámenes, dominios técnicos (las etiquetas RNCP de la intra) y una
+  en un solo registro con su milestone (0 = Libft … 6, para el Common Core de C y el de Python; un proyecto hecho en los
+  dos cursos dice cuál es cuál) y filtros por estado y milestone, los proyectos de otros cursus (Discovery, Reload…)
+  aparte, exportación a CSV, exámenes, dominios técnicos (las etiquetas RNCP de la intra) y una
   línea de tiempo con todos los intentos, una fila por milestone.
 - **Evaluaciones**: lo que devuelves (horas, personas, valoración, cuántas acabaron por debajo de 50, Outstanding en
   los dos sentidos, según el milestone de la otra persona), recibidas y hechas a lo largo del tiempo, cuándo ocurren
@@ -136,7 +136,7 @@ La política completa está en la página de Privacidad de la aplicación. Probl
 - **Despliegue**: Docker Compose, Caddy 2.11 (HTTPS, cabeceras, compresión) y, en producción, un túnel de Cloudflare.
   La imagen se construye por etapas (Node 26 → Go 1.27 → distroless) y corre sin root; todas las imágenes base van
   fijadas por digest.
-- **Tests**: `testing` de Go, Vitest 5 y `node --test`.
+- **Tests**: `testing` de Go, Vitest 5 y `unittest` de Python.
 
 ## Compilar y arrancar
 
@@ -150,7 +150,7 @@ make dev-live        # dev-real más edición en vivo: abre en Chrome la app del
 make dev-logs        # sigue los logs de dev
                      # cada nivel de dev se engancha a un dev ya levantado, salvo que cambien el código, los ajustes o el nivel; make dev-down baja de nivel
 make dev-down        # para dev (los navegadores conservan sus informes)
-make test            # tests de Go, comprobación de tipos y Vitest, tests del sitio y del informe de evaluaciones
+make test            # tests de Go, comprobación de tipos y Vitest, tests del informe de evaluaciones y de tools/update.sh
 make update          # actualiza imágenes base, paquetes npm y Actions (parches y menores) y pasa make test; cada nivel de dev lista lo desactualizado
 make production      # compila y arranca https://ravazque.info a través del túnel de Cloudflare
 make production-down # para producción (el registro de aceptación se queda en su volumen)
@@ -172,9 +172,9 @@ para `make test` y las herramientas de desarrollo.
 
 ### Primera vez
 
-1. Registra las aplicaciones de 42 en https://profile.intra.42.fr/oauth/applications (scope `public`): una para dev
-   con la redirect URI `https://localhost/auth/callback` y otra para producción con
-   `https://ravazque.info/auth/callback`. Una tercera es opcional y solo añade presupuesto de peticiones.
+1. Registra una aplicación de 42 en https://profile.intra.42.fr/oauth/applications (scope `public`) con las dos
+   redirect URI, `https://ravazque.info/auth/callback` y `https://localhost/auth/callback`: inicia sesión en las dos.
+   Hasta dos más son opcionales y solo añaden presupuesto de peticiones.
 2. Ejecuta `make`: copia `.env.example` a `.env`. Rellénalo (abajo) y mantenlo privado (`chmod 600 .env`).
 3. `make certs`, después `make dev-build`: https://localhost se abre en Chrome.
 
@@ -193,22 +193,23 @@ TUNNEL_TOKEN                 # producción: el token del túnel de Cloudflare
 DEV_REAL_LOGINS              # dev: logins de 42 (separados por comas) cuyos informes reales sirve make dev-real
 OPTOUT_LOGINS                # opcional: logins que se muestran como "Hidden"
 ISSUES_URL                   # opcional: enlace "Informar de un problema"
-OWNER_LOGIN, GITHUB_TOKEN,   # opcional: el botón de publicar (oculto salvo que OWNER_LOGIN
-GITHUB_REPO, GITHUB_BRANCH   #   y GITHUB_TOKEN estén definidos)
+OWNER_LOGIN, GITHUB_TOKEN,   # opcional: el botón de publicar (oculto salvo que OWNER_LOGIN,
+GITHUB_REPO, GITHUB_BRANCH   #   GITHUB_TOKEN y GITHUB_REPO estén definidos)
 ```
 
 ## Modos
 
-- **Dev** (`make dev-build`, https://localhost) entra con la segunda app de 42. La página de entrada ofrece además
-  nueve perfiles **Test** (un estudiante nuevo, uno a mitad del Common Core, un transcender del Outer Core, un alumni,
-  un estudiante de la rama Python, un transcender de la rama Python, un estudiante que pasó de C a Python, y dos para
-  revisar las tablas y listas laterales: uno con muy pocos datos, que las rellena de plantillas, y otro con muchos, que
-  las hace desplazarse): datos
+- **Dev** (`make dev-build`, https://localhost) entra con la misma app de 42 que producción. La página de entrada
+  ofrece además once perfiles **Test** (un estudiante nuevo, uno a mitad del Common Core, un transcender del Outer Core,
+  un alumni, un estudiante de la rama Python, un transcender de la rama Python, un estudiante que pasó de C a Python,
+  dos para revisar las tablas y listas laterales, uno con muy pocos datos, que las rellena de plantillas, y otro con
+  muchos, que las hace desplazarse, uno a dos días del kickoff sin nada después de la Piscina, y uno con todo: cada
+  asiento de los clusters y cien evaluaciones recientes): datos
   sintéticos movidos a la fecha de hoy, nunca personas reales, que no pueden publicar ni actualizar. `make dev-real`
   añade **Real · login** para los logins de `DEV_REAL_LOGINS`, guardados en `web/preview/` (solo en local). Un cambio
   en el código necesita `make dev-build` de nuevo; `make dev-live` muestra al momento los cambios de la app del navegador
   (`ui.json` y el servidor siguen necesitando reconstruir).
-- **Producción** (`make production`, https://ravazque.info) entra con la primera app y se sirve a través de un túnel
+- **Producción** (`make production`, https://ravazque.info) se sirve a través de un túnel
   de Cloudflare con nombre (Zero Trust → Networks → Tunnels: un conector Docker cuyo hostname público apunta a
   `http://caddy:8080`; su token va en `TUNNEL_TOKEN`). Dev y producción son proyectos de Compose distintos y pueden
   funcionar a la vez. Corre en una sola máquina, hoy un EC2 de AWS en Estocolmo.
@@ -278,8 +279,8 @@ alertas de Dependabot avisan de dependencias vulnerables. Las actualizaciones se
 menor, y después `make test`; las versiones mayores solo se listan. Cada `make dev*` lista lo desactualizado (lo
 consulta como mucho una vez al día). Las Actions van fijadas por SHA de commit.
 
-La aplicación web no la despliega el CI: producción corre en la máquina del autor y se actualiza con
-`make production`.
+La aplicación web no la despliega el CI: producción corre en una sola máquina (hoy un EC2 de AWS) y se actualiza allí
+con `make production`.
 
 ## Tests
 
