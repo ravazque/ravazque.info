@@ -355,12 +355,14 @@ func TestOptedOutStudentsAreHidden(t *testing.T) {
 
 func TestPublishOwnerOnlyAndWhitelisted(t *testing.T) {
 	var put []byte
+	var putPath string
 	gh := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			w.WriteHeader(404)
 			return
 		}
 		put, _ = io.ReadAll(r.Body)
+		putPath = r.URL.Path
 		w.Write([]byte(`{"commit":{"html_url":"https://github.example/c/1"}}`))
 	}))
 	defer gh.Close()
@@ -372,6 +374,9 @@ func TestPublishOwnerOnlyAndWhitelisted(t *testing.T) {
 	r := e.do(t, "POST", "/api/me/publish", nil, nil)
 	if body := readAll(r); r.StatusCode != 200 || !strings.Contains(body, "github.example") {
 		t.Fatal(r.StatusCode, body)
+	}
+	if putPath != "/repos/o/r/contents/data/42.json" {
+		t.Fatal("the snapshot goes to the root of the site's repository, got", putPath)
 	}
 	var b struct{ Content string }
 	json.Unmarshal(put, &b)

@@ -51,8 +51,6 @@ jobs:
       - name: Known vulnerabilities in the browser app's dependencies
         working-directory: web
         run: npm audit --audit-level=high
-      - name: The site's scripts
-        run: node --test site/tests/*.test.mjs
       - name: The evaluation report
         run: python3 tools/evaluation-report/test_evaluation_report.py
 

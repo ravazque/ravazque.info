@@ -1,4 +1,4 @@
-// Command uicss prints the CSS made from ui.json (the site's build and the web build use it).
+// Command uicss prints the CSS made from ui.json (make site-sync writes it into the site's repository; the web build uses it).
 package main
 
 import (

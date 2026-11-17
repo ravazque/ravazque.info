@@ -13,11 +13,12 @@ import (
 	"ravazque.info/server/core"
 )
 
-// The public snapshot for ravazque.github.io and its commit through the GitHub Contents API. The snapshot is a
-// whitelist: every field is copied by name from the owner's report, so nothing new (contact data, seats, logged hours,
-// other students) can reach the public site by accident.
+// The public snapshot and its commit through the GitHub Contents API into the site's own repository (GITHUB_REPO,
+// ravazque/ravazque.github.io: its token can write nothing else). The snapshot is a whitelist: every field is copied by
+// name from the owner's report, so nothing new (contact data, seats, logged hours, other students) can reach the public
+// site by accident.
 
-const siteDataPath = "site/data/42.json"
+const siteDataPath = "data/42.json"
 
 var (
 	cursusTracks = []string{"common-core", "outer-core"}

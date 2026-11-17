@@ -14,8 +14,6 @@ tools/evaluation-report/out/
 # Generated
 web/Caddyfile.local
 web/preview/
-site/_build/
-_site/
 __pycache__/
 *.pyc
 .pytest_cache/

@@ -8,7 +8,7 @@ OPEN_DEV := nohup $(CHROME) https://localhost >/dev/null 2>&1 &
 TEST_PROFILES := /preview/test-*.json
 REAL_PROFILES := /preview/real-*.json
 .DEFAULT_GOAL := help
-.PHONY: help dev dev-build dev-real dev-live dev-up dev-vite profiles-test profiles-real dev-down dev-fclean dev-logs production production-down logs down ps test preview snapshot eval-report report site certs clean fclean re update
+.PHONY: help dev dev-build dev-real dev-live dev-up dev-vite profiles-test profiles-real dev-down dev-fclean dev-logs production production-down logs down ps test preview snapshot eval-report report site-sync certs clean fclean re update
 
 help: ## Show this help
 	@echo "ravazque.info — dev at https://localhost, production at https://ravazque.info (both sign in with FT_UID)"
@@ -97,11 +97,10 @@ down: dev-down production-down ## Stop dev and production
 ps: ## Show the services of both
 	@$(COMPOSE) --profile tunnel ps; $(COMPOSE_DEV) ps
 
-test: ## Run every test: Go (server), the browser app (web), the site's scripts, the evaluation report and tools/update.sh
+test: ## Run every test: Go (server), the browser app (web), the evaluation report and tools/update.sh
 	@bash tools/update.sh selftest
 	@cd server && go vet ./... && go test ./...
 	@cd web && npm ci --no-audit --no-fund --silent && npx vue-tsc --noEmit && npx vitest run
-	@node --test site/tests/*.test.mjs
 	@python3 tools/evaluation-report/test_evaluation_report.py
 
 # the make dev* targets list what is out of date (asked at most once a day, in the background); this applies it
@@ -114,19 +113,23 @@ update: ## Update base images, npm packages and Actions (patch and minor; majors
 preview: .env ## Save a real extraction to web/preview/data.json for make snapshot (UID=<42 user id>, about 120 requests)
 	@mkdir -p web/preview && $(DEVTOOLS) fetch $(UID) $(CURDIR)/web/preview/data.json
 
-snapshot: ## Write site/data/42.json from web/preview/data.json (what the publish button would send)
-	@$(DEVTOOLS) snapshot $(CURDIR)/web/preview/data.json $(CURDIR)/site/data/42.json
+# the CV site lives in its own repository (ravazque/ravazque.github.io), checked out beside this one
+SITE_DIR ?= ../ravazque.github.io
+snapshot: ## Write the site's data/42.json from web/preview/data.json (what the publish button would send; SITE_DIR=../ravazque.github.io)
+	@test -d $(SITE_DIR) || { echo "No site checkout at $(SITE_DIR): git clone git@github.com:ravazque/ravazque.github.io.git $(SITE_DIR)"; exit 1; }
+	@$(DEVTOOLS) snapshot $(CURDIR)/web/preview/data.json $(abspath $(SITE_DIR))/data/42.json
+
+site-sync: ## Write the site's ui.css and fonts.css from this app's look (SITE_DIR=../ravazque.github.io), then commit there
+	@test -d $(SITE_DIR) || { echo "No site checkout at $(SITE_DIR): git clone git@github.com:ravazque/ravazque.github.io.git $(SITE_DIR)"; exit 1; }
+	@cd server && go run ./cmd/uicss > $(abspath $(SITE_DIR))/ui.css
+	@cp web/src/styles/fonts.css $(SITE_DIR)/shared/fonts.css
+	@git -C $(SITE_DIR) status --short -- ui.css shared/fonts.css; echo "accent.js and the controls are kept in step by hand (web/src/legacy ↔ shared/)"
 
 eval-report: .env ## Ask for a 42 login and write its evaluation history as one private HTML page (about 130 requests)
 	@python3 tools/evaluation-report/evaluation_report.py
 
 report: eval-report ## make eval-report, then open the page it wrote in Chrome
 	@nohup $(CHROME) "$$(ls -t $(CURDIR)/tools/evaluation-report/out/*.html | head -1)" >/dev/null 2>&1 &
-
-site: ## Build the GitHub Pages site into site/_build and serve it at http://localhost:8080
-	@sh site/build.sh site/_build
-	@echo "http://localhost:8080 (Ctrl-C to stop)"
-	@python3 -m http.server --bind 127.0.0.1 --directory site/_build 8080
 
 certs: ## Create the HTTPS certificates for https://localhost in web/certs/
 	@sh web/scripts/certs.sh
@@ -136,8 +139,7 @@ web/Caddyfile.local: web/Caddyfile.tmpl $(wildcard web/certs/localhost.pem)
 	 sed "s|TLS_LINE|$$line|" web/Caddyfile.tmpl > $@
 
 # clean and fclean never touch production: its containers, image, volumes (the consent log), Caddyfile.local and certs
-clean: dev-down ## dev-down + delete generated files (site/_build, the app's build); production keeps running
-	@rm -rf site/_build
+clean: dev-down ## dev-down + delete generated files (the app's build); production keeps running
 	@find server/internal/web/dist -mindepth 1 ! -name .gitkeep -exec rm -rf {} +
 
 fclean: clean dev-fclean ## clean + dev-fclean + web/node_modules: everything but production and web/certs

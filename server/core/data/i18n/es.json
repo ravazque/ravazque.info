@@ -508,7 +508,7 @@
  "connections.tip_last": "última {when}",
  "publish.button": "ravazque.github.io",
  "publish.title": "¿Publicar tu perfil público?",
- "publish.confirm": "Esto hace commit de site/data/42.json en el repositorio ravazque.github.io, que se ve en ravazque.github.io/ravazque: nivel, estado del cursus, proyectos validados, recuento de evaluaciones, coalición y mejores skills. Sin datos de contacto, asientos, horas ni otros estudiantes. La página se actualiza un minuto después.",
+ "publish.confirm": "Esto hace commit de data/42.json en el repositorio ravazque.github.io, que se ve en ravazque.github.io/ravazque: nivel, estado del cursus, proyectos validados, recuento de evaluaciones, coalición y mejores skills. Sin datos de contacto, asientos, horas ni otros estudiantes. La página se actualiza un minuto después.",
  "publish.yes": "Publicar",
  "publish.no": "Cancelar",
  "publish.sending": "Publicando…",

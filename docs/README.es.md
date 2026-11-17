@@ -8,9 +8,9 @@ español e inglés, claro y oscuro, en el azul de 42 o en el color de tu coalici
 En marcha en **https://ravazque.info**. Es un proyecto independiente: no está hecho, gestionado ni respaldado por 42
 ni por 42 Madrid Fundación Telefónica.
 
-Este repositorio también contiene la página pública con el CV del autor (`site/`, servida en
-https://ravazque.github.io) y una página con un pequeño resumen de 42 publicado desde la aplicación
-(https://ravazque.github.io/ravazque/).
+La página pública con el CV del autor (https://ravazque.github.io) y una página con un pequeño resumen de 42
+publicado desde la aplicación (https://ravazque.github.io/ravazque/) están en su propio repositorio,
+[ravazque.github.io](https://github.com/ravazque/ravazque.github.io).
 
 *<p align="left"> <c>Selector de idioma del README.md ➜</c> <b>Español</b> · <a href="../README.md">English</a></p>*
 
@@ -155,8 +155,8 @@ make update          # actualiza imágenes base, paquetes npm y Actions (parches
 make production      # compila y arranca https://ravazque.info a través del túnel de Cloudflare
 make production-down # para producción (el registro de aceptación se queda en su volumen)
 make logs            # sigue los logs de producción
-make site            # compila la página del CV en site/_build y la sirve en http://localhost:8080
-make snapshot        # site/data/42.json a partir del informe guardado: lo que enviaría el botón de publicar
+make snapshot        # data/42.json del sitio a partir del informe guardado: lo que enviaría el botón de publicar
+make site-sync       # ui.css y fonts.css del sitio a partir del aspecto de la app (el sitio clonado en ../ravazque.github.io)
 make eval-report     # pide un login de 42 y escribe su historial de evaluaciones en una página HTML privada (~130 peticiones)
 make report          # lo mismo, y abre la página en Chrome
 make clean           # dev-down y los ficheros generados
@@ -245,31 +245,34 @@ hora en la que alguien abre una página.
 
 ## La página pública y su workflow
 
-`site/` es una página estática con el CV del autor (`site/cv.json`, editado a mano, EN/ES) y un resumen de 42
-(`site/data/42.json`). El botón **Publicar** de la aplicación (solo para el autor) escribe ese resumen y lo sube a
-`main` mediante la API de GitHub. El resumen es una lista cerrada de campos: nivel, estado del cursus, proyectos
+El sitio del CV es una página estática en su propio repositorio,
+[ravazque.github.io](https://github.com/ravazque/ravazque.github.io): el CV del autor (`cv.json`, editado a mano,
+EN/ES) y un resumen de 42 (`data/42.json`). El botón **Publicar** de la aplicación (solo para el autor, también en
+producción) escribe ese resumen y lo sube a la `main` de ese repositorio mediante la API de GitHub. El resumen es una lista cerrada de campos: nivel, estado del cursus, proyectos
 validados, recuento de evaluaciones, coalición y mejores skills. Nunca incluye datos de contacto, asientos, horas,
 ids, tokens, fotos ni nada sobre otros estudiantes.
 
 Puesta en marcha:
 
-1. Crea un token fine-grained en https://github.com/settings/personal-access-tokens con acceso solo a este
-   repositorio y **Contents: Read and write**. Ponlo en `GITHUB_TOKEN`, junto con `GITHUB_REPO` y `OWNER_LOGIN`.
-2. En Settings → Pages, elige **Source: GitHub Actions**, para que solo se publique `site/`.
-3. Como el botón sube a `main`, haz `git pull --rebase` antes de subir trabajo local.
+1. Crea un token fine-grained en https://github.com/settings/personal-access-tokens con acceso solo al repositorio
+   del sitio y **Contents: Read and write**. Ponlo en `GITHUB_TOKEN`, con `GITHUB_REPO=<usuario>/<usuario>.github.io`
+   y `OWNER_LOGIN`. Si el token se filtrase, solo podría cambiar el sitio del CV, nunca este código.
+2. El aspecto del sitio sigue al de la app: `make site-sync` escribe su `ui.css` y su `fonts.css` en la copia del
+   sitio (`SITE_DIR`, por defecto `../ravazque.github.io`); haz commit allí. `accent.js` y los controles se mantienen
+   iguales a mano.
+3. Como el botón sube a la `main` del sitio, haz `git pull --rebase` allí antes de subir trabajo local.
 
 ## CI/CD
 
 Cada push y cada pull request ejecutan `.github/workflows/ci.yml`:
 
 - `go`: vet, tests con el detector de carreras y govulncheck;
-- `web`: comprobación de tipos, tests, compilación y `npm audit` de la aplicación del navegador, los tests del sitio y los del informe de evaluaciones;
+- `web`: comprobación de tipos, tests, compilación y `npm audit` de la aplicación del navegador, y los tests del informe de evaluaciones;
 - `image`: la imagen de Docker compila;
 - `secrets`: gitleaks sobre todo el historial, y un control de que no se sube ningún fichero privado (`.env`,
   resultados de compilación, carpetas locales).
 
-`main` está protegida: los cuatro checks tienen que pasar, y el force-push y el borrado están bloqueados. Cuando el
-CI pasa en `main`, `pages.yml` despliega `site/` en GitHub Pages. CodeQL analiza Go, TypeScript y los workflows, y las
+`main` está protegida: los cuatro checks tienen que pasar, y el force-push y el borrado están bloqueados. CodeQL analiza Go, TypeScript y los workflows, y las
 alertas de Dependabot avisan de dependencias vulnerables. Las actualizaciones se aplican a mano con `make update`
 (`tools/update.sh`): digests de las imágenes, cloudflared, paquetes npm y Actions a la última versión de parche o
 menor, y después `make test`; las versiones mayores solo se listan. Cada `make dev*` lista lo desactualizado (lo
@@ -286,7 +289,6 @@ La aplicación web no la despliega el CI: producción corre en la máquina del a
   orden de las claves;
 - los tests de la aplicación del navegador en `web/src/` (Vitest), que también comprueban que cada texto existe en
   los dos idiomas;
-- los tests del sitio en `site/tests/`;
 - los tests del informe de evaluaciones en `tools/evaluation-report/`.
 
 Los datos de prueba están anonimizados o son sintéticos.

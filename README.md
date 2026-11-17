@@ -7,8 +7,9 @@ the 42 blue or your coalition's colour.
 
 Live at **https://ravazque.info**. An independent project: not made, run or endorsed by 42 or 42 Madrid Fundación Telefónica.
 
-This repository also holds the owner's public CV page (`site/`, served at https://ravazque.github.io), and a page with a
-small 42 snapshot published from the app (https://ravazque.github.io/ravazque/).
+The owner's public CV page (https://ravazque.github.io) and a page with a small 42 snapshot published from the app
+(https://ravazque.github.io/ravazque/) live in their own repository,
+[ravazque.github.io](https://github.com/ravazque/ravazque.github.io).
 
 *<p align="left"> <c>Language selector for README.md ➜</c> <a href="docs/README.es.md">Español</a> · <b>English</b></p>*
 
@@ -143,8 +144,8 @@ make update          # update base images, npm packages and Actions (patch and m
 make production      # build and start https://ravazque.info through the Cloudflare tunnel
 make production-down # stop production (the consent log stays in its volume)
 make logs            # follow production's logs
-make site            # build the CV page into site/_build and serve it at http://localhost:8080
-make snapshot        # site/data/42.json from the saved report: what the publish button would send
+make snapshot        # the site's data/42.json from the saved report: what the publish button would send
+make site-sync       # the site's ui.css and fonts.css from this app's look (the site checked out in ../ravazque.github.io)
 make eval-report     # ask for a 42 login and write its evaluation history as one private HTML page (~130 requests)
 make report          # the same, then open the page in Chrome
 make clean           # dev-down and generated files
@@ -229,31 +230,34 @@ requests, at most once per hour, shared by everyone, and only in an hour in whic
 
 ## The public site and its workflow
 
-`site/` is a static page with the owner's CV (`site/cv.json`, edited by hand, EN/ES) and a 42 snapshot
-(`site/data/42.json`). The **Publish** button in the app (owner only) writes that snapshot and commits it to `main`
-through the GitHub API. The snapshot is a field-by-field whitelist: level, cursus state, validated projects,
+The CV site is a static page in its own repository,
+[ravazque.github.io](https://github.com/ravazque/ravazque.github.io): the owner's CV (`cv.json`, edited by hand, EN/ES)
+and a 42 snapshot (`data/42.json`). The **Publish** button in the app (owner only, also in production) writes that
+snapshot and commits it to that repository's `main` through the GitHub API. The snapshot is a field-by-field whitelist: level, cursus state, validated projects,
 evaluation counts, coalition and top skills. It never includes contact data, seats, hours, ids, tokens, photos or
 anything about other students.
 
 Setup:
 
-1. Create a fine-grained token at https://github.com/settings/personal-access-tokens with access to this repository
-   only and **Contents: Read and write**. Put it in `GITHUB_TOKEN`, along with `GITHUB_REPO` and `OWNER_LOGIN`.
-2. In Settings → Pages, set **Source: GitHub Actions**, so that only `site/` is ever published.
-3. Since the button commits to `main`, run `git pull --rebase` before pushing local work.
+1. Create a fine-grained token at https://github.com/settings/personal-access-tokens with access to the site's
+   repository only and **Contents: Read and write**. Put it in `GITHUB_TOKEN`, with `GITHUB_REPO=<owner>/<owner>.github.io`
+   and `OWNER_LOGIN`. A leaked token can only change the CV site, never this code.
+2. The site's look follows the app's: `make site-sync` writes its `ui.css` and `fonts.css` into the site's checkout
+   (`SITE_DIR`, by default `../ravazque.github.io`); commit them there. `accent.js` and the controls are kept in step by
+   hand.
+3. Since the button commits to the site's `main`, run `git pull --rebase` there before pushing local work.
 
 ## CI/CD
 
 Every push and pull request runs `.github/workflows/ci.yml`:
 
 - `go`: vet, tests with the race detector and govulncheck;
-- `web`: type check, tests, build and `npm audit` of the browser app, the site's tests and the evaluation report's tests;
+- `web`: type check, tests, build and `npm audit` of the browser app, and the evaluation report's tests;
 - `image`: the Docker image builds;
 - `secrets`: gitleaks over the whole history, plus a guard that no private file (`.env`, build output, local folders)
   is tracked.
 
-`main` is protected: all four checks must pass, and force-push and deletion are blocked. When CI passes on `main`,
-`pages.yml` deploys `site/` to GitHub Pages. CodeQL scans Go, TypeScript and the workflows, and Dependabot alerts
+`main` is protected: all four checks must pass, and force-push and deletion are blocked. CodeQL scans Go, TypeScript and the workflows, and Dependabot alerts
 report vulnerable dependencies. Updates are applied by hand with `make update` (`tools/update.sh`): image digests,
 cloudflared, npm packages and Actions to the newest patch or minor version, then `make test`; newer major versions
 are only listed. Every `make dev*` lists what is out of date (asked at most once a day). Actions are pinned to commit
@@ -269,7 +273,6 @@ The web app itself is not deployed by CI: production runs on the owner's machine
 - the Go tests next to their code in `server/`. The analysis is checked against saved golden files, key order
   included;
 - the browser app's tests in `web/src/` (Vitest), which also check that every text key exists in both languages;
-- the site's tests in `site/tests/`;
 - the evaluation report's tests in `tools/evaluation-report/`.
 
 Fixtures are anonymised or synthetic.

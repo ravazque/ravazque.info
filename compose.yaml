@@ -22,7 +22,6 @@ services:
     environment:
       CONSENT_LOG: /data/consent.log
       BASE_URL: https://ravazque.info
-      GITHUB_TOKEN: ""  # production never publishes: the token only reaches make dev
       TUNNEL_TOKEN: ""  # only the tunnel needs it
     volumes: ["consent:/data"]
     restart: unless-stopped
