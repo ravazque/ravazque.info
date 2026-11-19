@@ -124,6 +124,8 @@ export function install() {
   if (installed) return;
   installed = true;
   document.documentElement.classList.add("js");
+  // a dialog that closes takes its floating panel with it (it was inside: shown again when the dialog reopened)
+  document.addEventListener("close", (ev) => { if (floatFor && (ev.target as Element).contains?.(floatFor)) closeFloat(); }, true);
   addEventListener("pagehide", () => pageSeen(visit)); // leaving the tab or reloading counts as leaving the page
   document.addEventListener("mousemove", (ev) => {
     const el = tipOf(ev.target);

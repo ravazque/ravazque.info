@@ -5,6 +5,12 @@ import { ARROW, badge, esc } from "../lib/h";
 import { pyRound } from "../fmt";
 import { csv, facts, table } from "../lib/table";
 import { Page, Section, aboveShare, block, cols, filters, headBlock, info, search, section, select } from "./page";
+import { workExperience } from "./evaluations";
+import projectSkills from "@data/project_skills.json";
+
+/** The skills 42's transcript associates with each project, by name (the owner's transcript, 2026-11-19: the C track's Common
+ * Core and the OuterCore projects in it; "Work Experience" is the internship's, for every part of it). */
+const PROJECT_SKILLS = projectSkills as Record<string, string[]>;
 
 const PROJECT_GROUPS = ["rank-00", "rank-01", "rank-02", "rank-03", "rank-04", "rank-05", "rank-06", "outer-core", "outside", "piscine"];
 
@@ -65,9 +71,14 @@ export function projectsCsv(pg: Page): string {
 }
 
 export function portfolioCsv(pg: Page): string {
-  const f = pg.f;
+  const f = pg.f, cap = (s: string) => s.slice(0, 1).toUpperCase() + s.slice(1);
+  // the skills 42's transcript gives the project (official), else its RNCP domains by name, as the chart says them
+  const areas = (row: any[]) => {
+    const skills = Object.hasOwn(PROJECT_SKILLS, row[0]) ? PROJECT_SKILLS[row[0]] : workExperience({ project: row[0] }) ? PROJECT_SKILLS["Work Experience"] : null;
+    return (skills || String(row[2] || "").split(", ").filter(Boolean).map((k) => cap(f.has(`domains.tag.${k}`) ? f.t(`domains.tag.${k}`) : k))).join(", ");
+  };
   return csv([[f.t("col.project"), f.t("col.track"), f.t("col.areas"), f.t("col.started"), f.t("col.marked"), f.t("col.final"), f.t("col.attempts"),
-    f.t("col.xp"), f.t("col.team"), f.t("col.days_to_validate")], ...(pg.v.derive?.portfolio || [])]);
+    f.t("col.xp"), f.t("col.team"), f.t("col.days_to_validate")], ...(pg.v.derive?.portfolio || []).map((r: any[]) => [r[0], r[1], areas(r), ...r.slice(3)])]);
 }
 
 /** Preview and download: by the section's title on larger screens (csv-top), under its table or chart on phones (csv-bottom). */

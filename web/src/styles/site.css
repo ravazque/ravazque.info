@@ -42,7 +42,7 @@ body.site .mark .lit { fill: var(--accent); }
 /* "What you'll see": a dialog over the landing; the backdrop and Escape close it */
 .features { width: min(880px, calc(100vw - 32px)); max-width: none; max-height: calc(100dvh - 32px); padding: 0; border: 2px solid var(--ink); border-radius: 0; box-shadow: none;
   background: var(--ground); color: var(--ink); overflow: auto; overscroll-behavior: contain; }
-.features::backdrop { background: color-mix(in oklab, var(--ink) 55%, transparent); }
+.features::backdrop { background: color-mix(in oklab, var(--ink) var(--zoom-shade, 15%), transparent); } /* zoom.css sets the shade */
 .features[open] { animation: features-in var(--motion-settle) var(--motion-ease); }
 @keyframes features-in { from { opacity: 0; transform: translateY(8px); } }
 @media (prefers-reduced-motion: reduce) { .features[open] { animation: none; } }

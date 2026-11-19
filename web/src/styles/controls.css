@@ -92,7 +92,7 @@ input[type=search]::placeholder { color: var(--c-input-placeholder); }
 /* modal confirmations (delete my data) */
 dialog { border: 2px solid var(--ink); border-radius: var(--radius-l); background: var(--surface); color: var(--ink); padding: 24px; max-width: min(92vw, 460px); box-shadow: var(--list-shadow); }
 dialog h2 { margin: 0 0 10px; font: 800 26px var(--type-font-display); letter-spacing: -.02em; }
-dialog::backdrop { background: color-mix(in oklab, var(--ink) 45%, transparent); }
+dialog::backdrop { background: color-mix(in oklab, var(--ink) var(--zoom-shade, 15%), transparent); } /* zoom.css sets the shade */
 /* a button that stays pressed (e.g. Group by rank) */
 .btn.toggle[aria-pressed="true"] { background: var(--ink); color: var(--ground); border-color: var(--ink); }
 

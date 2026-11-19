@@ -543,7 +543,7 @@ function exportCsv(btn: HTMLElement) {
   const f = fmt.value, AREAS = 2; // portfolioCsv's third column
   // one area by name; several as the first and "+N more", the list in a panel that opens (as a team in the evaluation log)
   const areasCell = (v: string) => {
-    const names = v.split(", ").filter(Boolean).map((k) => (f.has(`domains.tag.${k}`) ? f.t(`domains.tag.${k}`) : k)).map((n) => n.slice(0, 1).toUpperCase() + n.slice(1)); // as the chart names them
+    const names = v.split(", ").filter(Boolean); // portfolioCsv names them
     if (names.length < 2) return esc(names[0] || "");
     return `<details class="pop who-pop" data-float><summary>${esc(names[0])} <span class="more">${esc(f.t("common.plus_more", { n: names.length - 1 }))}</span></summary>`
       + `<div class="pop-panel"><b>${esc(head[AREAS] || "")}</b><ul>${names.map((n) => `<li>${esc(n)}</li>`).join("")}</ul></div></details>`;
@@ -555,11 +555,13 @@ function exportCsv(btn: HTMLElement) {
   preview.value?.showModal();
   nextTick(fitPreview);
 }
-/** The preview's rows on one line each: the table shrinks (text, columns and rows) until it fits the dialog's width. */
+/** The preview's rows on one line each: from 600px the table shrinks (text, columns and rows) until it fits the dialog's
+ * width; phones keep it at its size and scroll it both ways (owner, 2026-11-19). */
 function fitPreview() {
   const wrap = preview.value?.open ? preview.value.querySelector<HTMLElement>(".table-wrap") : null, table = wrap?.querySelector("table");
   if (!wrap || !table) return;
   table.style.zoom = "";
+  if (innerWidth < 600) return;
   const z = wrap.clientWidth / table.offsetWidth;
   if (z < 1) table.style.zoom = String(Math.floor(z * 1000) / 1000);
 }

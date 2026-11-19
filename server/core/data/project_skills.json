@@ -1,0 +1,193 @@
+{
+ "Libft": [
+  "Algorithms & AI",
+  "Imperative programming",
+  "Rigor"
+ ],
+ "get_next_line": [
+  "Algorithms & AI",
+  "Unix",
+  "Rigor"
+ ],
+ "ft_printf": [
+  "Algorithms & AI",
+  "Rigor"
+ ],
+ "Born2beroot": [
+  "Network & system administration",
+  "Rigor"
+ ],
+ "push_swap": [
+  "Unix",
+  "Algorithms & AI",
+  "Imperative programming",
+  "Rigor"
+ ],
+ "fract-ol": [
+  "Graphics",
+  "Imperative programming"
+ ],
+ "Philosophers": [
+  "Imperative programming",
+  "Unix",
+  "Rigor"
+ ],
+ "minishell": [
+  "Imperative programming",
+  "Unix",
+  "Rigor"
+ ],
+ "CPP Module 00": [
+  "Rigor",
+  "Object-oriented programming",
+  "Imperative programming"
+ ],
+ "CPP Module 01": [
+  "Object-oriented programming",
+  "Imperative programming",
+  "Rigor"
+ ],
+ "CPP Module 02": [
+  "Object-oriented programming",
+  "Imperative programming",
+  "Rigor"
+ ],
+ "CPP Module 03": [
+  "Object-oriented programming",
+  "Imperative programming",
+  "Rigor"
+ ],
+ "CPP Module 04": [
+  "Object-oriented programming",
+  "Imperative programming",
+  "Rigor"
+ ],
+ "pipex": [
+  "Imperative programming",
+  "Unix"
+ ],
+ "NetPractice": [
+  "Network & system administration",
+  "Rigor"
+ ],
+ "miniRT": [
+  "Imperative programming",
+  "Algorithms & AI",
+  "Graphics",
+  "Rigor"
+ ],
+ "CPP Module 05": [
+  "Object-oriented programming",
+  "Imperative programming",
+  "Rigor"
+ ],
+ "CPP Module 06": [
+  "Object-oriented programming",
+  "Imperative programming",
+  "Rigor"
+ ],
+ "CPP Module 07": [
+  "Object-oriented programming",
+  "Imperative programming",
+  "Rigor"
+ ],
+ "CPP Module 08": [
+  "Object-oriented programming",
+  "Imperative programming",
+  "Rigor"
+ ],
+ "CPP Module 09": [
+  "Object-oriented programming",
+  "Imperative programming",
+  "Rigor"
+ ],
+ "Inception": [
+  "Network & system administration",
+  "Rigor"
+ ],
+ "ft_irc": [
+  "Network & system administration",
+  "Object-oriented programming",
+  "Unix",
+  "Rigor"
+ ],
+ "ft_resume": [
+  "Adaptation & creativity",
+  "Organization",
+  "Group & interpersonal"
+ ],
+ "ft_transcendence": [
+  "Web",
+  "Group & interpersonal",
+  "Rigor"
+ ],
+ "Inception-of-Things": [
+  "Network & system administration",
+  "Rigor"
+ ],
+ "lem_in": [
+  "Imperative programming",
+  "Rigor",
+  "Algorithms & AI"
+ ],
+ "dslr": [
+  "DB & Data",
+  "Algorithms & AI"
+ ],
+ "ft_linear_regression": [
+  "Rigor",
+  "Algorithms & AI",
+  "DB & Data"
+ ],
+ "music-room": [
+  "Web",
+  "Technology integration",
+  "Security",
+  "Organization",
+  "DB & Data"
+ ],
+ "red-tetris": [
+  "Technology integration",
+  "Object-oriented programming",
+  "Web",
+  "Functional programming"
+ ],
+ "swifty-companion": [
+  "Object-oriented programming",
+  "Technology integration",
+  "DB & Data",
+  "Adaptation & creativity"
+ ],
+ "scop": [
+  "Rigor",
+  "Graphics"
+ ],
+ "Leaffliction": [
+  "Algorithms & AI",
+  "Group & interpersonal",
+  "Rigor"
+ ],
+ "ft_newton": [
+  "Algorithms & AI",
+  "Technology integration"
+ ],
+ "darkly": [
+  "Security",
+  "Web",
+  "Adaptation & creativity"
+ ],
+ "gomoku": [
+  "Group & interpersonal",
+  "Rigor",
+  "Algorithms & AI"
+ ],
+ "Learn2Slither": [
+  "Algorithms & AI",
+  "Adaptation & creativity",
+  "Rigor"
+ ],
+ "Work Experience": [
+  "Group & interpersonal",
+  "Company experience"
+ ]
+}

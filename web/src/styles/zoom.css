@@ -27,7 +27,8 @@
   --zoom-chart-height: 360px;         /* the height of bar and line charts inside the panel */
   --zoom-chart-height-laptop: 560px;
   --zoom-row-height: 32px;            /* each row of horizontal bars (Points by source) */
-  --zoom-shade: 15%;                  /* how dark the page behind it gets (its transparency): 0% not at all, 100% black */
+  --zoom-shade: 15%;                  /* how dark the page behind it gets (its transparency): 0% not at all, 100% black; every
+                                         panel over the page takes it (previews, the starred-sections note, What you'll see) */
   --zoom-button: 26px;                /* the button by a chart's title */
 }
 
@@ -47,9 +48,10 @@
   width: min(var(--zoom-width, 100%), calc(100vw - 2 * var(--zoom-edge, 12px)));
   height: var(--zoom-height, fit-content); max-height: calc(100dvh - 2 * var(--zoom-edge, 12px));
   margin: var(--zoom-top, auto) auto auto var(--zoom-left, auto); }
-:where(body:not(.site)) dialog.zoom::backdrop { background: color-mix(in oklab, var(--ink) var(--zoom-shade, 45%), transparent); }
-/* while it is open the page behind stays where it is (the wheel scrolls nothing there); a click outside or Escape closes it */
-html:has(dialog.zoom[open]) { overflow: hidden; }
+dialog::backdrop, .tour-shade { background: color-mix(in oklab, var(--ink) var(--zoom-shade, 15%), transparent); }
+/* while a panel is open the page behind stays where it is (the wheel and a finger scroll nothing there) and keeps its size;
+   a click outside or Escape closes it */
+html:has(dialog:modal, .tour-shade) { overflow: hidden; }
 :root { scrollbar-gutter: stable; } /* the scrollbar's room stays while it hides, so the page behind doesn't shift */
 :where(body:not(.site)) .zoom-box { padding: var(--zoom-pad, 16px); }
 :where(body:not(.site)) .zoom-head { display: flex; justify-content: space-between; align-items: center; gap: 16px;

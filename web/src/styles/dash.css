@@ -162,7 +162,7 @@
 :where(body:not(.site)) .tour p { margin: 0 0 8px; }
 :where(body:not(.site)) .tour .btn { margin-top: 4px; }
 /* the page under the band dims while the note is up, as behind the landing's dialog */
-:where(body:not(.site)) .tour-shade { position: fixed; inset: 0; z-index: 25; background: color-mix(in oklab, var(--ink) 55%, transparent); animation: fade var(--motion-settle) ease-out; }
+:where(body:not(.site)) .tour-shade { position: fixed; inset: 0; z-index: 25; animation: fade var(--motion-settle) ease-out; } /* its shade: zoom.css */
 @keyframes fade { from { opacity: 0; } }
 :where(body:not(.site)) .best-menu a, :where(body:not(.site)) .menu a { display: flex; align-items: center; min-height: 44px; padding: 0 12px; color: var(--ink); text-decoration: none; font: 600 16px var(--type-font-text); }
 :where(body:not(.site)) .best-menu a:hover, :where(body:not(.site)) .menu a:hover { background: var(--sunken); }
@@ -205,12 +205,9 @@
 :where(body:not(.site)) .preview .table-wrap { max-height: calc(100dvh - 160px); }
 :where(body:not(.site)) .preview th { padding: 10px 12px; font: 700 14px var(--type-font-display); color: var(--text-2); white-space: nowrap; }
 :where(body:not(.site)) .preview td { white-space: nowrap; }
-:where(body:not(.site)) .preview table { width: max-content; min-width: 100%; } /* a row on one line: Dashboard's fitPreview shrinks the table (CSS zoom) to the dialog's width, no sideways scroll */
+:where(body:not(.site)) .preview table { width: max-content; min-width: 100%; } /* a row on one line: from 600px Dashboard's fitPreview shrinks the table (CSS zoom) to the dialog's width */
 :where(body:not(.site)) .preview td .who-pop > summary { display: inline; white-space: nowrap; min-height: 0; padding: 0; } /* as tall as the other cells */
-@media (max-width: 599.98px) {  /* phones: less room around the table and its cells, so it shrinks less */
-  :where(body:not(.site)) .preview { padding: 12px 10px; }
-  :where(body:not(.site)) .preview :is(th, td) { padding: 3px 6px; }
-}
+@media (max-width: 599.98px) { :where(body:not(.site)) .preview { padding: 12px 10px; } } /* phones: the table at its size, scrolled both ways */
 :where(body:not(.site)) .block[id] { scroll-margin-top: calc(var(--c-topbar-height) + 64px); }
 :where(body:not(.site)) .settings form.theme { margin: 0; }
 :where(body:not(.site)) .settings .publish .btn { width: 100%; }

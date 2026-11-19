@@ -2,7 +2,8 @@ import { expect, test } from "vitest";
 import { achievementSeries, activity, profile, widgetPicker, widgets } from "./profile";
 import { Page } from "./page";
 import { Fmt } from "../fmt";
-import { projectFilters, projectView, projects, timelineLanes, tryChip } from "./projects";
+import { portfolioCsv, projectFilters, projectView, projects, timelineLanes, tryChip } from "./projects";
+import { parseCsv } from "../lib/table";
 
 const a = (name: string, description: string, at: string) => ({ name, description, at, tier: "none" });
 
@@ -170,4 +171,14 @@ test("projects of another cursus (a Discovery piscine, a Piscine Reload) are a m
   expect(only("outside")).toEqual(["Cellule0.0 - Shell"]);
   expect(only("outer-core")).toEqual(["Piscine Django", "ft_ls"]); // not evaluated in another cursus: it stays
   expect(secs.find((s) => s.id === "timeline")!.html).toContain(`title="${f.t("projects.outside")}"`);
+});
+
+test("the portfolio's areas: the skills 42's transcript gives a project, else its RNCP domains by name; work experience the internship's", () => {
+  const f = new Fmt("en");
+  const row = (name: string, track: string, areas: string) => [name, track, areas, "2024-09-17", "2024-10-09", 125, 2, 578, 1, 17.3];
+  const pg = { f, v: { derive: { portfolio: [row("Libft", "common-core", ""), row("dslr", "outer-core", "ai"), row("ft_ping", "outer-core", "unix, security"),
+    row("Work Experience I - Duration", "outer-core", ""), row("Exam Rank 02", "common-core", "")] } } } as any;
+  const areas = parseCsv(portfolioCsv(pg)).slice(1).map((r) => r[2]);
+  expect(areas).toEqual(["Algorithms & AI, Imperative programming, Rigor", "DB & Data, Algorithms & AI", "Unix & kernel, Security",
+    "Group & interpersonal, Company experience", ""]); // exams have none
 });
