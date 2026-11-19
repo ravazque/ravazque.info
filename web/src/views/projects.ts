@@ -4,7 +4,7 @@ import { radar } from "../lib/graphs";
 import { ARROW, badge, esc } from "../lib/h";
 import { pyRound } from "../fmt";
 import { csv, facts, table } from "../lib/table";
-import { Page, Section, aboveShare, block, cols, filters, headBlock, info, radios, search, section, select } from "./page";
+import { Page, Section, aboveShare, block, cols, filters, headBlock, info, search, section, select } from "./page";
 
 const PROJECT_GROUPS = ["rank-00", "rank-01", "rank-02", "rank-03", "rank-04", "rank-05", "rank-06", "outer-core", "outside", "piscine"];
 
@@ -28,7 +28,7 @@ export function projectFilters(pg: Page) {
   const milestones = PROJECT_GROUPS.filter((g) => pg.allProjects.some((p) => !p.exam && groupOf(p) === g)); // the ones your projects have
   const years = [...new Set(pg.allProjects.map((p) => (p.marked || p.registered || "").slice(0, 4)).filter(Boolean))].sort().reverse() as string[];
   return {
-    track: pg.q("track", pg.period, ["student", "piscine", "all"]), search: pg.q("q", "").slice(0, 80),
+    track: pg.period, search: pg.q("q", "").slice(0, 80), // the page's period (owner, 2026-11-19: no switch of its own)
     marks: pg.q("marks", "all", ["all", "ok", "bonus", "max", "failed"]), year: pg.q("year", "all", ["all", ...years]),
     years, statuses, status: pg.q("status", "all", ["all", ...statuses]), milestone: pg.q("milestone", "", ["", ...milestones]), milestones, groupOf,
   };
@@ -99,16 +99,17 @@ export function projects(pg: Page): Section[] {
       + (promo.tied ? " " + f.plural(promo.tied, "standing.promo_tied") : ""))}</h3>`
       + legend([[f.t("standing.per_level"), S2], [f.t("standing.your_level"), S1]]) + "</div>" + promoChart(pg, promo) + "</div>" : "")) });
 
-  const cursus = pg.q("cursus", pg.period === "piscine" ? "C Piscine" : "42cursus", ["42cursus", "C Piscine"]);
+  const cursus = pg.period === "piscine" ? "C Piscine" : "42cursus"; // the page's period (owner, 2026-11-19: no switch of its own)
+  const show = pg.q("skills", "radar", ["radar", "bars"]); // phones show one of the two (the switch is theirs only)
   const items = X.skills_by_cursus?.[cursus] || (cursus === "42cursus" ? X.skills || [] : []);
   let skills = empty(f.t("empty.period"));
   if (items.length) {
     const graded = items.filter((s: any) => s.level > 0);
     const bars = hbars(f, graded.map((s: any) => s.name), [[f.t("extras.level"), graded.map((s: any) => s.level), S1]],
       { label: f.t("extras.skills_title"), end: (_i, v) => f.level(v), big: true });
-    skills = `<div class="radar-pair"><div class="radar-fig">${radar(f, items, f.t("extras.skills_title"))}</div><div class="radar-bars">${bars}</div></div>`;
+    skills = `<div class="radar-pair" data-show="${show}"><div class="radar-fig">${radar(f, items, f.t("extras.skills_title"))}</div><div class="radar-bars">${bars}</div></div>`;
   }
-  const sw = pg.seg("cursus", [["42cursus", f.t("track.student")], ["C Piscine", f.t("track.piscine")]], cursus, f.t("skills.cursus"), "skills");
+  const sw = items.length ? pg.seg("skills", [["radar", f.t("skills.radar")], ["bars", f.t("skills.bars")]], show, f.t("skills.view"), "skills", "phone-only") : "";
   out.push({ id: "skills", nav: f.t("extras.skills_title"), html: section("skills", "", cols(block("skills", skills)),
     { head: `<div class="panel-head"><h2>${esc(f.t("extras.skills_title"))}</h2>${sw}</div>` }) });
 
@@ -146,8 +147,7 @@ export function projects(pg: Page): Section[] {
     { k: "first_ms", t: f.t("col.started"), nw: true, hide: true, f: (p) => esc(f.day(p.registered)) },
   ], rows, { label: f.t("projects_table.title"), sort: ["first_ms", -1], sticky: true, detail, empty: f.t("projects_table.none") });
   const form = filters("projects-table",
-    radios("track", f.t("projects_table.filter"), (["student", "piscine", "all"] as const).map((v) => [v, f.t(`track.${v}`)]), fl.track)
-    + search("q", fl.search, f.t("common.search"), f.t("projects_table.search"))
+    search("q", fl.search, f.t("common.search"), f.t("projects_table.search"))
     + select("milestone", f.t("log.milestone"), [["", f.t("log.milestone_all")], ...fl.milestones.map((m) => [m, groupLabel(pg, m)] as [string, string])], fl.milestone)
     + select("status", f.t("projects_table.status"), [["all", f.t("projects_table.status_all")], ...fl.statuses.map((s) => [s, capital(statusName(s))] as [string, string])], fl.status)
     + select("marks", f.t("projects_table.marks"), ["all", "ok", "bonus", "max", "failed"].map((v) => [v, f.t(`projects_table.marks_${v}`)]), fl.marks)
@@ -155,8 +155,7 @@ export function projects(pg: Page): Section[] {
     + (filtering ? `<a class="btn secondary log-clear" href="${esc(pg.url(undefined, { q: "", milestone: "", status: "", marks: "", year: "" }))}" data-keep>${esc(f.t("log.clear"))}</a>` : ""));
   out.push({ id: "projects-table", nav: f.t("nav.projects_table"), html: section("projects-table", f.t("projects_table.title"),
     form + `<div id="projects-table-results">` + cols(`<div class="block" data-panel="projects-table"><div class="table-wrap tall">${tbl}</div>`
-      + `<div class="table-foot"><p class="note">${esc(f.t("projects_table.xp_note"))}</p>`
-      + csvButtons(pg, "projects", f.t("projects_table.title"), f.t("projects_table.csv")) + "</div></div>") + "</div>",
+      + `<div class="table-foot">` + csvButtons(pg, "projects", f.t("projects_table.title"), f.t("projects_table.csv")) + "</div></div>") + "</div>",
     { count: f.plural(rows.length, "projects_table.count") }) });
 
   const exams = D.insights?.exams || [];
@@ -170,11 +169,10 @@ export function projects(pg: Page): Section[] {
 
   const areas = dv.domains || [];
   const cap = (s: string) => s.slice(0, 1).toUpperCase() + s.slice(1);
-  out.push({ id: "domains", nav: f.t("domains.title"), html: section("domains", "", `<p class="note lede-note">${esc(f.t("domains.xp_note"))}</p>`
-    + cols(block("domains", hbars(f, areas.map((a: any) => cap(f.t(`domains.tag.${a.key}`))), [[f.t("col.xp"), areas.map((a: any) => a.xp), S1]], {
+  out.push({ id: "domains", nav: f.t("domains.title"), html: section("domains", "", cols(block("domains", hbars(f, areas.map((a: any) => cap(f.t(`domains.tag.${a.key}`))), [[f.t("col.xp"), areas.map((a: any) => a.xp), S1]], {
       label: f.t("domains.title"), tips: areas.map((a: any) => `${f.t(`domains.tag.${a.key}`)} · ≈ ${f.num(a.xp)} XP · ${a.projects.join(", ")}`),
       end: (_i, v) => `≈ ${f.num(v)}`, extra: (i) => f.plural(areas[i].projects.length, "domains.projects"), emptyText: f.t("domains.none"), big: true }))),
-  { head: `<div class="panel-head"><h2>${esc(f.t("domains.title"))}</h2>${csvButtons(pg, "portfolio", f.t("domains.portfolio_title"), f.t("domains.portfolio"))}</div>` }) });
+  { head: `<div class="panel-head"><h2>${esc(f.t("domains.title"))} ${info(f.t("domains.xp_note"))}</h2>${csvButtons(pg, "portfolio", f.t("domains.portfolio_title"), f.t("domains.portfolio"))}</div>` }) });
 
   const laneName = (g: string) => (g === "work" ? f.t("projects.lane_work") : g === "other" ? f.t("log.milestone_other") : groupLabel(pg, g));
   const tl = timelineLanes(D.projects.map((p: any) => (groupOf(p) === "outside" ? { ...p, group: "outside" } : p)), laneName).map(([lane, spans]) => [lane, spans.map(({ p, a }) => {

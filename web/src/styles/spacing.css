@@ -38,7 +38,9 @@
      --axis-line        the baseline of the section's bar charts
      --table-head-line  under a table's column names; --table-row-line between its rows
      --list-line        between the rows of a list (points, feedback, facts, keys)
-     --key-box          the frame around a key
+     --key-box          the frame around a key (its thickness)
+     --…-key-frame      whether a chart's key has that frame: 1 yes (true), 0 no (false); it only counts while
+                        :root's --key-frame-all is 0 (at 1 every chart's key is framed)
      --cluster-line, --divider-line, --indent-line: named where they are
 */
 
@@ -72,9 +74,16 @@
   --grid-gap-all: 30px;        /* a block's title → its grid or calendar (weekday × hour, every day) */
   --filters-gap-all: 24px;     /* the filters or the search → the table under them (Projects, Evaluation log, Everyone you met) */
   --kpi-pad-all: 10px;         /* the line over each figure → its name (Contribution, Cancelled evaluations, Rhythm, Logtime bonus) */
+  --key-frame-all: 1;          /* a frame around every chart's key: 1 frames them all (true); 0 (false) leaves it to each
+                                  chart's own --…-key-frame in its section (1 framed, 0 not) */
   --bar-max: 96px;             /* the widest a chart's bar gets: few bars grow up to this, many get thinner on their own (a section can set its own) */
   --title-tools-gap: 14px;     /* a title (or its ⓘ) → its first button: star, move, size, ×, enlarge; on every page and widget */
   --title-tools-between: 9px;  /* between those buttons */
+  --title-tools-between-phone: 4px; /* between a widget's buttons on phones (up, down, ×) */
+  --info-size-phone: 15px;     /* every ⓘ on phones (larger screens size it with its title) */
+  --tip-size-phone: 13px;      /* the text of a tip (what an ⓘ, a bar or a dot says) on phones */
+  --tip-width-phone: 280px;    /* the widest a tip gets on phones (and never wider than the screen less 24px) */
+  --lede-size-phone: clamp(15px, 4.1vw, 17px); /* a section's description on phones (18px from 600 px up): 15px at 360, 17px at 414 */
   --title-count-color: color-mix(in oklab, var(--muted) 55%, transparent);  /* "· 90 evaluations" beside a title: a very soft grey */
   --title-count-size: .7em;    /* its size, against the title's (.5em: half) */
   --status-box-line: 1px;      /* the box around "Reading the 42 API…" while a page loads (0: none) */
@@ -183,8 +192,10 @@ main[data-page="web-projects"] #pace {
   --title-line: 4px;           /* under "Pace" */
   --title-pad: 12px;           /* "Pace" → its line */
   --xp-month-line: 2px;        /* over "XP per month" */
+  --xp-month-key-frame: 1;     /* "XP per month": its key framed (1) or not (0), while --key-frame-all is 0 */
   --xp-month-gap: var(--chart-gap-key-all, 32px);        /* "XP per month" → the chart */
   --promo-line: 2px;           /* over "Your promo" */
+  --promo-key-frame: 1;        /* "Your promo": its key framed (1) or not (0), while --key-frame-all is 0 */
   --promo-gap: var(--chart-gap-key-all, 32px);       /* "Your promo" → the chart (a key beside its title, like XP per month) */
   --block-pad: 12px;           /* each of those lines → what is under it */
   --list-line: 1px;            /* between the facts */
@@ -226,8 +237,7 @@ main[data-page="web-projects"] #exams {
 main[data-page="web-projects"] #domains {
   --sections: 56px;            /* Exams → "Technical domains", phones */
   --sections-laptop: var(--sections-all-laptop, 88px); /* the same, laptops: the global value; 88px when it is off */
-  --title-gap: 20px;           /* "Technical domains": its title's line → its note, and the note → the chart's line
-                                  (the same, so the note sits halfway between them) */
+  --charts-top: 36px;          /* "Technical domains" → the chart (its note is the title's ⓘ) */
   /* lines (0 hides one), and under each titled chart the space between its title and it */
   --title-line: 4px;           /* under "Technical domains" */
   --title-pad: 12px;           /* "Technical domains" → its line */
@@ -245,6 +255,7 @@ main[data-page="web-projects"] #timeline {
   --title-line: 4px;           /* under "Projects and retries" */
   --title-pad: 12px;           /* "Projects and retries" → its line */
   --attempts-line: 2px;        /* over "Attempt timeline" */
+  --attempts-key-frame: 1;     /* "Attempt timeline": its key framed (1) or not (0), while --key-frame-all is 0 */
   --attempts-gap: var(--chart-gap-key-all, 32px);        /* "Attempt timeline" → the timeline */
   --cum-retries-line: 2px;     /* over "Cumulative retries" */
   --cum-retries-gap: var(--chart-gap-all, 20px);     /* "Cumulative retries": its note → the chart */
@@ -377,12 +388,16 @@ main[data-page="web-evaluations"] #over-time {
   --title-line: 4px;           /* under "Over time" */
   --title-pad: 12px;           /* "Over time" → its line */
   --received-month-line: 2px;  /* over "Received per month, by flag" */
+  --received-month-key-frame: 1; /* "Received per month, by flag": its key framed (1) or not (0), while --key-frame-all is 0 */
   --received-month-gap: var(--chart-gap-key-all, 32px);  /* "Received per month, by flag" → the chart */
   --marks-line: 2px;           /* over "Marks" */
+  --marks-key-frame: 1;        /* "Marks": its key framed (1) or not (0), while --key-frame-all is 0 */
   --marks-gap: var(--chart-gap-key-all, 32px);           /* "Marks" → the chart */
   --cum-evals-line: 2px;       /* over "Cumulative evaluations" */
+  --cum-evals-key-frame: 1;    /* "Cumulative evaluations": its key framed (1) or not (0), while --key-frame-all is 0 */
   --cum-evals-gap: var(--chart-gap-key-all, 32px);       /* "Cumulative evaluations" → the chart */
   --cum-out-line: 2px;         /* over "Cumulative Outstanding flags" */
+  --cum-out-key-frame: 1;      /* "Cumulative Outstanding flags": its key framed (1) or not (0), while --key-frame-all is 0 */
   --cum-out-gap: var(--chart-gap-key-all, 32px);         /* "Cumulative Outstanding flags" → the chart */
   --block-pad: 12px;           /* each of those lines → what is under it */
   --axis-line: 2px;            /* the charts' baselines */
@@ -410,8 +425,10 @@ main[data-page="web-evaluations"] #when {
   --heat-given-line: 2px;      /* over "Given · weekday × hour" */
   --heat-given-gap: var(--grid-gap-all, 30px);      /* "Given · weekday × hour" → the grid */
   --duration-line: 2px;        /* over "Duration" */
+  --duration-key-frame: 1;     /* "Duration": its key framed (1) or not (0), while --key-frame-all is 0 */
   --duration-gap: var(--chart-gap-key-all, 32px);        /* "Duration" → the chart */
   --lead-line: 2px;            /* over "Booking lead time" */
+  --lead-key-frame: 1;         /* "Booking lead time": its key framed (1) or not (0), while --key-frame-all is 0 */
   --lead-gap: var(--chart-gap-key-all, 32px);            /* "Booking lead time" → the chart */
   --block-pad: 12px;           /* each of those lines → what is under it */
   --list-line: 1px;            /* between the facts */
@@ -476,6 +493,7 @@ main[data-page="web-coalition"] #coal-points {
   --title-pad: 12px;           /* "Coalition points" → its line */
   --sources-line: 2px;         /* over "Points by source" */
   --months-line: 2px;          /* over "Points per month" */
+  --months-key-frame: 1;       /* "Points per month": its key (older reports only) framed (1) or not (0), while --key-frame-all is 0 */
   --months-gap: calc(var(--chart-gap-all, 20px) + 6px);          /* "Points per month" → the chart */
   --block-pad: 12px;           /* each of those lines → what is under it */
   --axis-line: 2px;            /* the baseline of Points per month */
@@ -497,6 +515,7 @@ main[data-page="web-people"] #who {
   --title-line: 4px;           /* under "Who evaluated you" */
   --title-pad: 12px;           /* "Who evaluated you" → its line */
   --correctors-line: 2px;      /* over "Top 25 correctors" */
+  --correctors-key-frame: 1;   /* "Top 25 correctors": its key framed (1) or not (0), while --key-frame-all is 0 */
   --correctors-gap: var(--chart-gap-key-all, 32px);      /* "Top 25 correctors" → the chart */
   --block-pad: 12px;           /* each of those lines → what is under it */
   --key-box: 1px;              /* the frame of the chart's key */
@@ -627,6 +646,7 @@ main[data-page="web-campus"] #where {
   --title-line: 4px;           /* under "Where · evaluations" */
   --title-pad: 12px;           /* "Where · evaluations" → its line */
   --where-chart-line: 2px;     /* over the chart (received or given, by cluster) */
+  --where-key-frame: 1;        /* the cluster charts: their keys framed (1) or not (0), while --key-frame-all is 0 */
   --where-chart-gap: var(--chart-gap-key-all, 32px);     /* "Evaluations you received / gave, by cluster" → the chart */
   --not-logged-line: 2px;      /* over "Without a login, by project" */
   --not-logged-gap: var(--table-gap-all, 10px);      /* "Without a login, by project": its note → the table */
@@ -742,6 +762,20 @@ main[data-page="web-campus"] #days [data-panel="heat-presence"] { border-top-wid
 main[data-page="web-campus"] #sessions [data-panel="table-sessions"] { border-top-width: var(--sessions-table-line, var(--block-line)); }
 main[data-page="web-campus"] #where [data-panel="where-clusters"] { border-top-width: var(--where-chart-line, var(--block-line)); }
 main[data-page="web-campus"] #where [data-panel="where-clusters"] .legend { position: relative; left: var(--where-key-x, 0px); top: var(--where-key-y, 0px); }
+/* chart keys: framed when --key-frame-all is 1, else when the chart's own --…-key-frame is 1; the frame is --key-box thick */
+:where(body:not(.site)) [data-panel] .block-head .legend { --kf: max(var(--key-frame-all, 1), var(--key-frame, 0)); padding: calc(5px * var(--kf)) calc(12px * var(--kf)); border: calc(var(--key-box, 1px) * var(--kf)) solid var(--rule); }
+#pace [data-panel="pace-xp"] { --key-frame: var(--xp-month-key-frame, 1); }
+#pace [data-panel="promo"] { --key-frame: var(--promo-key-frame, 1); }
+#timeline [data-panel="timeline"] { --key-frame: var(--attempts-key-frame, 1); }
+#over-time [data-panel="recv-monthly"] { --key-frame: var(--received-month-key-frame, 1); }
+#over-time [data-panel="marks"] { --key-frame: var(--marks-key-frame, 1); }
+#over-time [data-panel="cum-evals"] { --key-frame: var(--cum-evals-key-frame, 1); }
+#over-time [data-panel="cum-out"] { --key-frame: var(--cum-out-key-frame, 1); }
+#when [data-panel="duration"] { --key-frame: var(--duration-key-frame, 1); }
+#when [data-panel="lead"] { --key-frame: var(--lead-key-frame, 1); }
+#coal-points [data-panel="coal-months"] { --key-frame: var(--months-key-frame, 1); }
+#who [data-panel="correctors"] { --key-frame: var(--correctors-key-frame, 1); }
+#where [data-panel="where-clusters"] { --key-frame: var(--where-key-frame, 1); }
 main[data-page="web-evaluations"] #when :is([data-panel="duration"], [data-panel="lead"]) { margin-top: var(--duration-top, 0px); }
 @media (min-width: 960px) { main[data-page="web-evaluations"] #when :is([data-panel="duration"], [data-panel="lead"]) { margin-top: var(--duration-top-laptop, var(--duration-top, 0px)); } }
 main[data-page="web-campus"] #where [data-panel="where-not-logged"] { border-top-width: var(--not-logged-line, var(--block-line)); }

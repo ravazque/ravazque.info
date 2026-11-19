@@ -291,3 +291,30 @@ func Derive(r, all *OMap, now time.Time) *OMap {
 		"community", Community(r.Os("given"), r.Os("received")), "portfolio", PortfolioRows(r.Os("projects")),
 		"logtime_bonus", bonus, "logtime_drops", drops)
 }
+
+// FromKickoff is a period's received and given evaluations dated from the 42cursus kickoff on; nil when there are none.
+func FromKickoff(rep, all *OMap) any {
+	kick := ""
+	for _, c := range all.Obj("extras").Os("cursus") {
+		if c.S("name") == "42cursus" {
+			kick = c.S("begin")
+		}
+	}
+	if kick == "" {
+		return nil
+	}
+	out, n := map[string]any{}, 0
+	for _, k := range []string{"received", "given"} {
+		kept := []any{}
+		for _, e := range rep.Os(k) {
+			if e.S("begin") >= kick { // both "2006-01-02 15:04", Madrid time
+				kept = append(kept, e)
+			}
+		}
+		out[k], n = kept, n+len(kept)
+	}
+	if n == 0 {
+		return nil
+	}
+	return out
+}

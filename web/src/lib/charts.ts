@@ -40,6 +40,7 @@ function yaxis(f: Fmt, top: number, steps = 4) {
 type VOpts = {
   label: string; stacked?: boolean; tight?: boolean; xtitle?: string; peak?: string; line?: [string, number[], string];
   barTips?: string[][]; // each bar its own series' tip ([series][label]) on its full-height lane, the column none
+  lanes?: boolean; // barTips made from the values: "label", then "series: value"
   colTips?: boolean; // the whole column's strip opens the tip (a stacked month told whole), the others dim
   fmt?: (v: number) => string; every?: number; tips?: string[]; emptyText?: string;
 };
@@ -53,15 +54,16 @@ export function vbars(f: Fmt, labels: string[], series: Series[], o: VOpts): str
   const { top, steps } = o.tight ? tightAxis(Math.max(...totals)) : { top: niceMax(Math.max(...totals)), steps: 4 };
   const every = o.every || Math.max(1, Math.ceil(labels.length / 12));
   const best = totals.indexOf(Math.max(...totals));
-  const colTip = (series.length === 1 && !o.stacked && !o.barTips) || !!o.colTips; // one series: the whole column opens the tip
+  const barTips = o.barTips || (o.lanes ? series.map(([n, v]) => labels.map((lab, i) => `${lab}\n${n}: ${fmt(v[i] || 0)}`)) : undefined);
+  const colTip = (series.length === 1 && !o.stacked && !barTips) || !!o.colTips; // one series: the whole column opens the tip
   const line = o.line;
   const cols = labels.map((lab, i) => {
     const tip = o.tips ? o.tips[i]
       : [lab, ...series.map(([n, v]) => `${n} ${fmt(v[i] || 0)}`), ...(line ? [`${line[0]} ${fmt(line[1][i])}`] : [])].join(" · ");
     let k = 0; // a stack grows from the bottom up, each part in its turn (--k: its place among the parts it has)
     const bars = series.map(([, v, c], si) => {
-      const bar = `<i style="height:${pct(v[i] || 0, top)};background:${c}${o.stacked && v[i] ? `;--k:${k++}` : ""}"${v[i] && !colTip && !o.barTips ? tipAttr(tip) : ""}></i>`;
-      return o.barTips ? `<span class="lane"${tipAttr(o.barTips[si][i])}>${bar}</span>` : bar; // the bar's whole height opens its tip, like a column
+      const bar = `<i style="height:${pct(v[i] || 0, top)};background:${c}${o.stacked && v[i] ? `;--k:${k++}` : ""}"${v[i] && !colTip && !barTips ? tipAttr(tip) : ""}></i>`;
+      return barTips ? `<span class="lane"${tipAttr(barTips[si][i])}>${bar}</span>` : bar; // the bar's whole height opens its tip, like a column
     }).join("");
     const cap = o.peak && i === best
       ? `<b class="peak">${esc(o.peak.replace("{v}", fmt(totals[i])).replace("{label}", lab))}</b>` : "";

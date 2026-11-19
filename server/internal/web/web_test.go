@@ -12,6 +12,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -269,6 +270,44 @@ func TestViewTodayAndConsent(t *testing.T) {
 	}
 	if r := e.do(t, "GET", "/api/me/view", nil, nil); r.StatusCode != 200 {
 		t.Fatal(r.StatusCode)
+	}
+}
+
+// A Piscine project you corrected as a student (a rush) is the Piscine period's for the report, but its feedback is the
+// student's: the student view hands those evaluations, from the kickoff on, to Feedback; the other views carry none.
+func TestStudentViewHandsFeedbackThePiscineEvaluationsFromTheKickoff(t *testing.T) {
+	e := newEnv(t, nil)
+	e.signIn(t)
+	e.s.Jobs.Drain()
+	raw, err := os.ReadFile("../../core/testdata/golden/mid.report.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var doc map[string]any
+	json.Unmarshal(raw, &doc)
+	piscine := doc["periods"].(map[string]any)["piscine"].(map[string]any)
+	rush := func(id float64, begin string) map[string]any {
+		return map[string]any{"id": id, "project": "C Piscine Rush 00", "cursus": []any{"C Piscine"}, "begin": begin, "feedbacks": []any{}}
+	}
+	piscine["given"] = []any{rush(900101, "2025-08-10 10:00"), rush(900102, "2025-11-02 10:00")} // the kickoff is 2025-08-29 09:42
+	file := filepath.Join(t.TempDir(), "report.json")
+	out, _ := json.Marshal(doc)
+	os.WriteFile(file, out, 0o600)
+	e.seed(t, 990002, file)
+	view := func(period string) map[string]any {
+		var v map[string]any
+		json.Unmarshal([]byte(readAll(e.do(t, "GET", "/api/me/view?period="+period, nil, nil))), &v)
+		return v
+	}
+	got, _ := view("student")["piscine_as_student"].(map[string]any)
+	given, _ := got["given"].([]any)
+	if len(given) != 1 || given[0].(map[string]any)["id"] != 900102.0 {
+		t.Fatalf("student: %v", got)
+	}
+	for _, p := range []string{"piscine", "all"} {
+		if v := view(p); v["piscine_as_student"] != nil {
+			t.Fatalf("%s: %v", p, v["piscine_as_student"])
+		}
 	}
 }
 

@@ -110,7 +110,9 @@ function pageBackgrounds(doc) {
 
 function applyAccent(hex, doc = typeof document !== "undefined" ? document : null) {
   if (!doc) return;
-  const {light, dark} = accentTokens(hex, pageBackgrounds(doc));
+  const bg = pageBackgrounds(doc), {light, dark} = accentTokens(hex, bg), intra = accentTokens(INTRA, bg);
+  // the 42 blue stays at hand whatever the accent (the publish button keeps it); without this style ui.css's accent is it
+  for (const [vars, t] of [[light, intra.light], [dark, intra.dark]]) Object.assign(vars, {"--intra": t["--accent"], "--on-intra": t["--on-accent"]});
   const block = (vars) => Object.entries(vars).map(([k, v]) => `${k}: ${v};`).join(" ");
   let style = doc.getElementById("accent");
   if (!style) { style = doc.createElement("style"); style.id = "accent"; }

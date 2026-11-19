@@ -66,7 +66,7 @@ export function campus(pg: Page): Section[] {
     block("calendar", `<div class="cal-scroll">${cal}</div>`, f.t("days.calendar_title")),
     `<div class="block" data-panel="hours-month"><div class="block-head"><h3>${esc(f.t(daily ? "seats.day_title" : "seats.month_title"))}</h3>`
     + (peakAt >= 0 ? `<span class="head-figure">${esc(f.t("seats.peak", { v: f.hmm(values[peakAt]), label: labels[peakAt] }))}</span>` : "") + "</div>"
-    + vbars(f, labels, [[f.t("unit.hours"), values, S1]], { label: f.t("seats.month_aria"), fmt: (v) => f.nb(v, "h"), emptyText: f.t("empty.sessions") }) + "</div>",
+    + vbars(f, labels, [[f.t("unit.hours"), values, S1]], { label: f.t("seats.month_aria"), fmt: (v) => f.nb(v, "h"), colTips: true, emptyText: f.t("empty.sessions") }) + "</div>",
     block("heat-presence", `<div class="heat-wide">${hgrid}</div>`, f.t("days.heat_title"))),
   L.days_present ? { head: `<h2>${esc(f.t("days.title"))} ${info([f.t("days.l_span", { days: f.plural(L.days_present, "count.days"), first: f.day(L.first_day), last: f.day(L.last_day) }),
     f.t("days.l_avg", { avg: f.hm(L.total_seconds / L.days_present) })].join("\n"))}</h2>` } : { lede: esc(f.t("empty.sessions")) }) });

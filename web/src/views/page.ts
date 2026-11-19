@@ -9,6 +9,7 @@ export type View = {
   period: string; periods: string[]; default_period: string; light: boolean; seat_days: number | null;
   report: Rep; derive: any; layout: Record<string, { rows: number; seats: number }>; connections: any[]; network: any;
   promo: any; coalitions: any[]; all_projects: any[]; all_cursus?: any[];
+  piscine_as_student?: { received: any[]; given: any[] } | null; // the student view only: the Piscine's evaluations from the kickoff on
   madrid?: { size: number; rank: number; top: number } | null; // your place by level in Madrid, live (the server's, hourly)
 };
 
@@ -71,8 +72,8 @@ export class Page {
   }
 
   /** A segmented switch made of links; the app swaps the page in place and keeps the scroll. */
-  seg(name: string, options: [string, string][], current: string, label: string, target: string): string {
-    return `<div class="seg" role="group" aria-label="${esc(label)}">` + options.map(([v, t]) =>
+  seg(name: string, options: [string, string][], current: string, label: string, target: string, cls = ""): string {
+    return `<div class="seg${cls ? ` ${cls}` : ""}" role="group" aria-label="${esc(label)}">` + options.map(([v, t]) =>
       `<a href="${esc(this.url(undefined, { [name]: v }))}#${target}" data-keep role="button" aria-pressed="${v === current}">${esc(t)}</a>`).join("") + "</div>";
   }
 }

@@ -117,9 +117,9 @@ export function evaluations(pg: Page): Section[] {
     headBlock("recv-monthly", f.t(role === "received" ? "received.monthly_title" : "given.monthly_title"),
       legend([[f.t("flag.ok"), base], [f.t("flag.outstanding"), GOOD], [f.t("flag.negative"), BAD]]),
       vbars(f, months.map((x: string) => f.monthLabel(x)), flagSeries,
-        { label: f.t("received.monthly_title"), stacked: true, fmt: (v) => f.num(v), tips: flagTips, emptyText: f.t("empty.period") })),
+        { label: f.t("received.monthly_title"), stacked: true, colTips: true, fmt: (v) => f.num(v), tips: flagTips, emptyText: f.t("empty.period") })),
     headBlock("marks", f.t("received.marks_title"), legend(roles), vbars(f, bins.map(([b]) => b), [[f.t("role.received"), count(D.received), S1], [f.t("role.given"), count(D.given), S2]],
-      { label: f.t("received.marks_title"), fmt: (v) => f.num(v), emptyText: f.t("empty.period") })),
+      { label: f.t("received.marks_title"), lanes: true, fmt: (v) => f.num(v), emptyText: f.t("empty.period") })),
     headBlock("cum-evals", f.t("received.cum_title"), legend(roles), lines(f, [[f.t("role.received"), W.cum_received, S1], [f.t("role.given"), W.cum_given, S2]],
       { label: f.t("received.cum_title"), emptyText: f.t("empty.period"), to: reportDay })),
     headBlock("cum-out", f.t("received.cum_out_title"), legend(roles), lines(f, [[f.t("received.out_received"), W.cum_out_received, S1], [f.t("received.out_given"), W.cum_out_given, S2]],
@@ -135,22 +135,29 @@ export function evaluations(pg: Page): Section[] {
     block("heat-recv", heat(f, W.heat_received, ACCENT, f.t("unit.evaluations")), f.t("when.heat_recv_title")),
     block("heat-given", heat(f, W.heat_given, SLATE, f.t("unit.evaluations")), f.t("when.heat_given_title")),
     `<div class="block" data-panel="duration"><div class="block-head"><h3>${esc(f.t("when.duration_title"))} ${info(f.t("when.duration_note"))}</h3>${legend(roles)}</div>` + vbars(f, binLabels(W.duration_edges, "m"), [[f.t("role.received"), W.duration_received, S1], [f.t("role.given"), W.duration_given, S2]],
-      { label: f.t("when.duration_title"), fmt: (v) => f.num(v), emptyText: f.t("empty.period") }) + "</div>",
+      { label: f.t("when.duration_title"), lanes: true, fmt: (v) => f.num(v), emptyText: f.t("empty.period") }) + "</div>",
     headBlock("lead", f.t("when.lead_title"), legend(roles), vbars(f, binLabels(W.lead_edges, "h"), [[f.t("role.received"), W.lead_received, S1], [f.t("role.given"), W.lead_given, S2]],
-      { label: f.t("when.lead_title"), fmt: (v) => f.num(v), emptyText: f.t("empty.period") }))),
+      { label: f.t("when.lead_title"), lanes: true, fmt: (v) => f.num(v), emptyText: f.t("empty.period") }))),
   { lede: esc(f.t("when.lede", { recv: f.num(W.median_duration_received), given: f.num(W.median_duration_given), lead: f.num(W.median_lead_received, 1) })) }) });
 
   // feedback: the criteria both ways, and every rating under the maximum you got as a corrector
   const me = D.profile.login;
-  // as a student, only the 42cursus (and a Piscine Reload) counts: Discovery piscines are set apart below
-  const counts = (e: any) => pg.period !== "student" || !Array.isArray(e.cursus) || e.cursus.some((c: string) => c === "42cursus" || /reload/i.test(c));
-  const outside = [...D.received, ...D.given].filter((e: any) => !counts(e));
-  const mine = D.received.filter(counts).flatMap((e: any) => e.feedbacks.filter((x: any) => x.by === me));
+  // by when you took part, not by the project (owner, 2026-11-19): the report files a rush you corrected as a student
+  // under the Piscine, the student view hands those over (piscine_as_student) and the Piscine keeps what came before
+  const kick = (pg.v.all_cursus || D.extras?.cursus || []).find((c: any) => c.name === "42cursus")?.begin || "";
+  const moved = pg.v.piscine_as_student;
+  const when = (k: "received" | "given"): any[] => (pg.period === "student" ? [...D[k], ...(moved?.[k] || [])]
+    : pg.period === "piscine" && kick ? D[k].filter((e: any) => !(e.begin >= kick)) : D[k]);
+  const received = when("received"), given = when("given");
+  // as a student, the 42cursus, the Piscine's projects and a Piscine Reload count: Discovery piscines are set apart below
+  const counts = (e: any) => pg.period !== "student" || !Array.isArray(e.cursus) || e.cursus.some((c: string) => c === "42cursus" || c === "C Piscine" || /reload/i.test(c));
+  const outside = [...received, ...given].filter((e: any) => !counts(e));
+  const mine = received.filter(counts).flatMap((e: any) => e.feedbacks.filter((x: any) => x.by === me));
   // 42's automatic feedback (the student did not fill theirs in) is nobody's opinion: out of the averages and the list,
   // named apart below
   const real = (e: any) => e.feedbacks.filter((x: any) => !autoFeedback(x));
-  const theirs = D.given.filter(counts).flatMap(real);
-  const autos = D.given.filter((e: any) => e.feedbacks.some(autoFeedback));
+  const theirs = given.filter(counts).flatMap(real);
+  const autos = given.filter((e: any) => e.feedbacks.some(autoFeedback));
   const avg = (fbs: any[], k: string) => { const v = fbs.map((x) => x[k]).filter((x) => x !== null && x !== undefined); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
   const below = (fbs: any[], k: string, top: number) => fbs.filter((x) => x[k] !== null && x[k] !== undefined && x[k] < top).length;
   let crit = "";
@@ -163,33 +170,43 @@ export function evaluations(pg: Page): Section[] {
       { k: "theirAvg", t: f.t("col.evaluated_to_you", { n: theirs.length }), num: true, f: (r) => `${f.num(r.theirAvg, 2)}<span class="sub">${esc(f.t("feedback.below_max", { n: r.theirLow }))}</span>` }],
     rows, { label: f.t("feedback.criteria_title") });
   }
-  const rated = D.given.filter(counts).flatMap((e: any) => real(e).filter((x: any) => x.rating !== null && x.rating !== undefined).map((x: any) => ({ ...x, project: e.project, begin: e.begin })));
+  // a given evaluation's ratings, each with its project and day
+  const ratings = (e: any, keep: (x: any) => boolean) => e.feedbacks.filter((x: any) => keep(x) && x.rating !== null && x.rating !== undefined).map((x: any) => ({ ...x, project: e.project, begin: e.begin }));
+  const isLow = (x: any) => x.rating < 5 || KINDS.some((k) => x[k] !== null && x[k] !== undefined && x[k] < 4);
+  const rated = given.filter(counts).flatMap((e: any) => ratings(e, (x) => !autoFeedback(x)));
   const score = (x: any) => KINDS.reduce((s, k) => s + (x[k] ?? 4), 0);
-  const low = rated.filter((x: any) => x.rating < 5 || KINDS.some((k) => x[k] !== null && x[k] !== undefined && x[k] < 4))
-    .sort((a: any, b: any) => a.rating - b.rating || score(a) - score(b));
+  const low = rated.filter(isLow).sort((a: any, b: any) => a.rating - b.rating || score(a) - score(b));
   const meter = (label: string, n: number | null | undefined, top: number, tip = "") => {
     const pips = Array.from({ length: top }, (_, i) => `<i class="${n !== null && n !== undefined && i < n ? "on" : ""}"></i>`).join("");
     const shown = n === null || n === undefined ? "–" : n;
     return `<div class="${n !== null && n !== undefined && n < top ? "low" : ""}"><dt title="${esc(tip || label)}">${esc(label)}</dt>`
       + `<dd><span class="pips" role="img" aria-label="${esc(f.t("feedback.pips", { label, n: shown, max: top }))}">${pips}</span><b>${shown}<small>/${top}</small></b></dd></div>`;
   };
-  const lowItem = (x: any) => `<li class="fb-item"><p class="fb-head"><span>${byLine(f, "feedback.by", x.by, { project: x.project })}</span>`
+  const fbItem = (x: any, head: string) => `<li class="fb-item"><p class="fb-head"><span>${head}</span>`
     + `<span class="when">${esc(f.day(x.begin))}</span></p><dl class="fb-crit">${meter(f.t("feedback.overall"), x.rating, 5)}`
     + ["punctuality", "interested", "rigorous", "nice"].map((k) => meter(f.t(`feedback.c.${k}`), x[k], 4, f.t(`feedback.q.${k}`))).join("") + "</dl>"
-    + ((x.comment || "").trim() ? `<p class="note fb-quote">“${esc(x.comment.trim())}”</p>` : "") + "</li>";
+    + ((x.comment || "").trim() && !autoFeedback(x) ? `<p class="note fb-quote">“${esc(x.comment.trim())}”</p>` : "") + "</li>"; // 42's text is the same every time
+  const lowItem = (x: any) => fbItem(x, byLine(f, "feedback.by", x.by, { project: x.project }));
+  // the lists that open: a rating you got under the maximum shows its squares, the rest one plain line each
+  const plain = (e: any, sub: string) => `<li><span>${esc(e.project)}<br><span class="note">${sub}</span></span><span class="when">${esc(f.day(e.begin))}</span></li>`;
   const lowItems = low.map(lowItem).join("") || `<li class="note">${esc(f.t(rated.length ? "feedback.all_max" : "empty.ratings"))}</li>`;
   // what was left out, and the averages if it counted
   let apart = "";
   if (outside.length) {
-    const allMine = D.received.flatMap((e: any) => e.feedbacks.filter((x: any) => x.by === me)), allTheirs = D.given.flatMap(real);
-    const items = outside.map((e: any) => `<li><span>${esc(e.project)}<br><span class="note">${esc(f.t(e.role === "received" ? "role.received" : "role.given"))}`
-      + `${e.cursus?.length ? ` · ${esc(e.cursus.join(", "))}` : ""}</span></span><span class="when">${esc(f.day(e.begin))}</span></li>`).join("");
+    const allMine = received.flatMap((e: any) => e.feedbacks.filter((x: any) => x.by === me)), allTheirs = given.flatMap(real);
+    const items = outside.map((e: any) => {
+      const lows = e.role === "received" ? [] : ratings(e, (x) => !autoFeedback(x)).filter(isLow);
+      return lows.length ? lows.map(lowItem).join("")
+        : plain(e, esc(f.t(e.role === "received" ? "role.received" : "role.given")) + (e.cursus?.length ? ` · ${esc(e.cursus.join(", "))}` : ""));
+    }).join("");
     apart = `<details class="apart"><summary>${esc(f.plural(outside.length, "feedback.apart"))}</summary>`
       + `<p class="note">${esc(f.t("feedback.apart_avg", { mine: f.num(avg(allMine, "rating"), 2), theirs: f.num(avg(allTheirs, "rating"), 2) }))}</p><ul class="list">${items}</ul></details>`;
   }
   const autoApart = autos.length ? `<details class="apart auto-apart"><summary>${esc(f.plural(autos.length, "feedback.auto_apart"))}</summary>`
-    + `<p class="note">${esc(f.t("feedback.auto_note"))}</p><ul class="list">${autos.map((e: any) => `<li><span>${esc(e.project)}<br><span class="note">`
-      + `${esc((e.correcteds || []).length > 1 && e.team ? e.team : f.t("role.given"))}</span></span><span class="when">${esc(f.day(e.begin))}</span></li>`).join("")}</ul></details>` : "";
+    + `<p class="note">${esc(f.t("feedback.auto_note"))}</p><ul class="list">${autos.map((e: any) => {
+      const who = (e.correcteds || []).length > 1 && e.team ? e.team : f.t("role.given"), lows = ratings(e, autoFeedback).filter(isLow);
+      return lows.length ? lows.map((x: any) => fbItem(x, esc(`${e.project} · ${who}`))).join("") : plain(e, esc(who));
+    }).join("")}</ul></details>` : "";
   out.push({ id: "feedback", nav: f.t("nav.feedback"), html: section("feedback", f.t("feedback.title"), cols(
     crit ? block("table-feedback", `<div class="table-wrap">${crit}</div>`, f.t("feedback.criteria_title"), f.t("feedback.criteria_note")) : "",
     block("low-feedback", `<ul class="list">${lowItems}</ul>${apart}${autoApart}`, f.t("feedback.low_title"),
@@ -365,7 +382,7 @@ export function cancelledSection(pg: Page): Section | null {
     return [head, "---", ...[...l].sort((a, b) => b.at_ms - a.at_ms).map((c) => `${f.day(c.at)} ${String(c.at).slice(11)}${more ? ` · ${more(c) || "–"}` : ""}`)];
   };
   const card = (cls: string, title: string, n: number | null, sub: string, tip: string[]) => `<div class="cancel-card ${cls}" tabindex="0"${tipAttr(tip.join("\n"))}>`
-    + `<h3>${esc(title)}<span class="info" aria-hidden="true"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7"/><path d="M8 7.2v4.3M8 4.6v.1"/></svg></span></h3>`
+    + `<h3>${esc(title.replace(/\s*\S+$/, ""))} <span class="nw">${esc(title.split(/\s+/).pop() || "")}<span class="info" aria-hidden="true"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7"/><path d="M8 7.2v4.3M8 4.6v.1"/></svg></span></span></h3>`
     + `<p class="v">${n === null ? "–" : esc(f.num(n))}</p><p class="s">${esc(sub)}</p></div>`;
   const self = count("self", null), corrector = count("corrector", r ? (r.count + r.sum) / 2 : 0) ?? 0;
   const theirs = count("you", r ? (r.count - r.sum) / 2 : 0) ?? 0, absent = count("absent", miss ? miss.count : 0) ?? 0;

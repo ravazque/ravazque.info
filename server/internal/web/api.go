@@ -155,12 +155,16 @@ func (s *Server) view(w http.ResponseWriter, r *http.Request, si signedIn) {
 			madrid = st
 		}
 	}
+	var asStudent any // Feedback's: the Piscine projects you corrected as a student (rushes) are the student's feedback
+	if p == "student" {
+		asStudent = core.FromKickoff(periods.Obj("piscine"), all)
+	}
 	writeJSON(w, 200, map[string]any{
 		"period": p, "periods": periods.Keys(), "default_period": data.V("default_period"), "light": data.V("light"),
 		"seat_days": data.V("seat_days"), "report": rep, "derive": core.Derive(rep, all, s.now()),
 		"layout": data.V("layout"), "connections": data.Obj("connections").V(p), "network": data.Obj("network").V(p),
 		"promo": data.V("promo"), "coalitions": s.coalitionsFor(data), "all_projects": all.V("projects"), "all_cursus": all.Obj("extras").V("cursus"),
-		"madrid": madrid,
+		"madrid": madrid, "piscine_as_student": asStudent,
 	})
 }
 

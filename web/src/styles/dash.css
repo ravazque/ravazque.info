@@ -6,11 +6,12 @@
 :where(body:not(.site)) .boot-panel .row-btns { display: flex; flex-wrap: wrap; gap: 12px; }
 /* the log's filters on a grid, every field as wide as the others and never under its control: one row on a wide screen
    (Received/Given, five fields, Clear filters when shown), else as many columns as fit (phones: two, Received/Given across) */
-:where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]) { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: 12px 16px; align-items: end; }
+:where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]) { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 12px 16px; align-items: end; }
 :where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]) > .seg { justify-self: start; }
 @media (max-width: 519.98px) {
-  :where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]) { grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr)); }
-  :where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]) > .seg { grid-column: 1 / -1; }
+  :where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]) { grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); }
+  :where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]) > .seg { grid-column: 1 / -1; justify-self: stretch; display: flex; }  /* Received | Given across the row */
+  :where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]) > .seg > * { flex: 1 1 0; }
   :where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]) > :has(> input[type=search]), :where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]) > input[type=search] { grid-column: 1 / -1; } /* its placeholder was cut at half width */
 }
 :where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]) :is(.select-btn, input[type=search]) { min-width: 0; }
@@ -21,6 +22,9 @@
    screen readers */
 :where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"], [data-filter="who"], [data-filter="sessions"]) .field > span {
   position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* a title's count sits on the title's own line (baseline): centred, its smaller type looked raised; the buttons stay centred */
+:where(body:not(.site)) h2:has(> .count) { align-items: baseline; }
+:where(body:not(.site)) h2:has(> .count) > :not(.count) { align-self: center; }
 /* phones: a title with its count and buttons wraps, the count on a line of its own under them */
 @media (max-width: 959.98px) {
   :where(body:not(.site)) h2:has(> .count) { flex-wrap: wrap; }
@@ -33,6 +37,9 @@
 @media (min-width: 1360px) {
   :where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]) { grid-template-columns: max-content repeat(5, minmax(0, 1fr)); }
   :where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]):has(.log-clear) { grid-template-columns: max-content repeat(5, minmax(0, 1fr)) max-content; }
+  /* Projects has no switch: the search and its four filters share the row */
+  :where(body:not(.site)) form[data-filter="projects-table"] { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  :where(body:not(.site)) form[data-filter="projects-table"]:has(.log-clear) { grid-template-columns: repeat(5, minmax(0, 1fr)) max-content; }
 }
 :where(body:not(.site)) .controls-after { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 16px; }
 :where(body:not(.site)) section { scroll-margin-top: 80px; }
@@ -109,8 +116,12 @@
 }
 @media (max-width: 599.98px) {
   :where(body:not(.site)) .widgets .widget h2 > .widget-move:not(.widget-move + .widget-move) { margin-left: auto; }
-  :where(body:not(.site)) .widgets .widget h2 > .widget-move ~ .widget-off { margin-left: var(--title-tools-between, 9px); }
-  :where(body:not(.site)) main .widgets .widget > section > h2, :where(body:not(.site)) main .widgets .widget > section > .panel-head h2 { font-size: var(--widget-title-phone, 24px); align-items: flex-start; column-gap: 10px; }
+  :where(body:not(.site)) .widgets .widget h2 > :is(.widget-move + .widget-move, .widget-move ~ .widget-off) { margin-left: calc(var(--title-tools-between-phone, 4px) - 10px); } /* the title's 10px gap, less */
+  :where(body:not(.site)) main .widgets .widget > section > h2, :where(body:not(.site)) main .widgets .widget > section > .panel-head h2 { font-size: var(--widget-title-phone, 24px); align-items: baseline; column-gap: 10px; }
+  /* the count on the title's first line; the buttons at the top when the title wraps */
+  :where(body:not(.site)) main .widgets .widget > section > h2 > :not(.count, .info), :where(body:not(.site)) main .widgets .widget > section > .panel-head h2 > :not(.count, .info) { align-self: flex-start; }
+  :where(body:not(.site)) main .widgets .widget > section > h2 > :is(.info, .count), :where(body:not(.site)) main .widgets .widget > section > h2.fit > .count { margin-left: calc(.3em - 10px); } /* beside the title as on its page, not 10px further */
+  :where(body:not(.site)) main .widgets .widget > section > h2:not(.fit) > .count { margin-left: 0; }
   :where(body:not(.site)) .widgets .widget h2 > .widget-off { margin-left: auto; }
 }
 /* Profile's widgets: two columns from 960 px, a half widget in one of them (its own or the next free), a wide one across */
@@ -181,6 +192,10 @@
 
 /* Preview: a download's table on screen */
 :where(body:not(.site)) .head-actions { display: inline-flex; flex-wrap: wrap; gap: 10px; }
+@media (max-width: 599.98px) {  /* phones: the buttons fill the row; one that doesn't fit goes under and fills its own */
+  :where(body:not(.site)) .head-actions { display: flex; flex: 1 1 100%; }
+  :where(body:not(.site)) .head-actions > .btn { flex: 1 1 auto; }
+}
 :where(body:not(.site)) .btn[aria-busy="true"] { cursor: progress; opacity: .6; }
 :where(body:not(.site)) .preview { width: min(1200px, calc(100vw - 32px)); max-width: none; max-height: calc(100dvh - 32px); padding: 20px 22px; border-radius: 0; box-shadow: none;
   background: var(--ground); }
@@ -193,6 +208,7 @@
 :where(body:not(.site)) .block[id] { scroll-margin-top: calc(var(--c-topbar-height) + 64px); }
 :where(body:not(.site)) .settings form.theme { margin: 0; }
 :where(body:not(.site)) .settings .publish .btn { width: 100%; }
+:where(body:not(.site)) .settings .publish .btn.intra { background: var(--intra, var(--accent)); border-color: var(--intra, var(--accent)); color: var(--on-intra, var(--on-accent)); } /* always the 42 blue, also with the coalition's accent */
 :where(body:not(.site)) .settings .publish { display: grid; gap: 8px; } /* several buttons (dev-live's) one under the other */
 
 /* charts */
@@ -513,6 +529,7 @@
 :where(body:not(.site)) .float-panel li:last-child { border-bottom: 0; }
 :where(body:not(.site)) .table-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; margin-top: 12px; }
 :where(body:not(.site)) .table-foot .note { margin: 0; }
+:where(body:not(.site)) .table-foot > .head-actions { margin-left: auto; }
 :where(body:not(.site)) .table-foot .note b { color: var(--ink); }
 
 /* your latest points beside the coalitions: as tall as them, the rest scrolls */
@@ -581,8 +598,6 @@ html body:not(.site) [data-panel="low-feedback"]:only-child { grid-column: span 
 :where(body:not(.site)) .hchart.big + .note { margin-top: 12px; }
 
 /* a note that belongs to the lede: right under it, a step smaller */
-:where(body:not(.site)) .lede:has(+ .lede-note) { margin-bottom: 6px; }
-:where(body:not(.site)) .lede-note { margin: 0 0 var(--c-section-lede-gap); }
 
 /* evaluation points: the balance sits halfway down its panel when the table beside it is taller */
 :where(body:not(.site)) [data-panel="points"] { display: flex; flex-direction: column; }
@@ -620,6 +635,16 @@ html body:not(.site) [data-panel="low-feedback"]:only-child { grid-column: span 
 :where(body:not(.site)) :is(h2, h3) > .pin:not(.pin + .pin) { margin-left: var(--title-tools-gap, 14px); }
 :where(body:not(.site)) h2 > .pin.widget-off { border-color: color-mix(in oklab, var(--critical), black var(--title-tools-off-dark, 45%)); }
 :where(body:not(.site)) .info:hover, :where(body:not(.site)) .info:focus-visible { color: var(--ink); }
+@media (max-width: 599.98px) {  /* phones: every ⓘ one size (it was .42em of a title: 8–15px), easier to see and to tap */
+  :where(body:not(.site)) .info, :where(body:not(.site)) h2 .info { width: var(--info-size-phone, 15px); height: var(--info-size-phone, 15px); color: var(--text-2); }
+  :where(body:not(.site)) :is(h2, h3) > .info { align-self: flex-start; margin-top: calc((1lh - var(--info-size-phone, 15px)) / 2); } /* a title that wraps keeps it on its first line */
+  :where(body:not(.site)) .lede { font-size: var(--lede-size-phone, 16px); } /* a description shrinks with the title */
+  body:not(.site) #tip { font-size: var(--tip-size-phone, 13px); max-width: min(var(--tip-width-phone, 280px), calc(100vw - 24px)); padding: 7px 10px; } /* tips: smaller, never wider than the screen */
+  body:not(.site) #tip b:only-child { font-weight: 500; margin: 0; } /* a sentence alone (an ⓘ) is not a heading */
+  :where(body:not(.site)) section > .panel-head > .seg { display: flex; flex: 1 1 100%; } /* a switch under its title fills the row */
+  :where(body:not(.site)) section > .panel-head > .seg > * { flex: 1 1 0; }
+}
+@media (min-width: 600px) { :where(body:not(.site)) .seg.phone-only { display: none; } }
 
 /* a little air between a title, its note or key and the table or chart under it */
 :where(body:not(.site)) [data-panel] .note + .table-wrap, :where(body:not(.site)) [data-panel] h3 + .table-wrap, :where(body:not(.site)) [data-panel] .legend + .table-wrap, :where(body:not(.site)) [data-panel] .controls + #who-results { margin-top: 10px; }

@@ -292,6 +292,46 @@ test("42's automatic feedback is left out of Feedback's averages and its list, a
   expect(head(after)).not.toContain("by ?");
 });
 
+test("Feedback goes by when you corrected: a rush corrected as a student is the student's, one corrected as a pisciner the Piscine's", async () => {
+  const { readFileSync } = await import("node:fs");
+  const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8")), P = doc.periods, all = P.all;
+  const f = new Fmt("en");
+  const feedbackOf = (period: string, report: any, extra: any = {}) => evaluations(new Page(f, { period, report, layout: doc.layout, all_projects: all.projects,
+    all_cursus: all.extras.cursus, ...extra } as any, "evaluations", {})).find((s) => s.id === "feedback")!.html;
+  const head = (html: string) => html.slice(0, html.indexOf("<details") < 0 ? undefined : html.indexOf("<details"));
+  const rush = (id: number, begin: string, comment: string) => ({ ...P.student.given[0], id, project: "C Piscine Rush 00", slug: "c-piscine-rush-00", cursus: ["C Piscine"], begin,
+    feedbacks: [{ by: "peer41", rating: 3, comment }] }); // the kickoff is 2025-08-29 09:42
+  const asStudent = rush(900201, "2025-11-02 10:00", "Rush as a student."), asPisciner = rush(900202, "2025-08-10 10:00", "Rush as a pisciner.");
+  // the student view gets the Piscine period's evaluations from the kickoff on beside its own (piscine_as_student)
+  const student = feedbackOf("student", P.student, { piscine_as_student: { received: [], given: [asStudent] } });
+  expect(head(student)).toContain("Rush as a student.");
+  expect(student).not.toContain(f.plural(1, "feedback.apart"));
+  // the report files both under the Piscine: there only the one from before the kickoff stays
+  const piscine = feedbackOf("piscine", { ...P.piscine, given: [asStudent, asPisciner] });
+  expect(piscine).toContain("Rush as a pisciner.");
+  expect(piscine).not.toContain("Rush as a student.");
+  expect(feedbackOf("all", { ...all, given: [...all.given, asStudent, asPisciner] })).toContain("Rush as a student.");
+});
+
+test("in the lists that open (Discovery piscines, 42's automatic feedback) a rating under the maximum shows its squares; at the maximum a plain line", async () => {
+  const { readFileSync } = await import("node:fs");
+  const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8")), P = doc.periods;
+  const f = new Fmt("en");
+  const disco = (id: number, rating: number, comment: string) => ({ ...P.student.given[0], id, project: "Discovery Piscine - Web 00", slug: "discovery-piscine-web-00",
+    cursus: ["Discovery Piscine - Web"], begin: "2025-10-01 10:00", feedbacks: [{ by: "peer42", rating, comment }] });
+  const auto = { by: null, rating: 4, comment: "You failed to complete this feedback within the allocated time (this is very wrong), so we did it for you (do it next time).", auto: true };
+  const given = [...P.student.given, disco(900301, 2, "Low discovery."), disco(900302, 5, "Top discovery."), { ...P.student.given[1], feedbacks: [auto] }];
+  const html = evaluations(new Page(f, { period: "student", report: { ...P.student, given }, layout: doc.layout, all_projects: P.all.projects, all_cursus: P.all.extras.cursus } as any,
+    "evaluations", {})).find((s) => s.id === "feedback")!.html;
+  const apart = html.slice(html.indexOf('<details class="apart">'), html.indexOf('<details class="apart auto-apart">'));
+  expect(apart).toMatch(/<li class="fb-item">(?:(?!<\/li>).)*Low discovery\./s);
+  expect(apart).not.toMatch(/<li class="fb-item">(?:(?!<\/li>).)*Top discovery\./s);
+  expect(apart).toContain("Discovery Piscine - Web 00");
+  const autos = html.slice(html.indexOf('<details class="apart auto-apart">'));
+  expect(autos).toContain('class="fb-item"');
+  expect(autos).not.toContain("by ?");
+});
+
 test("staff get their own row by milestone, taken from the group the report counted each one in; nothing is lost", () => {
   const stats = { "outer-core": { received: 4, received_out: 1, given: 2, given_out: 0 }, "no-cursus": { received: 3, received_out: 0, given: 1, given_out: 0 } };
   const received = [{ corrector: { login: "boss", staff: true }, outstanding: true }, { corrector: { login: "boss", staff: true } }, { corrector: { login: "tutor", staff: true } }, { corrector: { login: "peer01" } }];

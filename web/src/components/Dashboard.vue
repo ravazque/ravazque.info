@@ -532,7 +532,7 @@ function exportCsv(btn: HTMLElement) {
   const kind = btn.dataset.preview || btn.dataset.download;
   const text = kind === "portfolio" ? portfolioCsv(pg.value) : projectsCsv(pg.value);
   if (btn.dataset.download) {
-    const name = kind === "portfolio" ? `portfolio-${profile.value?.login}.csv` : `projects-${params.value.track || pg.value.period}.csv`;
+    const name = kind === "portfolio" ? `portfolio-${profile.value?.login}.csv` : `projects-${pg.value.period}.csv`;
     const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" })), download: name });
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);

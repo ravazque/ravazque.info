@@ -339,12 +339,11 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
 :where(body:not(.site)) details.apart .list { max-height: 320px; }
 
 /* Keys: one place everywhere, on the block title's line at the right (alone at the right when the block has no title),
-   no box, 16 px above the chart */
+   16 px above the chart; framed or not as spacing.css says (--key-frame-all, --…-key-frame) */
 :where(body:not(.site)) .block-head .legend, :where(body:not(.site)) .block-head .scale { margin: 0; }
 :where(body:not(.site)) .block-head .scale .grp:last-child { margin-right: 0; }
 :where(body:not(.site)) .block-head > :only-child:not(h3) { margin-left: auto; } /* a key alone, never a title alone */
 :where(body:not(.site)) .block-head:has(.legend, .scale, .head-figure) { margin-bottom: 16px; }
-:where(body:not(.site)) :is([data-panel="correctors"], [data-panel="where-clusters"]) .block-head .legend { padding: 5px 12px; border: var(--key-box) solid var(--rule); }
 /* a panel with no title of its own right under the section's title: no second rule */
 :where(body:not(.site)) section > :is(h2, .panel-head) + .cols > [data-panel]:not(:has(> h3:first-child, > .block-head:first-child)) { border-top: 0; padding-top: 0; }
 /* The calendar: days outside the data are empty squares, the first day ringed */
@@ -411,7 +410,10 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
 @media (min-width: 960px) { :where(body:not(.site)) .cols > [data-panel="where-clusters"] { grid-column: span 6; } }
 /* Skills on a phone or as a half widget: the radar alone, no bar per skill (owner, 2026-11-13) */
 :where(body:not(.site)) .widget.half .radar-bars { display: none; }
-@media (max-width: 599.98px) { :where(body:not(.site)) .radar-bars { display: none; } }
+@media (max-width: 599.98px) {  /* phones: the radar or the bars, as the switch over them says */
+  :where(body:not(.site)) .radar-pair[data-show="radar"] .radar-bars, :where(body:not(.site)) .radar-pair[data-show="bars"] .radar-fig { display: none; }
+  :where(body:not(.site)) .radar-pair[data-show="bars"] .radar-bars { border-top: 0; padding-top: 0; }
+}
 /* Pace: XP per month and Your promo are a pair, each half the row (ui.json has them 7 and 5; its ui.css is pinned) */
 @media (min-width: 1280px) { :where(body:not(.site)) #pace .cols > :is([data-panel="pace-xp"], [data-panel="promo"]) { grid-column: span 6; } }
 /* the starred sections' menu: as wide as its longest title (one line each on a laptop; a phone wraps one longer than

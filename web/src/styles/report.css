@@ -430,6 +430,14 @@
   border-radius: var(--radius-m); color: var(--ink); text-decoration: none; font-weight: 600; transition: background var(--motion-fast) ease-out, color var(--motion-fast) ease-out; }
 :where(body:not(.site)) .icon-link svg { width: 18px; height: 18px; fill: currentColor; }
 :where(body:not(.site)) .icon-link:hover { background: var(--ink); color: var(--ground); }
+:where(body:not(.site)) .foot-credit .short { display: none; }
+@media (max-width: 599.98px) {  /* phones: the three links on one row, "Code" for "Source code", "Project by" for "Independent project by" */
+  :where(body:not(.site)) .foot-credit p { flex-basis: 100%; }
+  :where(body:not(.site)) .foot-credit { gap: 10px 6px; }
+  :where(body:not(.site)) .icon-link { flex: 1 1 auto; justify-content: center; gap: 6px; padding: 0 8px; } /* one row from 360px, "Código" too */
+  :where(body:not(.site)) .foot-credit .long { display: none; }  /* "Project by", "Code" */
+  :where(body:not(.site)) .foot-credit .short { display: inline; }
+}
 :where(body:not(.site)) .foot-links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
 :where(body:not(.site)) .foot-links a { color: var(--text-2); text-underline-offset: 4px; text-decoration-color: var(--rule); }
 :where(body:not(.site)) .foot-links a:hover { color: var(--ink); text-decoration-color: var(--accent-data); }

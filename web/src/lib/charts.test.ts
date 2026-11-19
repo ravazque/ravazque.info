@@ -81,6 +81,12 @@ test("a long line chart names months evenly, counted back from the month the dat
   expect(new Set(at.map(([, n]) => n)).size).toBe(at.length);
 });
 
+test("lanes: bars side by side each get their whole lane and a tip of their own series, built from the values", () => {
+  const html = vbars(new Fmt("en"), ["0–1h", "1+h"], [["Received", [3, 0], "blue"], ["Given", [1, 2], "grey"]], { label: "x", lanes: true, fmt: String });
+  expect([...html.matchAll(/<span class="lane"[^>]*data-tip="([^"]+)"/g)].map((m) => m[1])).toEqual(["0–1h\nReceived: 3", "0–1h\nGiven: 1", "1+h\nReceived: 0", "1+h\nGiven: 2"]);
+  expect(html).not.toMatch(/class="ch-col"[^>]*data-tip/);
+});
+
 test("bar tips: each bar's whole lane, above it too, opens its own series' tip; the column none", () => {
   const html = vbars(new Fmt("en"), ["c1", "c2"], [["You", [3, 0], "blue"], ["Them", [1, 2], "grey"]],
     { label: "x", barTips: [["c1 you", "c2 you"], ["c1 them", "c2 them"]] });
