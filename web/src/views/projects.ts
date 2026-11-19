@@ -70,8 +70,9 @@ export function portfolioCsv(pg: Page): string {
     f.t("col.xp"), f.t("col.team"), f.t("col.days_to_validate")], ...(pg.v.derive?.portfolio || [])]);
 }
 
-const csvButtons = (pg: Page, kind: string, title: string, button: string) =>
-  `<span class="head-actions"><button class="btn secondary" type="button" data-preview="${kind}" data-title="${esc(title)}" aria-haspopup="dialog">${esc(pg.f.t("common.preview"))}</button>`
+/** Preview and download: by the section's title on larger screens (csv-top), under its table or chart on phones (csv-bottom). */
+const csvButtons = (pg: Page, kind: string, title: string, button: string, cls: "csv-top" | "csv-bottom") =>
+  `<span class="head-actions ${cls}"><button class="btn secondary" type="button" data-preview="${kind}" data-title="${esc(title)}" aria-haspopup="dialog">${esc(pg.f.t("common.preview"))}</button>`
   + `<button class="btn secondary" type="button" data-download="${kind}">${esc(button)}</button></span>`;
 
 /** One exam try: its mark in green (passed) or red, or a grey "–" when it has none. */
@@ -155,8 +156,9 @@ export function projects(pg: Page): Section[] {
     + (filtering ? `<a class="btn secondary log-clear" href="${esc(pg.url(undefined, { q: "", milestone: "", status: "", marks: "", year: "" }))}" data-keep>${esc(f.t("log.clear"))}</a>` : ""));
   out.push({ id: "projects-table", nav: f.t("nav.projects_table"), html: section("projects-table", f.t("projects_table.title"),
     form + `<div id="projects-table-results">` + cols(`<div class="block" data-panel="projects-table"><div class="table-wrap tall">${tbl}</div>`
-      + `<div class="table-foot">` + csvButtons(pg, "projects", f.t("projects_table.title"), f.t("projects_table.csv")) + "</div></div>") + "</div>",
-    { count: f.plural(rows.length, "projects_table.count") }) });
+      + `<div class="table-foot csv-bottom">` + csvButtons(pg, "projects", f.t("projects_table.title"), f.t("projects_table.csv"), "csv-bottom") + "</div></div>") + "</div>",
+    { head: `<div class="panel-head"><h2>${esc(f.t("projects_table.title"))}<span class="count"><span class="sep"> · </span>${esc(f.plural(rows.length, "projects_table.count"))}</span></h2>`
+      + `${csvButtons(pg, "projects", f.t("projects_table.title"), f.t("projects_table.csv"), "csv-top")}</div>` }) });
 
   const exams = D.insights?.exams || [];
   out.push({ id: "exams", nav: f.t("nav.exams"), html: section("exams", f.t("exams.title"), cols(block("exams", `<div class="table-wrap">${table(f, [
@@ -171,8 +173,9 @@ export function projects(pg: Page): Section[] {
   const cap = (s: string) => s.slice(0, 1).toUpperCase() + s.slice(1);
   out.push({ id: "domains", nav: f.t("domains.title"), html: section("domains", "", cols(block("domains", hbars(f, areas.map((a: any) => cap(f.t(`domains.tag.${a.key}`))), [[f.t("col.xp"), areas.map((a: any) => a.xp), S1]], {
       label: f.t("domains.title"), tips: areas.map((a: any) => `${f.t(`domains.tag.${a.key}`)} · ≈ ${f.num(a.xp)} XP · ${a.projects.join(", ")}`),
-      end: (_i, v) => `≈ ${f.num(v)}`, extra: (i) => f.plural(areas[i].projects.length, "domains.projects"), emptyText: f.t("domains.none"), big: true }))),
-  { head: `<div class="panel-head"><h2>${esc(f.t("domains.title"))} ${info(f.t("domains.xp_note"))}</h2>${csvButtons(pg, "portfolio", f.t("domains.portfolio_title"), f.t("domains.portfolio"))}</div>` }) });
+      end: (_i, v) => `≈ ${f.num(v)}`, extra: (i) => f.plural(areas[i].projects.length, "domains.projects"), emptyText: f.t("domains.none"), big: true })))
+    + `<div class="table-foot csv-bottom">${csvButtons(pg, "portfolio", f.t("domains.portfolio_title"), f.t("domains.portfolio"), "csv-bottom")}</div>`,
+  { head: `<div class="panel-head"><h2>${esc(f.t("domains.title"))} ${info(f.t("domains.xp_note"))}</h2>${csvButtons(pg, "portfolio", f.t("domains.portfolio_title"), f.t("domains.portfolio"), "csv-top")}</div>` }) });
 
   const laneName = (g: string) => (g === "work" ? f.t("projects.lane_work") : g === "other" ? f.t("log.milestone_other") : groupLabel(pg, g));
   const tl = timelineLanes(D.projects.map((p: any) => (groupOf(p) === "outside" ? { ...p, group: "outside" } : p)), laneName).map(([lane, spans]) => [lane, spans.map(({ p, a }) => {

@@ -205,10 +205,16 @@
 :where(body:not(.site)) .preview .table-wrap { max-height: calc(100dvh - 160px); }
 :where(body:not(.site)) .preview th { padding: 10px 12px; font: 700 14px var(--type-font-display); color: var(--text-2); white-space: nowrap; }
 :where(body:not(.site)) .preview td { white-space: nowrap; }
+:where(body:not(.site)) .preview table { width: max-content; min-width: 100%; } /* a row on one line: Dashboard's fitPreview shrinks the table (CSS zoom) to the dialog's width, no sideways scroll */
+:where(body:not(.site)) .preview td .who-pop > summary { display: inline; white-space: nowrap; min-height: 0; padding: 0; } /* as tall as the other cells */
+@media (max-width: 599.98px) {  /* phones: less room around the table and its cells, so it shrinks less */
+  :where(body:not(.site)) .preview { padding: 12px 10px; }
+  :where(body:not(.site)) .preview :is(th, td) { padding: 3px 6px; }
+}
 :where(body:not(.site)) .block[id] { scroll-margin-top: calc(var(--c-topbar-height) + 64px); }
 :where(body:not(.site)) .settings form.theme { margin: 0; }
 :where(body:not(.site)) .settings .publish .btn { width: 100%; }
-:where(body:not(.site)) .settings .publish .btn.intra { background: var(--intra, var(--accent)); border-color: var(--intra, var(--accent)); color: var(--on-intra, var(--on-accent)); } /* always the 42 blue, also with the coalition's accent */
+:where(body:not(.site)) .settings .publish .btn.accented { border-color: var(--accent-line, var(--accent)); } /* like the others, framed in the accent: the 42 blue or the coalition's */
 :where(body:not(.site)) .settings .publish { display: grid; gap: 8px; } /* several buttons (dev-live's) one under the other */
 
 /* charts */
@@ -530,6 +536,8 @@
 :where(body:not(.site)) .table-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; margin-top: 12px; }
 :where(body:not(.site)) .table-foot .note { margin: 0; }
 :where(body:not(.site)) .table-foot > .head-actions { margin-left: auto; }
+@media (max-width: 599.98px) { :where(body:not(.site)) .csv-top { display: none; } }  /* Preview / Download: under the table or chart on phones, */
+@media (min-width: 600px) { :where(body:not(.site)) .csv-bottom { display: none; } } /* by the section's title on larger screens */
 :where(body:not(.site)) .table-foot .note b { color: var(--ink); }
 
 /* your latest points beside the coalitions: as tall as them, the rest scrolls */

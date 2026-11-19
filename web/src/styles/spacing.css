@@ -83,6 +83,8 @@
   --info-size-phone: 15px;     /* every ⓘ on phones (larger screens size it with its title) */
   --tip-size-phone: 13px;      /* the text of a tip (what an ⓘ, a bar or a dot says) on phones */
   --tip-width-phone: 280px;    /* the widest a tip gets on phones (and never wider than the screen less 24px) */
+  --foot-credit-gap-phone: 28px; /* footer on phones: the Code · LinkedIn · GitHub buttons → "Project by ravazque…" under them */
+  --foot-links-gap-phone: 8px; /* footer on phones: "Project by ravazque…" → About · Privacy · Report an issue */
   --lede-size-phone: clamp(15px, 4.1vw, 17px); /* a section's description on phones (18px from 600 px up): 15px at 360, 17px at 414 */
   --title-count-color: color-mix(in oklab, var(--muted) 55%, transparent);  /* "· 90 evaluations" beside a title: a very soft grey */
   --title-count-size: .7em;    /* its size, against the title's (.5em: half) */

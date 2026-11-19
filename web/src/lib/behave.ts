@@ -100,8 +100,9 @@ function openFloat(d: HTMLDetailsElement) {
   if (!el) {
     el = Object.assign(document.createElement("div"), { id: "float", className: "float-panel" });
     el.setAttribute("aria-hidden", "true");
-    document.body.append(el);
   }
+  const host = d.closest("dialog[open]") || document.body; // an open dialog is on the top layer: the panel goes inside it
+  if (el.parentElement !== host) host.append(el);
   el.innerHTML = d.querySelector(":scope > .pop-panel")?.innerHTML || "";
   el.hidden = false;
   el.style.left = el.style.top = "0px";

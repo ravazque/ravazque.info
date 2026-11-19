@@ -123,7 +123,7 @@ function go(path: string) { closePops(); router.push(path); }
           <template v-if="!offline">
           <p class="s-label">{{ f.t("settings.account") }}</p>
           <div v-if="user?.can_publish" class="publish">
-            <a class="btn primary intra" href="/app/publish" :aria-disabled="!fresh || busy" :title="!fresh && !busy ? f.t('publish.stale') : undefined"
+            <a class="btn secondary accented" href="/app/publish" :aria-disabled="!fresh || busy" :title="!fresh && !busy ? f.t('publish.stale') : undefined"
               @click.prevent="fresh && !busy && go('/app/publish')">{{ f.t("publish.button") }}</a>
           </div>
           <component :is="DevLive" v-if="DevLive && state.session?.dev && user?.owner" />

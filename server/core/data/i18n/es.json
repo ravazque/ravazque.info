@@ -667,7 +667,7 @@
  "community.s_correctors": "correctores distintos",
  "community.k_rating": "Tu valoración como evaluador",
  "community.s_rating": "media de {n} valoraciones, sobre 5",
- "domains.title": "Dominios técnicos | RNCP",
+ "domains.title": "Dominios técnicos - RNCP",
  "domains.portfolio": "Descargar portafolio (CSV)",
  "domains.none": "Aún no has validado proyectos de estas áreas.",
  "domains.projects": {"one": "{n} proyecto", "other": "{n} proyectos"},

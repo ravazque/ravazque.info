@@ -432,7 +432,8 @@
 :where(body:not(.site)) .icon-link:hover { background: var(--ink); color: var(--ground); }
 :where(body:not(.site)) .foot-credit .short { display: none; }
 @media (max-width: 599.98px) {  /* phones: the three links on one row, "Code" for "Source code", "Project by" for "Independent project by" */
-  :where(body:not(.site)) .foot-credit p { flex-basis: 100%; }
+  :where(body:not(.site)) .foot-credit p { flex-basis: 100%; order: 1; margin-top: calc(var(--foot-credit-gap-phone, 28px) - 10px); } /* under the buttons (10px: the row gap) */
+  :where(body:not(.site)) .site-foot > .foot-links { margin-top: calc(var(--foot-links-gap-phone, 8px) - 20px); } /* close under it (20px: the footer's gap) */
   :where(body:not(.site)) .foot-credit { gap: 10px 6px; }
   :where(body:not(.site)) .icon-link { flex: 1 1 auto; justify-content: center; gap: 6px; padding: 0 8px; } /* one row from 360px, "Código" too */
   :where(body:not(.site)) .foot-credit .long { display: none; }  /* "Project by", "Code" */
