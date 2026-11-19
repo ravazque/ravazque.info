@@ -48,17 +48,9 @@ jobs:
       - name: Browser app
         working-directory: web
         run: npm ci --no-audit --no-fund && npx vue-tsc --noEmit && npx vitest run && npm run build
-      # shortcut: GHSA-fc5q-39xc-vjpf (picomatch ReDoS, build tools only, no patched release) is let through;
-      # drop the filter for plain `npm audit --audit-level=high` once picomatch > 4.0.7 is out and make update ran.
       - name: Known vulnerabilities in the browser app's dependencies
         working-directory: web
-        run: |
-          npm audit --json > "$RUNNER_TEMP/audit.json" || true
-          left=$(jq -r 'if .vulnerabilities == null then error("npm audit gave no report") else
-            [.vulnerabilities[].via[] | objects | select(.severity == "high" or .severity == "critical")
-              | select(.url | endswith("/GHSA-fc5q-39xc-vjpf") | not) | "\(.severity) \(.name): \(.title) \(.url)"]
-            | unique | .[] end' "$RUNNER_TEMP/audit.json")
-          [ -z "$left" ] || { echo "$left"; exit 1; }
+        run: npm audit --audit-level=high
       - name: The evaluation report
         run: python3 tools/evaluation-report/test_evaluation_report.py
 
