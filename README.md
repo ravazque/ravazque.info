@@ -103,8 +103,9 @@ a page with the reason. Access is checked again on every refresh.
 - About other students the app keeps only login, name, group (milestone, alumni, blackholed…) and whether they are
   staff and, for your evaluations of the last 60 days, the seat the other side used (and how late the students you
   evaluated logged in). Of the feedback you received, only yours.
-- The only file the server writes is the consent record: a keyed hash of your 42 id, the policy version and the date,
-  kept for two years.
+- The server writes two files: the consent record (a keyed hash of your 42 id, the policy version and the date, kept for
+  two years) and the visits record for the owner's operations page (your login with your first and last sign-in, gone with
+  *Delete my data* or two years after your last sign-in).
 - *Delete my data* clears the server's copy, cancels a pending refresh and tells your browser to clear its storage.
 - Students who ask to be left out appear as "Hidden N", with no name, photo or seat, in everyone's reports (`OPTOUT_LOGINS`):
   the number only tells people apart within that report, and their login goes from team names and comments too.
@@ -181,6 +182,7 @@ CONTACT_EMAIL                # contact for privacy requests (About and Privacy p
 TUNNEL_TOKEN                 # production: the Cloudflare tunnel's token
 DEV_REAL_LOGINS              # dev: 42 logins (comma-separated) whose real reports make dev-real serves
 OPTOUT_LOGINS                # optional: logins shown as "Hidden"
+VISITORS_SEED                # optional, once: logins that came before the visits record (taken while it has no file)
 ISSUES_URL                   # optional: "Report an issue" link
 OWNER_LOGIN, GITHUB_TOKEN,   # optional: the publish button (hidden unless OWNER_LOGIN,
 GITHUB_REPO, GITHUB_BRANCH   #   GITHUB_TOKEN and GITHUB_REPO are set)

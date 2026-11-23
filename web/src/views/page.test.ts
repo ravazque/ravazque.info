@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { Fmt } from "../fmt";
-import { Page, aboveShare, daysTo, erased, monthsBetween, myTrack, projectName, shortProject } from "./page";
+import { Page, aboveShare, daysTo, erased, keptParams, monthsBetween, myTrack, projectName, shortProject } from "./page";
 
 const ex = (quests: [string, boolean][]) => ({ cursus: [{ name: "42cursus" }], quests: quests.map(([name, v]) => ({ name, validated: v ? "2026-01-01" : null })) });
 
@@ -111,4 +111,13 @@ test("above share: only who is strictly below, out of the others; older reports 
   expect(aboveShare({ size: 422, below: 0, tied: 421 }, 100)).toBe(0);
   expect(aboveShare({ size: 5, below: 2, tied: 1 }, 80)).toBe(50);
   expect(aboveShare({ size: 368, rank: 104 }, 72)).toBe(72);
+});
+
+test("the view's switches stay in the browser: a page opened without one takes the last one chosen; filters are not kept", () => {
+  const box = new Map<string, string>();
+  const store = { get: (k: string) => box.get(k) ?? null, set: (k: string, v: string) => void box.set(k, v) };
+  expect(keptParams({ period: "student", skills: "bars", flag: "out", q: "x" }, store)).toEqual({ period: "student", skills: "bars", flag: "out", q: "x" });
+  expect(keptParams({}, store)).toEqual({ period: "student", skills: "bars" }); // the brand, Profile, the band's pages
+  expect(keptParams({ period: "piscine" }, store)).toEqual({ period: "piscine", skills: "bars" }); // the address wins, and is kept
+  expect(keptParams({}, store).period).toBe("piscine");
 });

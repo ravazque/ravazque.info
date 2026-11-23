@@ -10,11 +10,11 @@ import (
 )
 
 // Proof that someone accepted the privacy policy: a keyed hash of their 42 id, the version and the date, kept for two
-// years after their last sign-in. It names nobody and survives "Delete my data". It is the one thing written to disk
-// (CONSENT_LOG, one JSON line per acceptance, pruned at start-up).
+// years after their last sign-in. It names nobody and survives "Delete my data". Written to disk (CONSENT_LOG, one JSON
+// line per acceptance, pruned at start-up), as is the visitors list (visitors.go) since v5.
 const (
-	ConsentVersion = 4
-	ConsentUpdated = "2026-11-12"
+	ConsentVersion = 5 // v5: the visitors list (login, first and last sign-in) for the owner's Server stats
+	ConsentUpdated = "2026-11-23"
 	consentKeep    = 2 * 365 * 24 * time.Hour
 )
 

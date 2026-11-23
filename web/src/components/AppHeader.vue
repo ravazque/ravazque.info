@@ -7,11 +7,12 @@ import { api, fmt, pins, setLang, settings, state } from "../state";
 import { applyAccentChoice, applyTheme, setTheme, type Theme } from "../lib/look";
 import { closePops } from "../lib/behave";
 import { forget, idbShelf } from "../lib/copy";
-import { PAGES, PATHS, type PageKey } from "../views/page";
+import { PAGES, PATHS, testFlags, type PageKey } from "../views/page";
 import BrandMark from "./BrandMark.vue";
 import { offline } from "../offline";
 
-const props = defineProps<{ page?: PageKey; period?: string; periods?: string[] }>();
+// nav: the pages and the star menu without a page of them being the current one (Server stats)
+const props = defineProps<{ page?: PageKey; period?: string; periods?: string[]; nav?: boolean }>();
 const emit = defineEmits<{ refreshed: [] }>();
 const router = useRouter();
 const f = computed(() => fmt.value);
@@ -23,7 +24,13 @@ watch(() => user.value?.coalition_color, (c) => { accent.value = applyAccentChoi
 
 const label = (k: PageKey) => f.value.t(`pages.${k}`);
 const starHref = (s: { page: string; id: string }) => `${PATHS[s.page as PageKey] || "/app"}#${s.id}`;
-const href = (k: PageKey) => PATHS[k] + (props.period ? `?period=${props.period}` : "");
+// SPIKE ?test=… (views/page.ts testFlags): proposals follow you from page to page
+const tests = computed(() => testFlags(router.currentRoute.value.query.test));
+const href = (k: PageKey) => {
+  const q = new URLSearchParams(props.period ? { period: props.period } : {});
+  if (tests.value.size) q.set("test", String(router.currentRoute.value.query.test));
+  return PATHS[k] + (q.size ? `?${q}` : "");
+};
 
 const busy = computed(() => ["queued", "running"].includes(status.value?.state || ""));
 const waitText = (s: number) => (s < 60 ? f.value.t("refresh.wait_s", { count: Math.max(1, s) }) : f.value.t("refresh.wait", { count: Math.ceil(s / 60) }));
@@ -65,7 +72,7 @@ function go(path: string) { closePops(); router.push(path); }
   <a class="skip" href="#main">{{ f.t("a11y.skip") }}</a>
   <header class="topbar">
     <RouterLink class="brand" to="/app" :aria-label="f.t('brand.name')"><BrandMark /><span>{{ f.t("brand.name") }}</span></RouterLink>
-    <nav v-if="page" class="pages" :aria-label="f.t('pages.label')">
+    <nav v-if="page || nav" class="pages" :aria-label="f.t('pages.label')">
       <RouterLink v-for="k in PAGES" :key="k" :to="href(k)" :aria-current="k === page ? 'page' : undefined">{{ label(k) }}</RouterLink>
     </nav>
     <div class="topbar-end">
@@ -74,7 +81,7 @@ function go(path: string) { closePops(); router.push(path); }
         <div v-if="busy" class="progress"><i :style="{ width: Math.round(100 * (status.progress || 0)) + '%' }"></i></div>
         <button class="btn on-band" type="button" :disabled="busy || status.next_refresh_in > 0 || status.frozen" @click="refresh">{{ f.t("refresh.button") }}</button>
       </div>
-      <div v-if="page" class="best-anchor">
+      <div v-if="page || nav" class="best-anchor">
         <details class="pop best-wrap" @toggle="($event.target as HTMLDetailsElement).open && tourDone()">
           <summary class="best" :aria-label="f.t('best.label')" :title="f.t('best.label')">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path class="star" d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.2l-5.8 3.2 1.2-6.5-4.8-4.5 6.5-.8z" /></svg>
@@ -98,6 +105,7 @@ function go(path: string) { closePops(); router.push(path); }
       </div>
       <details class="pop settings-wrap">
         <summary class="gear" :aria-label="f.t('settings.label')" :title="f.t('settings.label')">
+          <i v-if="period && period !== 'all'" :class="`period-dot pd-${period}`" :title="`${f.t('rail.period')}: ${f.t(`period.${period}`)}`"></i>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
         </summary>
         <div class="settings" role="group" :aria-label="f.t('settings.label')">
@@ -135,7 +143,7 @@ function go(path: string) { closePops(); router.push(path); }
           </template>
         </div>
       </details>
-      <details v-if="page" class="pop menu-wrap">
+      <details v-if="page || nav" class="pop menu-wrap">
         <summary class="gear menu-btn" :aria-label="f.t('pages.label')" :title="f.t('pages.label')">
           <svg class="open" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
           <svg class="shut" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>

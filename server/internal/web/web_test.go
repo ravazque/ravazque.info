@@ -258,8 +258,11 @@ func TestViewTodayAndConsent(t *testing.T) {
 	if r.StatusCode != 200 || v["period"] != "all" || v["report"] == nil || v["derive"] == nil || v["layout"] == nil || v["network"] == nil {
 		t.Fatalf("%d %v", r.StatusCode, keys(v))
 	}
-	if r := e.do(t, "GET", "/api/me/view?period=bogus", nil, nil); r.StatusCode != 200 || !strings.Contains(readAll(r), `"period":"student"`) {
-		t.Fatal("unknown period falls back to the default")
+	// All is the default since 2026-11-20 (owner), whatever period a saved report names
+	for _, q := range []string{"?period=bogus", ""} {
+		if r := e.do(t, "GET", "/api/me/view"+q, nil, nil); r.StatusCode != 200 || !strings.Contains(readAll(r), `"period":"all"`) {
+			t.Fatalf("view%s falls back to all", q)
+		}
 	}
 	e.s.M.Delete(e.s.M.Keys("consent:*")...)
 	if r := e.do(t, "GET", "/api/me/view", nil, nil); r.StatusCode != 409 {
@@ -435,6 +438,27 @@ func TestPublishOwnerOnlyAndWhitelisted(t *testing.T) {
 	}
 	if r := e.do(t, "GET", "/api/stats", nil, nil); r.StatusCode != 200 {
 		t.Fatal(r.StatusCode)
+	}
+}
+
+func TestStatsListWhoSignedInAndDeleteForgetsThem(t *testing.T) {
+	e := newEnv(t, nil)
+	e.signIn(t)
+	e.s.Jobs.Drain()
+	var st struct {
+		Started  time.Time
+		Visitors []struct {
+			Login       string
+			First, Last time.Time
+		}
+	}
+	json.Unmarshal([]byte(readAll(e.do(t, "GET", "/api/stats", nil, nil))), &st)
+	if len(st.Visitors) != 1 || st.Visitors[0].Login != "tmidway" || st.Visitors[0].Last.Before(st.Started) {
+		t.Fatalf("the sign-in is listed, since the start: %+v", st)
+	}
+	e.do(t, "POST", "/api/me/delete", nil, nil)
+	if len(e.s.Visitors.List()) != 0 {
+		t.Fatal("Delete my data forgets the visit")
 	}
 }
 

@@ -16,6 +16,7 @@
 }
 :where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]) :is(.select-btn, input[type=search]) { min-width: 0; }
 :where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]) .log-clear { justify-self: start; white-space: nowrap; }
+@media (max-width: 519.98px) { :where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]) .log-clear { grid-column: 1 / -1; justify-self: stretch; } }  /* phones: the row, as every button there */
 @media (min-width: 1280px) { :where(body:not(.site)) [data-panel="table-log"] td .sub { white-space: normal; text-overflow: clip; } } /* laptops: the small lines wrap, the table fits rather than scrolls; narrower screens scroll it, a wrapped line there made rows 160px tall */
 :where(body:not(.site)) td .sub.dur > .nw { display: block; }  /* planned, booked ahead: a line each, never broken inside (one line needs 1410px: no screen gives the table that) */
 /* these filters name themselves (the first option says "Any seat", the box "Search: …"): no label above them, kept for
@@ -151,6 +152,11 @@
 :where(body:not(.site)) .widget-add { margin-top: var(--picker-top, 48px); padding-top: var(--picker-pad, 28px); border-top: var(--picker-line, 2px) solid var(--picker-line-color, var(--rule)); }
 :where(body:not(.site)) .widget-add .add-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: center; gap: 12px 16px; max-width: 760px; margin-inline: auto; }
 :where(body:not(.site)) .widget-add .field { flex: 1 1 300px; max-width: none; }
+@media (max-width: 599.98px) {  /* phones: the select and Add on one row (owner, 2026-11-23) */
+  :where(body:not(.site)) .widget-add .add-row { flex-wrap: nowrap; }
+  :where(body:not(.site)) .widget-add .field { flex: 1 1 0; min-width: 0; }
+  :where(body:not(.site)) .widget-add .add-row > .btn { flex: none; }
+}
 :where(body:not(.site)) .best-menu a svg { flex: none; width: 18px; height: 18px; margin-right: 12px; fill: none; stroke: var(--text-2); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 :where(body:not(.site)) .best-menu a span { display: flex; flex-direction: column; line-height: 1.2; padding: 6px 0; }
 :where(body:not(.site)) .best-menu a small { color: var(--muted); font: 500 13px var(--type-font-text); }
@@ -215,20 +221,16 @@
 :where(body:not(.site)) .settings .publish { display: grid; gap: 8px; } /* several buttons (dev-live's) one under the other */
 
 /* charts */
-:where(body:not(.site)) .vchart, :where(body:not(.site)) .lchart, :where(body:not(.site)) .hchart, :where(body:not(.site)) .timeline { margin: 10px 0 0; font-size: var(--c-chart-font-size); color: var(--muted); }
+:where(body:not(.site)) .vchart, :where(body:not(.site)) .lchart, :where(body:not(.site)) .hchart { margin: 10px 0 0; font-size: var(--c-chart-font-size); color: var(--muted); }
 /* the top value label sits on the top line: keep it clear of the title or note above, and the axis of what follows */
 :where(body:not(.site)) .vchart, :where(body:not(.site)) .lchart { margin: 16px 0 6px; }
 :where(body:not(.site)) .ch-plot { position: relative; height: var(--c-chart-height); margin-left: var(--c-chart-axis-width); border-bottom: var(--axis-line) solid var(--rule-strong); }
-/* a line chart has a scale on both sides: equal gutters, each number the same 6px from its colour bar */
-:where(body:not(.site)) .has-line .ch-plot { margin-left: calc(var(--c-chart-axis-width) + 36px); margin-right: calc(var(--c-chart-axis-width) + 36px); }
 :where(body:not(.site)) .ch-y { position: absolute; top: 0; bottom: 0; left: calc(-1 * var(--c-chart-axis-width)); width: calc(var(--c-chart-axis-width) - 6px); }
-:where(body:not(.site)) .has-line .ch-y:not(.right) { left: calc(-1 * (var(--c-chart-axis-width) + 36px)); width: calc(var(--c-chart-axis-width) + 24px); }
-:where(body:not(.site)) .ch-y.right { left: calc(100% + 12px); right: auto; width: calc(var(--c-chart-axis-width) + 24px); text-align: left; }
 :where(body:not(.site)) .ch-y span { position: absolute; right: 0; transform: translateY(50%); }
-:where(body:not(.site)) .ch-y.right span { left: 0; right: auto; }
 :where(body:not(.site)) .ch-y span:first-child { transform: translateY(0); }  /* the 0 sits above the baseline, not on top of it */
 :where(body:not(.site)) .ch-plot::before { content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: repeating-linear-gradient(to top, transparent 0 calc(25% - 1px), var(--rule) calc(25% - 1px) 25%); opacity: .7; }
+  --q: calc(100% / var(--steps, 4));  /* a line at each number of the scale (charts.ts sets --steps) */
+  background: repeating-linear-gradient(to top, transparent 0 calc(var(--q) - 1px), var(--rule) calc(var(--q) - 1px) var(--q)); opacity: .7; }
 :where(body:not(.site)) .ch-cols { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); align-items: end; }
 :where(body:not(.site)) .ch-col { position: relative; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 2px; padding: 0 min(var(--c-chart-bar-gap), 15%); } /* dense months on a phone keep a bar */
 :where(body:not(.site)) .ch-col i { flex: 1 1 0; max-width: var(--bar-max, var(--c-chart-bar-max)); border-radius: 2px 2px 0 0; min-height: 0; }
@@ -236,9 +238,6 @@
 :where(body:not(.site)) .ch-col.stack i { flex: none; width: 100%; max-width: var(--bar-max, var(--c-chart-bar-max)); border-radius: 1px; }
 :where(body:not(.site)) .ch-col.stack i[style^="height:0%"], :where(body:not(.site)) .ch-col.stack i[style^="height:0.00%"] { display: none; }  /* empty segments add no gap */
 :where(body:not(.site)) .ch-col i:hover, :where(body:not(.site)) .hb-track i:hover { filter: brightness(1.12); }
-/* only the pace chart (the one with a total line) dims the rest to bring the hovered month forward;
-   other vbars (e.g. Over time) just brighten the hovered bar */
-:where(body:not(.site)) .has-line .ch-cols:hover .ch-col:not(:hover) i { opacity: .35; }
 /* a month told whole: its strip lights up, every part of its bar brighter, the other months as they are */
 :where(body:not(.site)) .col-tips .ch-col { cursor: default; }
 :where(body:not(.site)) .col-tips .ch-col:hover { background: color-mix(in oklab, var(--ink) 7%, transparent); }
@@ -247,7 +246,6 @@
 :where(body:not(.site)) .ch-col .lane { flex: 1 1 0; max-width: var(--bar-max, var(--c-chart-bar-max)); height: 100%; display: flex; align-items: flex-end; cursor: default; }
 :where(body:not(.site)) .ch-col .lane:hover { background: color-mix(in oklab, var(--ink) 7%, transparent); }
 :where(body:not(.site)) .ch-col .lane:hover i { filter: brightness(1.15) saturate(1.1); }
-:where(body:not(.site)) .has-line .ch-cols:hover ~ .ch-line, :where(body:not(.site)) .has-line .ch-cols:hover ~ .ch-dot { opacity: .4; }
 :where(body:not(.site)) .ch-line polyline { stroke-width: 3; }  /* the total line, a touch bolder than the plain line charts */
 :where(body:not(.site)) .ch-dot { position: absolute; width: 6px; height: 6px; border-radius: 50%; transform: translate(-50%, 50%); z-index: 1; pointer-events: none; }
 /* the balance line of Correction points: a dot per month (per week enlarged) */
@@ -258,18 +256,13 @@
 :where(html.js body:not(.site)) .vchart[data-anim].in .ch-dot { animation: dot-in .2s ease-out calc(var(--d, 0) * .5s) backwards; }
 @keyframes dot-in { from { opacity: 0; } }
 :where(body:not(.site)) .vchart .ch-dot { transition: opacity .14s; }
-/* which axis is which: a full-height bar beside the left scale (xp), a full-height line beside the right one (total xp) */
-:where(body:not(.site)) .axis-key { position: absolute; top: 0; bottom: 0; z-index: 2; pointer-events: none; border-radius: 2px; }
-:where(body:not(.site)) .axis-key.bar { left: -6px; width: 4px; }
-:where(body:not(.site)) .axis-key.line { right: -6px; width: 4px; }
 :where(body:not(.site)) .ch-col .peak { position: absolute; top: -4px; transform: translateY(-100%); white-space: nowrap; color: var(--ink); font: 700 14px var(--type-font-display); }
 /* a peak near an edge reads inwards instead of spilling past the chart */
 :where(body:not(.site)) .ch-col:nth-child(-n+2) .peak { left: 0; }
 :where(body:not(.site)) .ch-col:nth-last-child(-n+2) .peak { right: 0; }
 :where(body:not(.site)) .ch-x { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); margin-left: var(--c-chart-axis-width); padding-top: 6px; }
-:where(body:not(.site)) .has-line .ch-x { margin-left: calc(var(--c-chart-axis-width) + 36px); margin-right: calc(var(--c-chart-axis-width) + 36px); }
 :where(body:not(.site)) .ch-x span { text-align: center; white-space: nowrap; overflow: visible; }
-:where(body:not(.site)) .ch-x.edge span:last-child { display: flex; justify-content: flex-end; }  /* many narrow columns: wider than its column, it spills left, not off the chart */
+:where(body:not(.site)) .ch-x.edge span { display: flex; justify-content: flex-end; }  /* many narrow columns: each name ends at its column (the last one must, not to leave the chart), so all sit the same distance apart */
 :where(body:not(.site)) .ch-title { text-align: center; margin-top: 4px; }
 :where(body:not(.site)) .ch-line, :where(body:not(.site)) .ch-lines { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 :where(body:not(.site)) .ch-line polyline, :where(body:not(.site)) .ch-lines path { fill: none; stroke-width: 2.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
@@ -290,12 +283,6 @@
 :where(body:not(.site)) .hb-track i:first-child { border-radius: 2px 0 0 2px; }
 :where(body:not(.site)) .hb-track b { margin-left: 6px; font-weight: 600; color: var(--text-2); white-space: nowrap; }
 :where(body:not(.site)) .hb-row:has(i:hover) .hb-label { color: var(--ink); }
-:where(body:not(.site)) .timeline { display: grid; gap: 2px; }
-:where(body:not(.site)) .tl-row, :where(body:not(.site)) .tl-axis { display: grid; grid-template-columns: var(--c-chart-timeline-label-width) minmax(0, 1fr); gap: 10px; align-items: center; }
-:where(body:not(.site)) .tl-label { color: var(--text-2); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-:where(body:not(.site)) .tl-track { position: relative; height: var(--c-chart-timeline-row); background: repeating-linear-gradient(to right, transparent 0 calc(12.5% - 1px), var(--rule) calc(12.5% - 1px) 12.5%); }
-:where(body:not(.site)) .tl-track i { position: absolute; top: 3px; bottom: 3px; border-radius: 2px; }
-:where(body:not(.site)) .tl-axis .ch-months { margin-left: 0; }
 
 /* graphs: the wide drawing or the narrow one, by the panel's own width */
 :where(body:not(.site)) [data-panel="skills"], :where(body:not(.site)) .graph-panel { container-type: inline-size; }
@@ -317,9 +304,16 @@
 :where(body:not(.site)) .stat { min-width: 0; }
 :where(body:not(.site)) .stat .figure { display: block; font: 800 clamp(24px, 5vw, 38px)/1 var(--type-font-display); letter-spacing: -.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 :where(body:not(.site)) .stat .k { color: var(--text-2); font-size: 14px; }
-:where(body:not(.site)) .stat-sessions { list-style: none; margin: 10px 0 0; padding: 0; }
-:where(body:not(.site)) .stat-sessions li { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--rule); }
-:where(body:not(.site)) .stat-sessions .when { color: var(--text-2); white-space: nowrap; }
+/* sessions and visitors: plain tables, the two visitors' lists side by side on larger screens */
+:where(body:not(.site)) .stat-table { width: 100%; }
+:where(body:not(.site)) .stat-table th { padding: 6px 10px 8px; text-align: left; }  /* the column names start where their cells do */
+:where(body:not(.site)) .stat-table :is(th, td).num { text-align: right; white-space: nowrap; }
+:where(body:not(.site)) .stat-table td.links { white-space: nowrap; }
+:where(body:not(.site)) .stat-table td.links a + a { margin-left: 14px; }
+:where(body:not(.site)) .stat-visitors { display: grid; gap: 28px 40px; margin-top: 18px; }
+@media (min-width: 1100px) { :where(body:not(.site)) .stat-visitors { grid-template-columns: 1fr 1fr; align-items: start; } }
+:where(body:not(.site)) .stat-visitors .block > h3 { margin: 0 0 10px; }
+:where(body:not(.site)) .stat-visitors .table-wrap { max-height: 520px; overflow-y: auto; }
 :where(body:not(.site)) .radar-pair { display: flex; gap: 28px; align-items: center; justify-content: center; margin-top: 10px; } /* radar and bars as one centred group */
 :where(body:not(.site)) .radar-fig { flex: 0 0 auto; width: min(100%, 480px); }
 :where(body:not(.site)) .radar-fig .radar { display: block; width: 100%; height: auto; max-height: 480px; }
@@ -461,30 +455,25 @@
 :where(body:not(.site)) [data-panel]:has(> .kpis, > .rates) { border-top: 0; padding-top: 0; }
 :where(body:not(.site)) .toc + section, :where(body:not(.site)) .toc + .sec > section:first-child { padding-top: 40px; }
 :where(body:not(.site)) .toc + .modules-wrap { padding-top: 0; }
-:where(body:not(.site)) .line-end { display: none; position: absolute; right: 0; transform: translateY(-120%); padding: 1px 4px; background: var(--ground); color: var(--ink); font: 700 12px var(--type-font-display); white-space: nowrap; }
 :where(body:not(.site)) [data-panel="skills"] { border-top: 0; padding-top: 0; }
 @media (max-width: 959.98px) { :where(body:not(.site)) .toc { -webkit-mask-image: linear-gradient(to right, var(--mask) 82%, transparent); mask-image: linear-gradient(to right, var(--mask) 82%, transparent); } }
 :where(body:not(.site)) .vchart { container-type: inline-size; }
 :where(body:not(.site)) .vchart, :where(body:not(.site)) .lchart { overflow-x: clip; }  /* an axis label a pixel too wide never widens the page; peaks above stay visible */
 @container (max-width: 520px) {
-  :where(body:not(.site)) .has-line .ch-plot, :where(body:not(.site)) .has-line .ch-x { margin-left: var(--c-chart-axis-width); margin-right: 0; }
-  :where(body:not(.site)) .has-line .ch-y:not(.right) { left: calc(-1 * var(--c-chart-axis-width)); width: calc(var(--c-chart-axis-width) - 6px); }
-  :where(body:not(.site)) .ch-y.right, :where(body:not(.site)) .axis-key { display: none; }
   :where(body:not(.site)) .ch-x span.alt { visibility: hidden; }
   :where(body:not(.site)) .ch-x span:last-child { display: flex; justify-content: flex-end; }
-  :where(body:not(.site)) .line-end { display: block; }
   /* Where's clusters are names, not a time line: every one shows, a long one ("not logged", "dump-…") on two lines */
   :where(body:not(.site)) [data-panel="where-clusters"] .ch-x span { visibility: visible; display: block; white-space: normal; line-height: 1.2; }
 }
 
-/* bars and timelines read from the left: labels only as wide as the longest one needs, not a wide centred column */
-:where(body:not(.site)) .hchart, :where(body:not(.site)) .timeline { grid-template-columns: minmax(0, max-content) minmax(0, 1fr); column-gap: 12px; align-items: center; }
-:where(body:not(.site)) .hchart .hb-row, :where(body:not(.site)) .timeline .tl-row, :where(body:not(.site)) .timeline .tl-axis { display: contents; }
-:where(body:not(.site)) .hb-label, :where(body:not(.site)) .tl-label { text-align: left; max-width: min(240px, 34vw); }
-:where(body:not(.site)) .timeline, :where(body:not(.site)) .lchart { container-type: inline-size; }
+/* bars read from the left: labels only as wide as the longest one needs, not a wide centred column */
+:where(body:not(.site)) .hchart { grid-template-columns: minmax(0, max-content) minmax(0, 1fr); column-gap: 12px; align-items: center; }
+:where(body:not(.site)) .hchart .hb-row { display: contents; }
+:where(body:not(.site)) .hb-label { text-align: left; max-width: min(240px, 34vw); }
+:where(body:not(.site)) .lchart { container-type: inline-size; }
 @container (max-width: 520px) {
-  :where(body:not(.site)) .tl-axis .ch-months span:nth-last-child(even), :where(body:not(.site)) .lchart .ch-months span:nth-last-child(even) { visibility: hidden; }  /* counted from the last, which stays */
-  :where(body:not(.site)) .tl-axis .ch-months span:last-child, :where(body:not(.site)) .lchart .ch-months span:last-child { transform: translateX(-100%); }  /* ends at the edge */
+  :where(body:not(.site)) .lchart .ch-months span:nth-last-child(even) { visibility: hidden; }  /* counted from the last, which stays */
+  :where(body:not(.site)) .lchart .ch-months span:last-child { transform: translateX(-100%); }  /* ends at the edge */
 }
 /* a panel's title with its key on the right */
 :where(body:not(.site)) .block-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 24px; }
@@ -648,6 +637,12 @@ html body:not(.site) [data-panel="low-feedback"]:only-child { grid-column: span 
   body:not(.site) #tip b:only-child { font-weight: 500; margin: 0; } /* a sentence alone (an ⓘ) is not a heading */
   :where(body:not(.site)) section > .panel-head > .seg { display: flex; flex: 1 1 100%; } /* a switch under its title fills the row */
   :where(body:not(.site)) section > .panel-head > .seg > * { flex: 1 1 0; }
+  /* Skills' Radar | Bars and Over time's Received | Given: on the title's line at the right, text and room shrinking with
+     the screen (owner, 2026-11-23) */
+  :where(body:not(.site)) section > .panel-head:has(> .seg.title-line) { flex-wrap: nowrap; }
+  :where(body:not(.site)) section > .panel-head > .seg.title-line { flex: none; margin-left: auto; }  /* whole: the title shrinks instead (fitTitles) */
+  :where(body:not(.site)) section > .panel-head:has(> .seg.title-line) > h2 { min-width: 0; }
+  :where(body:not(.site)) section > .panel-head > .seg.title-line > * { flex: 0 1 auto; padding: 0 clamp(8px, 2.6vw, 14px); font-size: clamp(13px, 3.9vw, 15px); white-space: nowrap; }
 }
 @media (min-width: 600px) { :where(body:not(.site)) .seg.phone-only { display: none; } }
 

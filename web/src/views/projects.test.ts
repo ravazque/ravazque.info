@@ -104,10 +104,10 @@ test("the card names who you are beside your name, and lists coalition, mileston
     summary: { validated: 0, projects: 0, attempts: 0, retries: 0, received: 0, given: 0 }, logtime: { total_seconds: 0, days_present: 0 }, projects: [] }, all_projects: [] } as any, "home", {});
   const student = profile(pg(null))[0].html;
   expect(student).toContain(`<span class="pf-status">${f.t("profile.st_student")}</span>`);
-  expect(student).toContain('<span class="badge">Zefiria</span>'); // its name alone: no dot, no place
+  expect(student).toMatch(/<span class="badge tag k-coal" style="--tag:[^"]+">Zefiria<\/span>/); // its name alone: no dot, no place, framed in its colour
   expect(student).not.toContain(f.t("home.nth", { n: 3 }));
-  expect(student).toContain(`<span class="badge">${f.t("groups.rank-03")}</span>`);
-  expect(student).toContain('<span class="badge">Mentor</span>');
+  expect(student).toContain(`<span class="badge tag k-milestone">${f.t("groups.rank-03")}</span>`);
+  expect(student).toContain('<span class="badge tag k-group">Mentor</span>');
   expect(profile(pg("Transcender"))[0].html).toContain(`<span class="pf-status">${f.t("profile.st_outer")}</span>`);
   expect(profile(pg("Alumni"))[0].html).toContain(`<span class="pf-status">${f.t("profile.st_alumni")}</span>`);
 });
@@ -163,14 +163,14 @@ test("projects of another cursus (a Discovery piscine, a Piscine Reload) are a m
   const D = { projects: all, extras: { cursus: [], skills: [] }, insights: {}, summary: {}, given: [],
     received: [{ slug: "cellule0-0-shell", cursus: ["Discovery Piscine - Web"] }, { slug: "ft_ls", cursus: ["42cursus", "42Senior"] }] };
   const f = new Fmt("en");
-  const secs = projects(new Page(f, { period: "student", report: D, all_projects: all, derive: {} } as any, "projects", {}));
+  const secs = projects(new Page(f, { period: "student", report: D, all_projects: all, derive: {} } as any, "projects", {}, true));
   const table = secs.find((s) => s.id === "projects-table")!.html;
   expect(table).toContain(`<option value="outside">${f.t("projects.outside")}</option>`);
   const only = (m: string) => [...projects(new Page(f, { period: "student", report: D, all_projects: all, derive: {} } as any, "projects", { milestone: m }))
     .find((s) => s.id === "projects-table")!.html.matchAll(/<td class="proj" data-v="([^"]+)"/g)].map((x) => x[1]).sort();
   expect(only("outside")).toEqual(["Cellule0.0 - Shell"]);
   expect(only("outer-core")).toEqual(["Piscine Django", "ft_ls"]); // not evaluated in another cursus: it stays
-  expect(secs.find((s) => s.id === "timeline")!.html).toContain(`title="${f.t("projects.outside")}"`);
+  expect(secs.find((s) => s.id === "timeline")!.html).toContain(`<span class="gt-group">${f.t("projects.outside")}</span>`);
 });
 
 test("the portfolio's areas: the skills 42's transcript gives a project, else its RNCP domains by name; work experience the internship's", () => {
@@ -181,4 +181,51 @@ test("the portfolio's areas: the skills 42's transcript gives a project, else it
   const areas = parseCsv(portfolioCsv(pg)).slice(1).map((r) => r[2]);
   expect(areas).toEqual(["Algorithms & AI, Imperative programming, Rigor", "DB & Data, Algorithms & AI", "Unix & kernel, Security",
     "Group & interpersonal, Company experience", ""]); // exams have none
+});
+
+test("Technical domains: Skills or RNCP, RNCP first when there is any, each row a square per validated project and the XP", () => {
+  const f = new Fmt("en");
+  const libft = { name: "Libft", validated: true, exam: false, xp_earned: 462, attempts: [] }; // three skills in the transcript
+  const view = (domains: any[]) => ({ period: "student", report: { projects: [libft], extras: {}, insights: {} }, all_projects: [libft], derive: { domains } }) as any;
+  const html = (domains: any[], q = {}) => projects(new Page(f, view(domains), "projects", q)).find((s) => s.id === "domains")!.html;
+  const web = [{ key: "web", xp: 1234, projects: ["webserv", "ft_transcendence"] }];
+  expect(html(web)).toContain(`${f.t("domains.tag.web")}</span>`); // RNCP shown first
+  expect(html(web)).toContain("2 projects · ≈ 1,234 XP");
+  expect(html(web)).toContain('style="--of:10"'); // ten squares at least, the same on every row
+  const skills = html(web, { domains: "skills" });
+  expect(skills.match(/<li>/g)?.length).toBe(3); // Libft's three skills
+  expect(skills).toContain("1 project · ≈ 462 XP");
+  expect(html([])).toMatch(/aria-pressed="true">Skills/); // no RNCP domain: the skills
+  expect(html(web)).toContain('data-preview="portfolio"'); // the portfolio is previewed, not downloaded (owner, 2026-11-23)
+  expect(html(web)).not.toContain('data-download="portfolio"');
+  expect(html(web).match(/class="seg dom-switch/g)?.length).toBe(2); // by the title, and on top of the rows for phones
+});
+
+test("the attempts line shows in dev only; ravazque.info has the two cumulative charts alone", () => {
+  const f = new Fmt("en");
+  const all = [at("Libft", "rank-00", [[1, 2]])];
+  const D = { projects: all, extras: { cursus: [], skills: [] }, insights: {}, summary: {}, given: [], received: [] };
+  const html = (dev: boolean) => projects(new Page(f, { period: "student", report: D, all_projects: all, derive: {} } as any, "projects", {}, dev)).find((s) => s.id === "timeline")!.html;
+  expect(html(true)).toContain('data-panel="timeline"');
+  expect(html(false)).not.toContain('data-panel="timeline"');
+  expect(html(false)).toContain('data-panel="cum-validated"');
+});
+
+test("Pace for a transcender: how long the Common Core took, and how far the alumni estimate is", () => {
+  const f = new Fmt("en");
+  const view = (o: { quests?: any[]; due?: string; alumnized?: string; period?: string } = {}) => ({ period: o.period || "student", derive: { alumni_due: o.due },
+    report: { generated: "2026-11-23T10:00:00", projects: [], profile: { alumnized: o.alumnized }, insights: { pace: { months_since_kickoff: 26, xp_per_month: 100, months: [] } },
+      extras: { cursus: [{ name: "42cursus", begin: "2024-09-02T08:00:00" }], quests: o.quests ?? [{ name: "Common Core Rank 06", validated: "2026-01-15T10:00:00" }], skills: [] } },
+    all_projects: [] }) as any;
+  const pace = (o = {}) => projects(new Page(f, view(o), "projects", {})).find((s) => s.id === "pace")!.html;
+  const html = pace({ due: "2027-03-23" });
+  expect(html).toContain(f.t("pace.transcended"));
+  expect(html).toContain("16 months"); // 2 Sep 2024 → 15 Jan 2026
+  expect(html).toContain(f.t("pace.alumni_in"));
+  expect(html).toContain("≈ 4 months"); // 23 Nov 2026 → 23 Mar 2027
+  expect(pace({ due: "2026-12-10" })).toContain("17 days left");
+  expect(pace({ due: "paused" })).toContain(f.t("profile.paused"));
+  expect(pace({ due: "2027-03-23", alumnized: "2026-11-01" })).not.toContain(f.t("pace.alumni_in")); // alumni already
+  expect(pace({ quests: [] })).not.toContain(f.t("pace.transcended")); // not a transcender
+  expect(pace({ period: "piscine" })).not.toContain(f.t("pace.transcended"));
 });

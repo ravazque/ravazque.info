@@ -3,13 +3,13 @@
 // builds the sections as markup and lets the browser behaviours take it from there.
 import { computed, nextTick, onBeforeUnmount, ref, shallowRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { HttpError, api, fmt, hasPin, loadPins, loadSession, moveWidget, pins, relabelStars, setWidget, state, togglePin, untilQuarter, type Status } from "../state";
+import { HttpError, api, fmt, hasPin, loadPins, loadSession, moveWidget, pins, relabelStars, setWidget, settings, state, togglePin, untilQuarter, type Status } from "../state";
 import { VIEW_TTL, viewCache } from "../viewcache";
 import { closePops, dragScroll, hideTip, settle } from "../lib/behave";
 import { idbShelf, keepCopy, restore, stale } from "../lib/copy";
 import { esc, initials } from "../lib/h";
 import { parseCsv } from "../lib/table";
-import { Page, pagePeriod, type PageKey, type Section, type View } from "../views/page";
+import { Page, keptParams, pagePeriod, type PageKey, type Section, type View } from "../views/page";
 import { WIDGETS, profile as profileSections } from "../views/profile";
 import { portfolioCsv, projects, projectsCsv } from "../views/projects";
 import { evaluations } from "../views/evaluations";
@@ -28,8 +28,9 @@ const consentOk = ref(false);
 const main = ref<HTMLElement | null>(null);
 let poll = 0;
 
-const params = computed(() => Object.fromEntries(Object.entries(route.query).map(([k, v]) => [k, String(Array.isArray(v) ? v[0] : v ?? "")])));
-const pg = computed(() => (view.value ? new Page(f.value, view.value, key.value, params.value) : null));
+// the address, over the period and views this browser kept (keptParams)
+const params = computed(() => keptParams(Object.fromEntries(Object.entries(route.query).map(([k, v]) => [k, String(Array.isArray(v) ? v[0] : v ?? "")])), settings));
+const pg = computed(() => (view.value ? new Page(f.value, view.value, key.value, params.value, !!state.session?.dev) : null));
 
 const sections = computed<Section[]>(() => {
   if (!pg.value) return [];
@@ -39,7 +40,6 @@ const sections = computed<Section[]>(() => {
     : key.value === "people" ? people(pv) : key.value === "campus" ? campus(pv) : key.value === "coalition" ? coalition(pv) : [];
 });
 
-const profile = computed(() => view.value?.report.profile);
 // the section index; on Profile: your card and every widget you keep (in their order: it follows as you add, move or
 // take one away)
 const toc = computed(() => key.value !== "home" ? sections.value.filter((s) => s.nav) : [
@@ -167,7 +167,11 @@ watch(sections, async () => {
   markZoom(main.value);
   placeMarks(main.value);
   fitAxes(main.value);
+  fitTicks(main.value);
   fitTitles(main.value);
+  fitCard(main.value);
+  fitTags(main.value);
+  fitKeys(main.value);
   evenRows(main.value);
   hideTip();
   if (typingIn) {
@@ -272,6 +276,20 @@ function fitAxes(root: HTMLElement) {
     if (w) fig.style.setProperty("--c-chart-axis-width", `${w + 8}px`); else fig.style.removeProperty("--c-chart-axis-width");
   });
 }
+/** A chart's month (or level) names never touch: from the last one, which always stays, one that runs into the next one
+ * kept is hidden (narrow charts, a long last name at the edge). */
+function fitTicks(root: HTMLElement) {
+  root.querySelectorAll<HTMLElement>(".ch-x").forEach((axis) => {
+    const names = [...axis.children].filter((s) => s.textContent) as HTMLElement[];
+    names.forEach((s) => (s.style.visibility = ""));
+    let left = Infinity;
+    for (const s of names.reverse()) {
+      if (getComputedStyle(s).visibility === "hidden" || !s.offsetWidth) continue;
+      const r = (s.firstChild ? (() => { const g = document.createRange(); g.selectNodeContents(s); return g.getBoundingClientRect(); })() : s.getBoundingClientRect());
+      if (r.right > left - 4 || r.left < axis.parentElement!.getBoundingClientRect().left) s.style.visibility = "hidden"; else left = r.left; // nor out of the chart's left
+    }
+  });
+}
 /** On a phone a section's title stays on one line, its count and buttons beside it: the type shrinks until it fits
  * (never under 18px: a title that long wraps as before). */
 function fitTitles(root: HTMLElement) {
@@ -283,6 +301,46 @@ function fitTitles(root: HTMLElement) {
     let size = parseFloat(getComputedStyle(h2).fontSize);
     while (over() && size > 18) h2.style.fontSize = `${--size}px`;
     if (over()) { h2.style.fontSize = ""; h2.classList.remove("fit"); }
+  });
+}
+/** Your name and the line under it (your title and campus) keep to one line at every width: when one doesn't fit, what
+ * follows it (OuterCore, the campus) goes first, then its type shrinks until it fits, with no floor (owner, 2026-11-20). */
+function fitCard(root: HTMLElement) {
+  root.querySelectorAll<HTMLElement>(".pf-name, .pf-who").forEach((el) => {
+    el.style.fontSize = "";
+    el.classList.remove("cut");
+    const over = () => el.scrollWidth > el.clientWidth + 1;
+    if (!over()) return;
+    el.classList.add("cut");
+    if (!over()) return;
+    let size = Math.floor((parseFloat(getComputedStyle(el).fontSize) * el.clientWidth) / el.scrollWidth); // near it at once, then a pixel at a time
+    el.style.fontSize = `${size}px`;
+    while (over() && size > 6) el.style.fontSize = `${--size}px`;
+  });
+}
+/** The card's tags on one line; the ones that don't fit go, from the last, behind "+N" at its end, which opens them in
+ * the float (its panel lists only those). */
+function fitTags(root: HTMLElement) {
+  root.querySelectorAll<HTMLElement>(".pf-tags").forEach((row) => {
+    const tags = [...row.querySelectorAll<HTMLElement>(":scope > .tag")], more = row.querySelector<HTMLDetailsElement>(":scope > .tag-more");
+    if (!more) return;
+    tags.forEach((t) => (t.style.display = ""));
+    more.hidden = true;
+    const over = () => row.scrollWidth > row.clientWidth + 1;
+    if (!over()) return;
+    more.hidden = false;
+    let n = tags.length;
+    do { tags[--n].style.display = "none"; more.querySelector("summary")!.textContent = `+${tags.length - n}`; } while (n > 1 && over());
+    more.querySelectorAll<HTMLElement>(".pop-panel .tag").forEach((c, i) => (c.style.display = i < n ? "none" : ""));
+  });
+}
+/** A chart's key keeps to its title's line or goes: when the title and the key don't fit one line, the key is hidden
+ * rather than wrapped under it (owner, 2026-11-22; the tips still name every series, the zoom shows the key again). */
+function fitKeys(root: HTMLElement) {
+  root.querySelectorAll<HTMLElement>(".block-head > :is(.legend, .scale)").forEach((key) => {
+    key.style.display = "";
+    const title = key.parentElement!.firstElementChild as HTMLElement;
+    if (title !== key && key.offsetTop > title.offsetTop + title.offsetHeight / 2) key.style.display = "none";
   });
 }
 /** Two half widgets side by side end on the same line when one of them can give or take: the one whose rows scroll (a
@@ -338,8 +396,9 @@ function placeMarks(root: HTMLElement) {
   });
 }
 let zoomResize = 0;
-const onResize = () => { cancelAnimationFrame(zoomResize); zoomResize = requestAnimationFrame(() => { fitPreview(); if (main.value) { markZoom(main.value); placeMarks(main.value); fitAxes(main.value); fitTitles(main.value); evenRows(main.value); } }); };
+const onResize = () => { cancelAnimationFrame(zoomResize); zoomResize = requestAnimationFrame(() => { fitPreview(); if (main.value) { markZoom(main.value); placeMarks(main.value); fitAxes(main.value); fitTicks(main.value); fitTitles(main.value); fitCard(main.value); fitTags(main.value); fitKeys(main.value); evenRows(main.value); } }); };
 window.addEventListener("resize", onResize);
+document.fonts?.ready.then(onResize); // the display type changes every width the fits measured before it came
 onBeforeUnmount(() => window.removeEventListener("resize", onResize));
 
 const zoom = ref<HTMLDialogElement | null>(null);
@@ -348,12 +407,14 @@ let tipHome: [Node, Node | null] | null = null;
 function openZoom(panel: HTMLElement) {
   const copy = panel.cloneNode(true) as HTMLElement, h3 = chartTitle(copy)!;
   copy.querySelectorAll<HTMLElement>("[data-anim]").forEach((e) => { delete e.dataset.anim; e.classList.add("in"); }); // drawn, also what the page never showed
+  copy.querySelectorAll<HTMLElement>(".block-head > :is(.legend, .scale)").forEach((k) => (k.style.display = "")); // a key hidden for want of room shows here
   h3.querySelectorAll(".pin").forEach((b) => b.remove());
   zoomTitle.value = h3.innerHTML; // the page's own markup, already escaped
   h3.remove();
   zoomHtml.value = copy.innerHTML;
   hideTip();
   zoom.value!.showModal();
+  nextTick(() => zoom.value && fitTicks(zoom.value)); // wider in the dialog: the names the page hid may fit
   // the dialog sits on the top layer, over the page's tooltip: the tooltip moves in while it is open
   const tip = document.getElementById("tip");
   if (tip) { tipHome = [tip.parentNode!, tip.nextSibling]; zoom.value!.append(tip); }
@@ -532,8 +593,7 @@ function exportCsv(btn: HTMLElement) {
   const kind = btn.dataset.preview || btn.dataset.download;
   const text = kind === "portfolio" ? portfolioCsv(pg.value) : projectsCsv(pg.value);
   if (btn.dataset.download) {
-    const name = kind === "portfolio" ? `portfolio-${profile.value?.login}.csv` : `projects-${pg.value.period}.csv`;
-    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" })), download: name });
+    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" })), download: `projects-${pg.value.period}.csv` });
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     return;

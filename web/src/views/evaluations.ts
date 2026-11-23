@@ -1,7 +1,7 @@
 // Evaluations: what you give back and by milestone, the full log, cancelled evaluations, correction points, feedback,
 // and received and given over time, when and how long.
 import type { Fmt } from "../fmt";
-import { GOOD, BAD, S1, S2, legend, lines, qline, vbars } from "../lib/charts";
+import { GOOD, BAD, S1, S2, type Series, legend, lines, qline, vbars } from "../lib/charts";
 import { ACCENT, GROUPS, SLATE, heat } from "../lib/graphs";
 import { ARROW, avatar, badge, esc, tipAttr } from "../lib/h";
 import { facts, table } from "../lib/table";
@@ -16,8 +16,36 @@ const MILESTONES = ["rank-00", "rank-01", "rank-02", "rank-03", "rank-04", "rank
  * else (the Piscine, other cursus) other. */
 export const milestoneOf = (e: any) => MILESTONE.get(e.slug) || ((e.cursus || []).includes("42cursus") ? "outer-core" : "other");
 
+/** A period's evaluations by when you took part, not by the project (owner, 2026-11-19, the log too since 2026-11-20): the
+ * report files a rush you corrected as a student under the Piscine; the student view hands those over (piscine_as_student)
+ * and the Piscine keeps what came before the 42cursus kickoff. Feedback and the log read it; the counts and charts don't. */
+export function tookPart(pg: Page, k: "received" | "given"): any[] {
+  const D = pg.D, kick = (pg.v.all_cursus || D.extras?.cursus || []).find((c: any) => c.name === "42cursus")?.begin || "";
+  return pg.period === "student" ? [...D[k], ...(pg.v.piscine_as_student?.[k] || [])]
+    : pg.period === "piscine" && kick ? D[k].filter((e: any) => !(e.begin >= kick)) : D[k];
+}
+
 /** A histogram's bins from its edges, each with its unit: "0–1h", "1–3h", "3+h". */
 export const binLabels = (edges: number[], unit: string) => edges.map((x, i) => `${i < edges.length - 1 ? `${x}–${edges[i + 1]}` : `${x}+`}${unit}`);
+
+/** The evaluations behind a histogram's long bars (bins from `from` on), for their tips: "project · the other side · value",
+ * longest first, at most eight and "+N more". Durations count finished evaluations only, as the server's histogram does. */
+export function longOnes(f: Fmt, evs: any[], role: "received" | "given", key: "duration_min" | "lead_h", edges: number[], from: number): string[][] {
+  const out: any[][] = edges.map(() => []);
+  for (const e of key === "duration_min" ? evs.filter((e) => e.status === "done") : evs) {
+    const v = e[key];
+    if (typeof v !== "number" || v < from) continue;
+    out[Math.max(0, edges.findLastIndex((x) => x <= v))].push(e);
+  }
+  const name = (login: string) => (erased(login) ? f.t("who.erased_name") : login || "?");
+  const who = (e: any) => (role === "received" ? name(e.corrector?.login)
+    : `${name(e.correcteds?.[0]?.login)}${(e.correcteds?.length || 0) > 1 ? ` +${e.correcteds.length - 1}` : ""}`);
+  const value = (v: number) => (key === "lead_h" ? f.nb(v, "h") : f.t("unit.min", { n: f.num(v) }));
+  return out.map((bin) => {
+    const lines = bin.sort((a, b) => b[key] - a[key]).slice(0, 8).map((e) => `${e.project} · ${who(e)} · ${value(e[key])}`);
+    return bin.length > 8 ? [...lines, f.t("common.plus_more", { n: bin.length - 8 })] : lines;
+  });
+}
 
 /** By milestone with the deleted accounts on a row of their own: the report counts them with whoever has no 42cursus. The
  * evaluations themselves all stay. */
@@ -51,17 +79,28 @@ export function staffApart(byGroup: Record<string, any>, received: any[], given:
 export function evaluations(pg: Page): Section[] {
   const f = pg.f, D = pg.D, S = D.summary, W = D.when;
   const out: Section[] = [];
+  const me = D.profile.login;
+  const received = tookPart(pg, "received"), given = tookPart(pg, "given");
+  // as a student, the 42cursus, the Piscine's projects and a Piscine Reload count: Discovery piscines are set apart below
+  const counts = (e: any) => pg.period !== "student" || !Array.isArray(e.cursus) || e.cursus.some((c: string) => c === "42cursus" || c === "C Piscine" || /reload/i.test(c));
+  // 42's automatic feedback (the student did not fill theirs in) is nobody's opinion: out of the averages and the list
+  const real = (e: any) => e.feedbacks.filter((x: any) => !autoFeedback(x));
+  const theirs = given.filter(counts).flatMap(real);
+  const avg = (fbs: any[], k: string) => { const v = fbs.map((x) => x[k]).filter((x) => x !== null && x !== undefined); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  // your rating as evaluator is Feedback's (the same ratings, a rush corrected as a student among them), not the report's,
+  // which leaves those rushes in the Piscine
+  const myRating = avg(theirs, "rating"), myRated = theirs.filter((x: any) => x.rating !== null && x.rating !== undefined).length;
   const role = pg.q("role", "received", ["received", "given"]);
   const base = role === "received" ? S1 : S2;
   const m = W[`${role}_monthly`];
   const lede = role === "received"
     ? f.t("received.lede", { n: S.received, mark: f.num(S.received_avg_mark, 1), outstanding: S.received_outstanding, pct: f.pct(S.received_outstanding, S.received), negative: S.received_negative })
-    : f.t("given.lede", { n: S.given, mark: f.num(S.given_avg_mark, 1), outstanding: S.given_outstanding, negative: S.given_negative, rating: f.num(S.ratings_i_received.rating, 2) });
+    : f.t("given.lede", { n: S.given, mark: f.num(S.given_avg_mark, 1), outstanding: S.given_outstanding, negative: S.given_negative, rating: f.num(myRating, 2) });
   const bins: [string, (x: number) => boolean][] = [["0", (x) => x === 0], ["1–49", (x) => x > 0 && x < 50], ["50–79", (x) => x >= 50 && x < 80], ["80–99", (x) => x >= 80 && x < 100],
     ["100", (x) => x === 100], ["101–124", (x) => x > 100 && x < 125], ["125", (x) => x >= 125]];
   const count = (evs: any[]) => bins.map(([, ok]) => evs.filter((e) => e.mark !== null && e.mark !== undefined && ok(e.mark)).length);
   const roles: [string, string][] = [[f.t("role.received"), S1], [f.t("role.given"), S2]];
-  const cm = pg.v.derive?.community || { hours: 0, people: 0, correctors: 0, rating: null, rated: 0 };
+  const cm = pg.v.derive?.community || { hours: 0, people: 0, correctors: 0 };
 
   // correction statistics live in Contribution
   let statBlocks: string[] = [], byGroup = "";
@@ -96,7 +135,7 @@ export function evaluations(pg: Page): Section[] {
     [f.t("community.k_hours"), `${esc(f.hmm(cm.hours))}&nbsp;h`, [esc(f.t("community.s_hours", { n: f.num(D.given.length) }))]],
     [f.t("community.k_people"), f.num(cm.people), [esc(f.t("community.s_people"))]],
     [f.t("community.k_correctors"), f.num(cm.correctors), [esc(f.t("community.s_correctors"))]],
-    [f.t("community.k_rating"), cm.rating !== null ? f.num(cm.rating, 2) : "–", [esc(f.t("community.s_rating", { n: f.num(cm.rated) }))]],
+    [f.t("community.k_rating"), myRating !== null ? f.num(myRating, 2) : "–", [esc(f.t("community.s_rating", { n: f.num(myRated) }))]],
   ])), ...statBlocks)) });
   // by the other person's milestone, and beside it, small, the projects you corrected
   const corrected = `<div class="block" data-panel="depth-projects" id="in-depth"><h3>${esc(f.t("depth.given_title"))}</h3>`
@@ -104,7 +143,7 @@ export function evaluations(pg: Page): Section[] {
   out.push({ id: "by-group", nav: f.t("stats.group_section"), html: section("by-group", "", cols(byGroup, corrected),
     { head: `<h2>${esc(f.t("stats.group_section"))} ${info(f.t("stats.group_note"))}</h2>` }) });
 
-  const sw = pg.seg("role", [["received", f.t("role.received")], ["given", f.t("role.given")]], role, f.t("log.role_label"), "over-time");
+  const sw = pg.seg("role", [["received", f.t("role.received")], ["given", f.t("role.given")]], role, f.t("log.role_label"), "over-time", "title-line");
   const reportDay = pg.asOf ? Date.parse(`${pg.asOf}T12:00:00Z`) : undefined; // the cumulative lines carry on to it
   // the months up to the report's, the quiet ones as zero
   const months: string[] = W.months.length ? monthsBetween(W.months[0], [W.months[W.months.length - 1], pg.asOf.slice(0, 7)].sort()[1]) : [];
@@ -131,34 +170,28 @@ export function evaluations(pg: Page): Section[] {
   const factsHtml = dp ? `<dl class="facts">${facts([[f.t("depth.received_duration"), esc(dur(dp.received_duration))], [f.t("depth.given_duration"), esc(dur(dp.given_duration))],
     [f.t("depth.lead"), esc(dp.received_lead_h === null || dp.received_lead_h === undefined ? "–" : f.t("depth.hours", { h: f.hmm(dp.received_lead_h) }))],
     [f.t("depth.streak"), f.num(dp.outstanding_streak)]])}</dl>` : "";
+  // each bar its own tip; the long ones (75 minutes or more, booked 3 hours or more ahead; owner 2026-11-23) name their evaluations
+  const named = (labels: string[], series: Series[], key: "duration_min" | "lead_h", edges: number[], from: number) => {
+    const lists = [longOnes(f, D.received, "received", key, edges, from), longOnes(f, D.given, "given", key, edges, from)];
+    return series.map(([n, v], si) => labels.map((lab, i) => `${lab}\n${n}: ${f.num(v[i] || 0)}` + (lists[si][i].length ? `\n---\n${lists[si][i].join("\n")}` : "")));
+  };
+  const durLabels = binLabels(W.duration_edges, "m"), leadLabels = binLabels(W.lead_edges, "h");
+  const durSeries: Series[] = [[f.t("role.received"), W.duration_received, S1], [f.t("role.given"), W.duration_given, S2]];
+  const leadSeries: Series[] = [[f.t("role.received"), W.lead_received, S1], [f.t("role.given"), W.lead_given, S2]];
   out.push({ id: "when", nav: f.t("nav.when"), html: section("when", f.t("when.title"), factsHtml + cols(
     block("heat-recv", heat(f, W.heat_received, ACCENT, f.t("unit.evaluations")), f.t("when.heat_recv_title")),
     block("heat-given", heat(f, W.heat_given, SLATE, f.t("unit.evaluations")), f.t("when.heat_given_title")),
-    `<div class="block" data-panel="duration"><div class="block-head"><h3>${esc(f.t("when.duration_title"))} ${info(f.t("when.duration_note"))}</h3>${legend(roles)}</div>` + vbars(f, binLabels(W.duration_edges, "m"), [[f.t("role.received"), W.duration_received, S1], [f.t("role.given"), W.duration_given, S2]],
-      { label: f.t("when.duration_title"), lanes: true, fmt: (v) => f.num(v), emptyText: f.t("empty.period") }) + "</div>",
-    headBlock("lead", f.t("when.lead_title"), legend(roles), vbars(f, binLabels(W.lead_edges, "h"), [[f.t("role.received"), W.lead_received, S1], [f.t("role.given"), W.lead_given, S2]],
-      { label: f.t("when.lead_title"), lanes: true, fmt: (v) => f.num(v), emptyText: f.t("empty.period") }))),
+    `<div class="block" data-panel="duration"><div class="block-head"><h3>${esc(f.t("when.duration_title"))} ${info(f.t("when.duration_note"))}</h3>${legend(roles)}</div>` + vbars(f, durLabels, durSeries,
+      { label: f.t("when.duration_title"), barTips: named(durLabels, durSeries, "duration_min", W.duration_edges, 75), fmt: (v) => f.num(v), emptyText: f.t("empty.period") }) + "</div>",
+    headBlock("lead", f.t("when.lead_title"), legend(roles), vbars(f, leadLabels, leadSeries,
+      { label: f.t("when.lead_title"), barTips: named(leadLabels, leadSeries, "lead_h", W.lead_edges, 3), fmt: (v) => f.num(v), emptyText: f.t("empty.period") }))),
   { lede: esc(f.t("when.lede", { recv: f.num(W.median_duration_received), given: f.num(W.median_duration_given), lead: f.num(W.median_lead_received, 1) })) }) });
 
   // feedback: the criteria both ways, and every rating under the maximum you got as a corrector
-  const me = D.profile.login;
-  // by when you took part, not by the project (owner, 2026-11-19): the report files a rush you corrected as a student
-  // under the Piscine, the student view hands those over (piscine_as_student) and the Piscine keeps what came before
-  const kick = (pg.v.all_cursus || D.extras?.cursus || []).find((c: any) => c.name === "42cursus")?.begin || "";
-  const moved = pg.v.piscine_as_student;
-  const when = (k: "received" | "given"): any[] => (pg.period === "student" ? [...D[k], ...(moved?.[k] || [])]
-    : pg.period === "piscine" && kick ? D[k].filter((e: any) => !(e.begin >= kick)) : D[k]);
-  const received = when("received"), given = when("given");
-  // as a student, the 42cursus, the Piscine's projects and a Piscine Reload count: Discovery piscines are set apart below
-  const counts = (e: any) => pg.period !== "student" || !Array.isArray(e.cursus) || e.cursus.some((c: string) => c === "42cursus" || c === "C Piscine" || /reload/i.test(c));
+  // feedback's evaluations (received, given, counts, theirs) are set at the top: Contribution's rating reads them too
   const outside = [...received, ...given].filter((e: any) => !counts(e));
   const mine = received.filter(counts).flatMap((e: any) => e.feedbacks.filter((x: any) => x.by === me));
-  // 42's automatic feedback (the student did not fill theirs in) is nobody's opinion: out of the averages and the list,
-  // named apart below
-  const real = (e: any) => e.feedbacks.filter((x: any) => !autoFeedback(x));
-  const theirs = given.filter(counts).flatMap(real);
-  const autos = given.filter((e: any) => e.feedbacks.some(autoFeedback));
-  const avg = (fbs: any[], k: string) => { const v = fbs.map((x) => x[k]).filter((x) => x !== null && x !== undefined); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  const autos = given.filter((e: any) => e.feedbacks.some(autoFeedback)); // named apart below
   const below = (fbs: any[], k: string, top: number) => fbs.filter((x) => x[k] !== null && x[k] !== undefined && x[k] < top).length;
   let crit = "";
   if (!pg.light) {
@@ -429,9 +462,10 @@ export function logSection(pg: Page): Section {
   const f = pg.f, D = pg.D;
   const role = pg.q("log", "received", ["received", "given"]);
   const flag = pg.q("flag", "", ["", "out", "bad", "ok", "noshow"]);
-  const projectsAll = [...new Set([...D.received, ...D.given].map((e: any) => e.project as string))].sort();
+  const evs: Record<string, any[]> = { received: tookPart(pg, "received"), given: tookPart(pg, "given") }; // a rush corrected as a student is the student's
+  const projectsAll = [...new Set([...evs.received, ...evs.given].map((e: any) => e.project as string))].sort();
   const proj = pg.q("project", "", ["", ...projectsAll]);
-  const milestones = MILESTONES.filter((m) => D[role].some((e: any) => milestoneOf(e) === m));
+  const milestones = MILESTONES.filter((m) => evs[role].some((e: any) => milestoneOf(e) === m));
   const milestone = pg.q("milestone", "", ["", ...MILESTONES]);
   const me = D.profile?.login;
   const clusters = Object.keys(pg.v.layout || {}).sort();
@@ -446,7 +480,7 @@ export function logSection(pg: Page): Section {
     const hay = JSON.stringify([e.corrector?.login, (e.correcteds || []).map((c: any) => c.login), e.comment, e.feedback, e.feedbacks, e.my_host, e.other_host, e.project, e.begin]).toLowerCase();
     return !q || hay.includes(q);
   };
-  const rows = D[role].map(withoutWorkLate).filter(match);
+  const rows = evs[role].map(withoutWorkLate).filter(match);
   const fbText = (e: any) => {
     if (!e.comment && !e.feedbacks?.length) return "";
     const parts = e.comment ? [`<div class="txt"><b>${esc(f.t("log.corrector_comment"))}</b>\n${esc(e.comment)}</div>`] : [];

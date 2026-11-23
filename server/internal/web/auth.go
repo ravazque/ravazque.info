@@ -83,6 +83,7 @@ func (s *Server) callback(w http.ResponseWriter, r *http.Request) {
 	sid := s.Sessions.Create(app.Session{ID: uid, Login: core.Str(me, "login"), Name: core.Str(me, "displayname"), Image: image,
 		CoalitionColor: color})
 	s.Stats.SawSessions(s.Sessions.Live())
+	s.Visitors.Saw(core.Str(me, "login"), s.now())
 	s.Store.ClearRefusal(uid)
 	app.RecordConsent(s.Store, uid, s.now()) // the landing's checkbox
 	if s.Store.LoadRaw(uid) == nil {         // the first sign-in starts the first extraction

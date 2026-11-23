@@ -245,6 +245,18 @@ main[data-page="web-projects"] #domains {
   --title-pad: 12px;           /* "Technical domains" → its line */
   --domains-line: 2px;         /* over the chart */
   --block-pad: 12px;           /* each of those lines → what is under it */
+  /* Preview and the Skills | RNCP buttons by the title, and the rows of squares */
+  --domains-buttons-gap: 14px; /* Preview → Skills | RNCP, larger screens */
+  --domains-switch-top-phone: 36px; /* phones: the title's line → Skills | RNCP (smaller = closer to the title) */
+  --domains-switch-gap: 16px;  /* phones: Skills | RNCP (a full row over the rows) → the line under it */
+  --domains-switch-line: 2px;  /* phones: that line (0 hides it) */
+  --domains-switch-pad: 12px;  /* phones: the line → the first row */
+  --domains-row-pad: 9px;      /* above and below each row's squares */
+  --domains-row-line: 0px;     /* between the rows (0 hides it, owner 2026-11-23) */
+  --domains-cols-gap: 24px;    /* name → squares → figures, larger screens */
+  --domains-seat: 12px;        /* a square (it shrinks when the row has no room) */
+  --domains-seat-gap: 3px;     /* between two squares */
+  --domains-seat-phone: 10px;  /* a square's height on phones (its width fills the row) */
 }
 main[data-page="web-projects"] #timeline {
   --sections: 56px;            /* Technical domains → "Projects and retries", phones */

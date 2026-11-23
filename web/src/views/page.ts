@@ -39,11 +39,31 @@ function workNames(x: any): any {
 }
 const shortened = new WeakMap<View, View>();
 
+/** SPIKE: the proposals asked for with ?test=a,b (make dev-live only; production builds never turn one on). */
+/** The view's switches this browser keeps (owner, 2026-11-23): the period, Radar | Bars, Skills | RNCP, Received | Given
+ * (Over time and the log), everyone or teammates, the circle's mode. Filters and searches are not kept. */
+const KEPT = ["period", "skills", "domains", "role", "log", "met", "mode"];
+
+/** The address's parameters over the ones kept: a page opened without a switch (the brand, Profile, the band's pages) takes
+ * the last one chosen; what the address has wins and is kept for next time. */
+export function keptParams(query: Record<string, string>, store: { get(k: string): string | null; set(k: string, v: string): void }): Record<string, string> {
+  const kept: Record<string, string> = {};
+  for (const k of KEPT) {
+    if (query[k]) store.set(`view:${k}`, query[k]);
+    const v = store.get(`view:${k}`);
+    if (v) kept[k] = v;
+  }
+  return { ...kept, ...query };
+}
+
+export const testFlags = (v: unknown) => new Set<string>(import.meta.env.DEV && typeof v === "string" ? v.split(",").filter(Boolean) : []);
+
 export class Page {
   readonly D: Rep;
   readonly period: string;
   readonly v: View;
-  constructor(readonly f: Fmt, v: View, readonly key: PageKey, readonly params: Record<string, string>) {
+  // dev: the server holds dev profiles (https://localhost and Vite), never ravazque.info: parts still being tried show there
+  constructor(readonly f: Fmt, v: View, readonly key: PageKey, readonly params: Record<string, string>, readonly dev = false) {
     if (!shortened.has(v)) shortened.set(v, workNames(v)); // once per view: a copy, the view as it came stays as it is
     this.v = shortened.get(v)!;
     this.D = this.v.report;
@@ -51,6 +71,9 @@ export class Page {
   }
 
   get light() { return this.v.light === true; }
+  /** SPIKE (dev only): ?test=a,b turns proposals on beside the default look, to compare (testFlags; their CSS in a
+   * styles/spike.css that main.ts loads in dev alone); the owner picks, the losers and that file go. None open now. */
+  is(flag: string) { return testFlags(this.params.test).has(flag); }
   /** The day the period's time series reach ("" for the piscine, which is over): a quiet stretch up to the report's day
    * still shows, as empty days and months. */
   get asOf(): string { return this.period === "piscine" ? "" : (this.D.generated || "").slice(0, 10); }
@@ -66,6 +89,7 @@ export class Page {
   url(page?: PageKey, change: Record<string, string> = {}): string {
     const keep: Record<string, string> = !page || page === this.key ? { ...this.params } : {};
     keep.period = this.period;
+    if (testFlags(this.params.test).size) keep.test = this.params.test; // SPIKE: the proposals follow you from page to page
     Object.assign(keep, change);
     const qs = new URLSearchParams(Object.entries(keep).filter(([, v]) => v !== "" && v !== undefined)).toString();
     return PATHS[page || this.key] + (qs ? `?${qs}` : "");

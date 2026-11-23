@@ -1,6 +1,6 @@
 // Profile (the home page): who you are, three figures of your history, the path so far, and the sections of other pages
 // kept as widgets (in this browser; Contribution, Rhythm and the bonus to begin with; Activity is one of them).
-import { badge, esc, initials } from "../lib/h";
+import { badge, esc, initials, safeColor } from "../lib/h";
 import { Page, type PageKey, type Section, aboveShare, block, cols, info, myRank, myTrack, section } from "./page";
 import { projects } from "./projects";
 import { evaluations } from "./evaluations";
@@ -22,12 +22,19 @@ function card(pg: Page): string {
   const coal = P.coalition, promo = pg.v.promo, rank = myRank(D.extras), track = myTrack(D.extras);
   const has = (v: any) => v !== null && v !== undefined;
   const title = (D.extras.titles || []).find((t: any) => t.selected)?.name;
-  const who = esc(title || P.login) + (P.campus_current ? ` · ${esc(P.campus_current)}` : "");
+  // the campus its own part: when the line doesn't fit it goes first, then the type shrinks (Dashboard fitCard)
+  const who = esc(title || P.login) + (P.campus_current ? `<span class="pf-campus"> · ${esc(P.campus_current)}</span>` : "");
   // beside your name, where you are: Student, OuterCore or Alumni; under it everything else as tags: the coalition (its
   // name alone), the milestone you are on, grade, track and your groups (Mentor…)
   const status = rank === "alumni" ? "st_alumni" : rank === "outer-core" ? "st_outer" : rank ? "st_student" : "";
-  const tags = [coal ? badge(coal.name) : "", rank?.startsWith("rank-") ? badge(f.t(`groups.${rank}`)) : rank ? "" : badge(f.t("home.no_cursus")),
-    main?.grade ? badge(main.grade) : "", track ? badge(f.t(`profile.track_${track}`)) : "", ...(P.groups || []).map((g: string) => badge(g))].join("");
+  const kinds = ([coal ? [coal.name, "coal"] : null, rank?.startsWith("rank-") ? [f.t(`groups.${rank}`), "milestone"] : rank ? null : [f.t("home.no_cursus"), "milestone"],
+    main?.grade ? [main.grade, "grade"] : null, track ? [f.t(`profile.track_${track}`), "track"] : null, ...(P.groups || []).map((g: string) => [g, "group"])]
+    .filter(Boolean)) as [string, string][];
+  // each tag framed in its kind's colour (owner's pick 2026-11-22: the coalition its own, milestone and grade the accent,
+  // track slate, groups violet), on one line: the ones that don't fit open from "+N" at its end (Dashboard fitTags)
+  const tag = ([t, k]: [string, string]) => `<span class="badge tag k-${k}"${k === "coal" ? ` style="--tag:${safeColor(coal?.color)}"` : ""}>${esc(t)}</span>`;
+  const tags = kinds.map(tag).join("") + `<details class="pop tag-more" data-float hidden><summary class="badge tag">+</summary>`
+    + `<div class="pop-panel"><span class="tag-all">${kinds.map(tag).join("")}</span></div></details>`;
   // the four figures, drawn like the three modules under the card (larger: spacing.css, --card-module-*) and counting up
   // like them, each with a line (already escaped): your place by level in Madrid (live, the server reads it every hour;
   // until it has, the way to the next level), in your kickoff, the wallet (the API keeps no history of it: staff only),
@@ -53,7 +60,7 @@ function card(pg: Page): string {
   return `<section id="profile" class="pf" aria-label="${esc(f.t("profile.title"))}">`
     + `<div class="pf-head"><div class="avatar-lg pf-photo"><span aria-hidden="true">${esc(initials(P.name || P.login))}</span>${P.image ? `<img src="${esc(P.image)}" alt="">` : ""}</div>`
     + `<div class="pf-id"><p class="pf-name">${esc(P.name || P.login)}${status ? `<span class="pf-status">${esc(f.t(`profile.${status}`))}</span>` : ""}</p>`
-    + `<p class="pf-sub"><span>${who}</span></p><p class="pf-sub pf-tags">${tags}</p></div></div>`
+    + `<p class="pf-sub pf-who"><span>${who}</span></p><div class="pf-sub pf-tags">${tags}</div></div></div>`
     + figures
     + "</section>";
 }

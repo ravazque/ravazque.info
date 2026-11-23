@@ -1,16 +1,30 @@
 // Projects: your level and pace, skills, every project and attempt, exams, technical domains and the timeline.
-import { BAD, GOOD, NEUTRAL, S1, S2, hbars, legend, lines, timeline, vbars, empty } from "../lib/charts";
+import { BAD, GOOD, NEUTRAL, S1, S2, type GanttItem, type SeatRow, empty, gantt, hbars, legend, lines, seatbars, vbars } from "../lib/charts";
 import { radar } from "../lib/graphs";
 import { ARROW, badge, esc } from "../lib/h";
 import { pyRound } from "../fmt";
 import { csv, facts, table } from "../lib/table";
-import { Page, Section, aboveShare, block, cols, filters, headBlock, info, search, section, select } from "./page";
+import { Page, Section, aboveShare, block, cols, filters, headBlock, info, search, section, select, shortProject } from "./page";
 import { workExperience } from "./evaluations";
 import projectSkills from "@data/project_skills.json";
 
 /** The skills 42's transcript associates with each project, by name (the owner's transcript, 2026-11-19: the C track's Common
  * Core and the OuterCore projects in it; "Work Experience" is the internship's, for every part of it). */
 const PROJECT_SKILLS = projectSkills as Record<string, string[]>;
+
+/** The students above you in Your promo: the slate faded toward the ground. */
+const ABOVE = "color-mix(in oklab, var(--slate) 45%, var(--ground))";
+
+/** The skills 42's transcript gives your validated projects, each with its projects (one project counts in each of its
+ * skills; work experience parts take the internship's), most projects first. */
+function skillRows(D: any): [string, string[]][] {
+  const by = new Map<string, string[]>();
+  for (const p of D.projects.filter((p: any) => p.validated === true && !p.exam)) {
+    const skills = Object.hasOwn(PROJECT_SKILLS, p.name) ? PROJECT_SKILLS[p.name] : workExperience({ project: p.name }) ? PROJECT_SKILLS["Work Experience"] : [];
+    for (const s of skills) by.set(s, [...(by.get(s) || []), p.name]);
+  }
+  return [...by].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+}
 
 const PROJECT_GROUPS = ["rank-00", "rank-01", "rank-02", "rank-03", "rank-04", "rank-05", "rank-06", "outer-core", "outside", "piscine"];
 
@@ -91,7 +105,7 @@ export const tryChip = (f: Page["f"], x: any) =>
   `<span class="mark${x.mark === null || x.mark === undefined ? "" : x.passed ? " pass" : " fail"}" title="${esc(f.day(x.date))}">${esc(x.mark ?? "–")}</span>`;
 
 export function projects(pg: Page): Section[] {
-  const f = pg.f, D = pg.D, X = D.extras, dv = pg.v.derive || {};
+  const f = pg.f, D = pg.D, X = D.extras;
   const out: Section[] = [];
 
   // level, pace and the alumni estimate (Home held them in v1)
@@ -102,14 +116,31 @@ export function projects(pg: Page): Section[] {
     if (pc.months_since_kickoff !== null && pc.months_since_kickoff !== undefined) lvl.push([f.t("pace.since"), esc(f.plural(pc.months_since_kickoff, "pace.months"))]);
     lvl.push([f.t("pace.xp_month"), f.num(pc.xp_per_month)]);
   }
+  // transcenders (owner, 2026-11-23): how long the Common Core took (42cursus kickoff → the Rank 06 quest) and how far the
+  // alumni estimate is (Profile's path has the dates); not in the Piscine's view
+  const q6 = (X.quests || []).find((q: any) => /rank 06/i.test(q.name || "") && q.validated);
+  const kick = (pg.v.all_cursus || X.cursus || []).find((c: any) => c.name === "42cursus")?.begin;
+  if (q6 && pg.period !== "piscine") {
+    const day = (s: string) => Date.parse(String(s).slice(0, 10)), month = 30.44 * 864e5;
+    if (kick) lvl.push([f.t("pace.transcended"), esc(f.plural(Math.round((day(q6.validated) - day(kick)) / month), "pace.months"))]);
+    const due = pg.v.derive?.alumni_due;
+    if (due && !D.profile?.alumnized) {
+      const left = due === "paused" ? NaN : day(due) - day(pg.asOf || new Date().toISOString());
+      lvl.push([f.t("pace.alumni_in"), esc(due === "paused" ? f.t("profile.paused") : left <= 0 ? f.t("pace.alumni_due")
+        : left < 31 * 864e5 ? f.plural(Math.round(left / 864e5), "pace.days_left") : `≈ ${f.plural(Math.round(left / month), "pace.months")}`)]);
+    }
+  }
   const months = pc?.months || [], promo = pg.v.promo;
-  out.push({ id: "pace", nav: f.t("nav.pace"), html: section("pace", f.t("pace.title"), `<dl class="facts">${facts(lvl)}</dl>` + cols(headBlock("pace-xp", f.t("pace.xp_title"),
-    legend([[f.t("pace.xp"), S1], [f.t("pace.cumulative"), S2]]), vbars(f, months.map((m: any) => f.monthLabel(m.month)), [[f.t("pace.xp"), months.map((m: any) => m.xp), S1]],
-      { label: f.t("pace.xp_title"), line: [f.t("pace.cumulative"), months.map((m: any) => m.cumulative), S2], fmt: (v) => f.num(v), emptyText: f.t("empty.period") })),
+  const xpLabels = months.map((m: any) => f.monthLabel(m.month));
+  // the month's XP in bars, the running total in each tip (owner's pick 2026-11-23); four even steps, as Your promo beside it
+  const xpChart = vbars(f, xpLabels, [[f.t("pace.xp"), months.map((m: any) => m.xp), S1]], { label: f.t("pace.xp_title"), four: true, colTips: true, fmt: (v) => f.num(v),
+    tips: months.map((m: any, i: number) => `${xpLabels[i]}\n${f.t("pace.xp")}: ${f.num(m.xp)}\n${f.t("pace.cumulative")}: ${f.num(m.cumulative)}`), emptyText: f.t("empty.period") });
+  out.push({ id: "pace", nav: f.t("nav.pace"), html: section("pace", f.t("pace.title"), `<dl class="facts">${facts(lvl)}</dl>` + cols(headBlock("pace-xp", f.t("pace.xp_title"), "", xpChart),
     // the same shape as XP per month beside it: title and key on one line, then the plot (its sentence is the title's ⓘ)
     promo ? `<div class="block" data-panel="promo"><div class="block-head"><h3>${esc(f.t("standing.promo"))} ${info(f.t("standing.promo_lede", { rank: f.num(promo.rank), size: f.num(promo.size), pct: f.num(aboveShare(promo, promo.percentile), 1) })
       + (promo.tied ? " " + f.plural(promo.tied, "standing.promo_tied") : ""))}</h3>`
-      + legend([[f.t("standing.per_level"), S2], [f.t("standing.your_level"), S1]]) + "</div>" + promoChart(pg, promo) + "</div>" : "")) });
+      + legend([[f.t("standing.below_you"), S2], [f.t("standing.your_level"), S1], [f.t("standing.above_you"), ABOVE]])
+      + "</div>" + promoChart(pg, promo) + "</div>" : "")) });
 
   const cursus = pg.period === "piscine" ? "C Piscine" : "42cursus"; // the page's period (owner, 2026-11-19: no switch of its own)
   const show = pg.q("skills", "radar", ["radar", "bars"]); // phones show one of the two (the switch is theirs only)
@@ -121,7 +152,7 @@ export function projects(pg: Page): Section[] {
       { label: f.t("extras.skills_title"), end: (_i, v) => f.level(v), big: true });
     skills = `<div class="radar-pair" data-show="${show}"><div class="radar-fig">${radar(f, items, f.t("extras.skills_title"))}</div><div class="radar-bars">${bars}</div></div>`;
   }
-  const sw = items.length ? pg.seg("skills", [["radar", f.t("skills.radar")], ["bars", f.t("skills.bars")]], show, f.t("skills.view"), "skills", "phone-only") : "";
+  const sw = items.length ? pg.seg("skills", [["radar", f.t("skills.radar")], ["bars", f.t("skills.bars")]], show, f.t("skills.view"), "skills", "phone-only title-line") : "";
   out.push({ id: "skills", nav: f.t("extras.skills_title"), html: section("skills", "", cols(block("skills", skills)),
     { head: `<div class="panel-head"><h2>${esc(f.t("extras.skills_title"))}</h2>${sw}</div>` }) });
 
@@ -180,34 +211,50 @@ export function projects(pg: Page): Section[] {
     { k: "tries", t: f.t("col.tries"), ph: true, sv: (e) => e.tries.length, f: (e) => '<span class="marks">' + e.tries.map((x: any) => tryChip(f, x)).join("") + "</span>" },
   ], exams, { label: f.t("exams.title"), sort: ["name", 1], empty: f.t("exams.none") })}</div>`))) });
 
-  const areas = dv.domains || [];
-  const cap = (s: string) => s.slice(0, 1).toUpperCase() + s.slice(1);
-  out.push({ id: "domains", nav: f.t("domains.title"), html: section("domains", "", cols(block("domains", hbars(f, areas.map((a: any) => cap(f.t(`domains.tag.${a.key}`))), [[f.t("col.xp"), areas.map((a: any) => a.xp), S1]], {
-      label: f.t("domains.title"), tips: areas.map((a: any) => `${f.t(`domains.tag.${a.key}`)} · ≈ ${f.num(a.xp)} XP · ${a.projects.join(", ")}`),
-      end: (_i, v) => `≈ ${f.num(v)}`, extra: (i) => f.plural(areas[i].projects.length, "domains.projects"), emptyText: f.t("domains.none"), big: true })))
-    + `<div class="table-foot csv-bottom">${csvButtons(pg, "portfolio", f.t("domains.portfolio_title"), f.t("domains.portfolio"), "csv-bottom")}</div>`,
-  { head: `<div class="panel-head"><h2>${esc(f.t("domains.title"))} ${info(f.t("domains.xp_note"))}</h2>${csvButtons(pg, "portfolio", f.t("domains.portfolio_title"), f.t("domains.portfolio"), "csv-top")}</div>` }) });
+  const [domains, domainsSwitch] = domainsBody(pg);
+  out.push({ id: "domains", nav: f.t("domains.title"), html: section("domains", "", domains,
+    { head: `<div class="panel-head"><h2>${esc(f.t("domains.title"))} ${info(`${f.t("domains.skills_note")} ${f.t("domains.xp_note")}`)}</h2>`
+      + `<div class="dom-actions"><button class="btn secondary" type="button" data-preview="portfolio" data-title="${esc(f.t("domains.portfolio_title"))}" aria-haspopup="dialog">`
+      + `${esc(f.t("common.preview"))}</button>${domainsSwitch("dom-head")}</div></div>` }) });
 
   const laneName = (g: string) => (g === "work" ? f.t("projects.lane_work") : g === "other" ? f.t("log.milestone_other") : groupLabel(pg, g));
-  const tl = timelineLanes(D.projects.map((p: any) => (groupOf(p) === "outside" ? { ...p, group: "outside" } : p)), laneName).map(([lane, spans]) => [lane, spans.map(({ p, a }) => {
-    const c = a.validated === true ? GOOD : a.validated === false ? BAD : NEUTRAL;
+  const colour = (a: any) => (a.validated === true ? GOOD : a.validated === false ? BAD : NEUTRAL);
+  const attemptTip = (p: any, a: any) => {
     const outcome = a.validated ? f.t("outcome.validated") : a.validated === false ? f.t("outcome.failed") : a.status ? (f.has(`status.${a.status}`) ? f.t(`status.${a.status}`) : a.status.replace(/_/g, " ")) : "";
-    const tip = [f.t("projects.tip_title", { name: p.name, n: a.n, of: p.attempts.length }), `${outcome} · ${f.t("projects.tip_mark", { mark: a.mark ?? "–" })}`,
+    return [f.t("projects.tip_title", { name: p.name, n: a.n, of: p.attempts.length }), `${outcome} · ${f.t("projects.tip_mark", { mark: a.mark ?? "–" })}`,
       `${a.start} ➜ ${a.closed || a.locked || f.t("projects.tip_open")} (${f.t("projects.tip_days", { count: pyRound(a.days, 1), n: f.num(a.days, 1) })})`,
       f.plural((a.evals || []).length, "count.evaluations") + (a.outstanding ? ` · ${a.outstanding} ${f.t("flag.outstanding")}` : ""),
       a.correctors?.length ? f.t("projects.by", { list: a.correctors.join(", ") }) : "", a.members?.length ? f.t("projects.team", { list: a.members.join(", ") }) : ""].filter(Boolean).join(" · ");
-    return [a.start_ms, a.end_ms || a.start_ms, c, tip];
-  })]) as [string, [number, number, string, string][]][];
+  };
   const retries = D.projects.flatMap((p: any) => p.attempts.slice(1).map((a: any) => a.start_ms)).sort((a: number, b: number) => a - b).map((x: number, i: number) => ({ x, y: i + 1 }));
   const validated = D.projects.map((p: any) => p.attempts.find((a: any) => a.validated && a.end_ms)?.end_ms).filter(Boolean)
     .sort((a: number, b: number) => a - b).map((x: number, i: number) => ({ x, y: i + 1 }));
-  out.push({ id: "timeline", nav: f.t("nav.projects"), html: section("timeline", f.t("projects.title"), cols(
-    `<div class="block" data-panel="timeline"><div class="block-head"><h3>${esc(f.t("projects.timeline_title"))}</h3>${legend([[f.t("outcome.validated"), GOOD], [f.t("outcome.failed"), BAD], [f.t("outcome.in_progress"), NEUTRAL]])}</div>`
-    + timeline(f, tl, { label: f.t("projects.timeline_aria"), emptyText: f.t("empty.period") }) + "</div>",
-    block("cum-retries", lines(f, [[f.t("col.retries"), retries, S1]], { label: f.t("projects.cum_title"), emptyText: f.t("empty.period") }), f.t("projects.cum_title"), f.t("projects.cum_note")),
-    block("cum-validated", lines(f, [[f.t("outcome.validated"), validated, GOOD]], { label: f.t("projects.validated_title"), emptyText: f.t("empty.period") }), f.t("projects.validated_title"), f.t("projects.validated_note"))),
-  ) });
-
+  const cumulative = [block("cum-retries", lines(f, [[f.t("col.retries"), retries, S1]], { label: f.t("projects.cum_title"), emptyText: f.t("empty.period") }), f.t("projects.cum_title"), f.t("projects.cum_note")),
+    block("cum-validated", lines(f, [[f.t("outcome.validated"), validated, GOOD]], { label: f.t("projects.validated_title"), emptyText: f.t("empty.period") }), f.t("projects.validated_title"), f.t("projects.validated_note"))];
+  const key = legend([[f.t("outcome.validated"), GOOD], [f.t("outcome.failed"), BAD], [f.t("outcome.in_progress"), NEUTRAL]]);
+  // each project's attempts on one row with its name, packed so the history fits the screen (owner, 2026-11-22); shown in
+  // dev only until the owner says (2026-11-23): ravazque.info has the two cumulative charts alone
+  const blocks: string[] = [];
+  if (pg.dev) {
+    const lanes = new Map<string, GanttItem[]>();
+    for (const [lane, spans] of timelineLanes(D.projects.map((p: any) => (groupOf(p) === "outside" ? { ...p, group: "outside" } : p)), laneName)) {
+      const name = lane || [...lanes.keys()].at(-1)!;
+      if (!lanes.has(name)) lanes.set(name, []);
+      for (const s of spans) lanes.get(name)!.push(s as any);
+    }
+    const groups = [...lanes].map(([lane, spans]) => {
+      const byProject = new Map<any, any[]>();
+      for (const s of spans as any[]) byProject.set(s.p, [...(byProject.get(s.p) || []), s.a]);
+      const items: GanttItem[] = [...byProject].map(([p, atts]) => ({ name: shortProject(p.name, 24), tip: [p.name, ...atts.map((a: any) => attemptTip(p, a).split(" · ").slice(1).join(" · "))].join("\n---\n"),
+        spans: atts.map((a: any) => [a.start_ms, a.end_ms || a.start_ms, colour(a), attemptTip(p, a)]) }));
+      // the parts of a work experience are one internship: one row, by the shortest name (the whole one, not a part)
+      return [lane, lane === laneName("work") && items.length > 1 ? [{ name: items.map((x) => x.name).sort((x, y) => x.length - y.length)[0],
+        tip: items.map((x) => x.tip).join("\n---\n"), spans: items.flatMap((x) => x.spans).sort((x, y) => x[0] - y[0]) }] : items] as [string, GanttItem[]];
+    });
+    blocks.push(`<div class="block" data-panel="timeline"><div class="block-head"><h3>${esc(f.t("projects.timeline_title"))}</h3>${key}</div>`
+      + `${gantt(f, groups, { label: f.t("projects.timeline_aria"), emptyText: f.t("empty.period") })}</div>`);
+  }
+  out.push({ id: "timeline", nav: f.t(pg.dev ? "nav.projects" : "projects.title"), html: section("timeline", f.t("projects.title"), cols(...blocks, ...cumulative)) });
   return out;
 }
 
@@ -245,7 +292,31 @@ function promoChart(pg: Page, promo: any) {
   const levels = keys.length ? Array.from({ length: Math.max(...keys) - Math.min(...keys) + 1 }, (_, i) => Math.min(...keys) + i) : [];
   const mine = Math.floor(promo.mine);
   const tips = levels.map((lv) => [f.t("standing.level_tip", { level: lv }), f.plural(hist.get(lv) || 0, "standing.n_students"), ...(lv === mine ? [f.t("standing.you_here")] : [])].join(" · "));
-  return vbars(f, levels.map(String), [[f.t("standing.students"), levels.map((lv) => (lv !== mine ? hist.get(lv) || 0 : 0)), S2],
-    [f.t("standing.your_level"), levels.map((lv) => (lv === mine ? hist.get(lv) || 0 : 0)), S1]],
-  { label: f.t("standing.promo"), stacked: true, fmt: (v) => f.num(v), tips });
+  // below you and above you in two tones, your level marked by a line and "You" (owner's pick 2026-11-20: your bar alone may be a sliver)
+  const part = (keep: (lv: number) => boolean) => levels.map((lv) => (keep(lv) ? hist.get(lv) || 0 : 0));
+  return vbars(f, levels.map(String), [[f.t("standing.below_you"), part((lv) => lv < mine), S2], [f.t("standing.your_level"), part((lv) => lv === mine), S1],
+    [f.t("standing.above_you"), part((lv) => lv > mine), ABOVE]], { label: f.t("standing.promo"), stacked: true, four: true, colTips: true, fmt: (v) => f.num(v), tips, mark: [levels.indexOf(mine), f.t("network.key_me")] });
+}
+
+/** Technical domains: the skills 42's transcript gives your validated projects, or the RNCP domains, one at a time (RNCP
+ * first when you have any, owner 2026-11-23), both told the same way: a square per validated project, out of the longest
+ * list of the two, and the XP they add up to (a project counts in each of its skills or domains). Returns the body and
+ * the Skills | RNCP switch (by the title from 600px; on phones on top of the rows, as the log's filters). */
+function domainsBody(pg: Page): [string, (cls: string) => string] {
+  const f = pg.f, areas: any[] = pg.v.derive?.domains || [];
+  const cap = (s: string) => s.slice(0, 1).toUpperCase() + s.slice(1);
+  const xpOf = new Map<string, number>(pg.D.projects.filter((p: any) => p.validated === true).map((p: any) => [p.name, p.xp_earned || 0]));
+  const lists = {
+    skills: skillRows(pg.D).map(([label, projects]) => ({ label, projects, xp: projects.reduce((t, n) => t + (xpOf.get(n) || 0), 0) })),
+    rncp: areas.map((a) => ({ label: cap(f.t(`domains.tag.${a.key}`)), projects: a.projects as string[], xp: a.xp as number })),
+  };
+  const of = Math.max(10, ...[...lists.skills, ...lists.rncp].map((r) => r.projects.length));
+  const show = pg.q("domains", lists.rncp.length ? "rncp" : "skills", ["skills", "rncp"]) as "skills" | "rncp";
+  const rows: SeatRow[] = [...lists[show]].sort((a, b) => b.projects.length - a.projects.length || b.xp - a.xp).map((r) => {
+    const end = f.plural(r.projects.length, "domains.projects") + (r.xp ? ` · ≈ ${f.num(r.xp)} XP` : ""); // work experience parts carry none
+    return { label: r.label, n: r.projects.length, end, tip: `${r.label}\n${end}\n---\n${r.projects.join("\n")}` };
+  });
+  const sw = (cls: string) => pg.seg("domains", [["skills", f.t("domains.skills_title")], ["rncp", f.t("domains.rncp_title")]], show, f.t("domains.title"), "domains", `dom-switch ${cls}`);
+  const chart = seatbars(rows, { label: f.t(`domains.${show}_title`), of, emptyText: f.t("domains.none") });
+  return [cols(`<div class="block" data-panel="domains">${sw("dom-phone")}${chart}</div>`), sw];
 }

@@ -10,5 +10,6 @@ services:
     environment:
       DEV_PROFILES: ${DEV_PROFILES-/preview/test-*.json}
       BASE_URL: https://localhost
+      VISITORS_LOG: ""  # dev signs in as other students' saved reports: never on disk
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
     volumes: ["./web/preview:/preview:ro", "consent:/data"]

@@ -19,7 +19,9 @@ type Settings struct {
 	ContactEmail, IssuesURL     string
 	ControllerName              string
 	OptoutLogins                []string // students who asked to be left out of every report
-	ConsentLog                  string   // where acceptances of the privacy policy are kept (the only file written)
+	ConsentLog                  string   // where acceptances of the privacy policy are kept
+	VisitorsLog                 string   // who signed in, first and last time, for the owner's Server stats (empty: memory only)
+	VisitorsSeed                []string // logins that came before that record existed: taken once, while it has no file
 	DevProfiles                 string   // make dev only: globs of saved reports served at once, /dev/login as their owners
 	OwnerLogin                  string   // the one login that may publish to the GitHub Pages site
 	GithubToken, GithubRepo     string
@@ -81,7 +83,7 @@ func SettingsFromEnv() Settings {
 		SessionSecret: os.Getenv("SESSION_SECRET"),
 		CooldownS:     3600, CacheS: 3600, SessionS: 604_800,
 		ContactEmail: os.Getenv("CONTACT_EMAIL"), IssuesURL: os.Getenv("ISSUES_URL"), ControllerName: os.Getenv("CONTROLLER_NAME"),
-		OptoutLogins: optout, ConsentLog: os.Getenv("CONSENT_LOG"), DevProfiles: os.Getenv("DEV_PROFILES"),
+		OptoutLogins: optout, ConsentLog: os.Getenv("CONSENT_LOG"), VisitorsLog: os.Getenv("VISITORS_LOG"), VisitorsSeed: strings.FieldsFunc(os.Getenv("VISITORS_SEED"), func(r rune) bool { return r == ',' || r == ' ' || r == '\n' }), DevProfiles: os.Getenv("DEV_PROFILES"),
 		OwnerLogin: os.Getenv("OWNER_LOGIN"), GithubToken: os.Getenv("GITHUB_TOKEN"), GithubRepo: os.Getenv("GITHUB_REPO"),
 		GithubBranch: env("GITHUB_BRANCH", "main"), Addr: env("ADDR", ":8000"),
 	}

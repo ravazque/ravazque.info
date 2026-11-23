@@ -118,6 +118,13 @@
   :where(body:not(.site)) .topbar .btn.on-band { padding: 0 10px; }
   :where(body:not(.site)) .topbar .best { padding: 0 6px; gap: 2px; }
 }
+/* the period you look at, while it isn't All (the default): a circle on the settings' gear, where it is set (owner's pick
+   2026-11-23): Piscine grey, Student the accent, framed in the band's ink; on phones smaller, 2px further in */
+:where(body:not(.site)) .topbar .gear:has(.period-dot) { position: relative; overflow: visible; }  /* a summary clips what it holds */
+:where(body:not(.site)) .topbar .period-dot { position: absolute; top: -7px; right: -7px; width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 0 2px var(--on-accent); pointer-events: none; }
+:where(body:not(.site)) .topbar .period-dot.pd-piscine { background: var(--neutral); }
+:where(body:not(.site)) .topbar .period-dot.pd-student { background: var(--accent-data); }
+@media (max-width: 519.98px) { :where(body:not(.site)) .topbar .period-dot { top: -3px; right: -3px; width: 10px; height: 10px; } }
 /* the settings panel scrolls inside itself on a short screen: its last buttons stay reachable */
 :where(body:not(.site)) .settings { max-height: calc(100dvh - var(--c-topbar-height) - 20px); overflow-y: auto; overscroll-behavior: contain; }
 
@@ -142,6 +149,18 @@
   :where(body:not(.site)) .info::after { content: ""; position: absolute; inset: -12px; }
   :where(body:not(.site)) table a.code { display: inline-block; padding: 10px 0; }
   :where(body:not(.site)) td details > summary { min-height: 40px; display: flex; flex-wrap: wrap; align-items: center; }
+}
+/* phones: the band never breaks in two (owner, 2026-11-23); while it lacks room its mark, buttons and icons shrink together:
+   48px while they fit (from about 360px in Spanish), down to 34px; the button's text and paddings with them */
+@media (max-width: 519.98px) {
+  :where(body:not(.site)) .topbar { --bb: clamp(34px, calc(15.8vw - 7.9px), 48px); flex-wrap: nowrap; }
+  :where(body:not(.site)) .topbar .brand { min-height: var(--bb); }
+  :where(body:not(.site)) .topbar .brand-mark, :where(body:not(.site)) .topbar .gear { width: var(--bb); height: var(--bb); min-height: var(--bb); box-sizing: border-box; }
+  :where(body:not(.site)) .topbar :is(.btn.on-band, .best) { min-height: var(--bb); height: var(--bb); box-sizing: border-box; }
+  :where(body:not(.site)) .topbar .btn.on-band { padding: 0 clamp(6px, calc(3.3vw - 1.6px), 10px); font-size: clamp(12px, calc(5.27vw - 2.6px), 16px); white-space: nowrap; }
+  :where(body:not(.site)) .topbar :is(.gear, .best) svg:not(.caret) { width: clamp(17px, calc(7.24vw - 3.6px), 22px); height: clamp(17px, calc(7.24vw - 3.6px), 22px); }
+  :where(body:not(.site)) .topbar .best { padding: 0 clamp(4px, calc(2vw - 1px), 10px); }
+  :where(body:not(.site)) .topbar-end { gap: clamp(4px, calc(1.6vw - .8px), 8px); min-width: 0; }
 }
 /* phones: the two registers (evaluation log, projects) show twice the rows on a screen (owner, 2026-11-13): smaller
    type, tighter cells, the line that opens a row's detail a slim strip (still the table's whole width to tap) */
@@ -172,6 +191,11 @@
 :where(body:not(.site)) .pf-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; margin: var(--card-who-gap, 8px) 0 0; color: var(--text-2); font-size: var(--card-sub, 15px); line-height: 1.5; }
 :where(body:not(.site)) .pf-sub + .pf-tags { margin-top: var(--card-tags-gap, 2px); }
 :where(body:not(.site)) .pf-sub > span { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; min-width: 0; }
+/* your name and the line under it stay on one line: when one doesn't fit, what follows it (OuterCore, the campus) goes,
+   then its type shrinks to fit (Dashboard fitCard) */
+:where(body:not(.site)) :is(.pf-name, .pf-who) { white-space: nowrap; overflow-wrap: normal; }
+:where(body:not(.site)) .pf-who > span { display: inline; }
+:where(body:not(.site)) :is(.pf-name.cut .pf-status, .pf-who.cut .pf-campus) { display: none; }
 /* the timeline under the three modules: --card-time-top alone sets the distance (no section padding of its own) */
 :where(body:not(.site)) #path { padding-top: 0; margin-top: 0; padding-bottom: max(0px, var(--card-time-bottom, 0px)); margin-bottom: min(0px, var(--card-time-bottom, 0px)); }
 /* the four figures under your name, drawn like the three modules below them, larger; the figure never outgrows its
@@ -422,3 +446,86 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
   max-height: calc(100dvh - var(--c-topbar-height) - 20px); overflow-y: auto; overscroll-behavior: contain; }
 :where(body:not(.site)) .best-menu a { flex: none; }
 @media (min-width: 960px) { :where(body:not(.site)) .best-menu a span { white-space: nowrap; } }
+
+/* Card tags (owner's pick 2026-11-22): the theme's ground and text, a frame in the kind's colour mixed toward the ground
+   so it stays quiet in dark mode: the coalition its own (inline --tag), milestone and grade the accent, track slate,
+   groups the accent turned to violet. One line; "+N" opens the rest in the float (Dashboard fitTags) */
+:where(body:not(.site)) .badge.tag { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--tag, var(--rule-strong)) 72%, var(--ground)); }
+:where(body:not(.site)) .tag:is(.k-milestone, .k-grade) { --tag: var(--accent-data); }
+:where(body:not(.site)) .tag.k-track { --tag: var(--slate); }
+:where(body:not(.site)) .tag.k-group { --tag: oklch(from var(--accent-data) l c calc(h + 100)); }
+:where(body:not(.site)) .pf-tags { flex-wrap: nowrap; overflow: hidden; }
+:where(body:not(.site)) .pf-tags > * { flex: none; }
+:where(body:not(.site)) .tag-more > summary { cursor: pointer; }
+:where(body:not(.site)) .tag-more[open] > .pop-panel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+:where(body:not(.site)) #float .tag-all { display: flex; flex-wrap: wrap; gap: 6px; max-width: 280px; }
+
+/* Your promo: your level marked by a dashed line across the plot and "You" over it (vbars mark) */
+:where(body:not(.site)) .ch-col.you::before { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; border-left: 2px dashed var(--accent-data); pointer-events: none; }
+:where(body:not(.site)) .ch-col .peak.you { color: var(--accent-ink); font-size: 13px; }
+/* Pace: XP per month and Your promo side by side keep their lines and their base at the same heights (owner, 2026-11-23):
+   both panels as tall as the row, the room a taller title line takes given under the shorter one (spacing.css's
+   title → chart distance stays) */
+:where(body:not(.site)) :is([data-panel="pace-xp"], [data-panel="promo"]) { display: flex; flex-direction: column; }
+:where(body:not(.site)) #pace :is([data-panel="pace-xp"], [data-panel="promo"]) > .block-head { margin-bottom: auto; }  /* #pace: over spacing.css's 0 */
+
+/* The attempts line (charts.ts gantt): each project's row named, groups by milestone between rules, the rows sharing the
+   screen's height (14–20px) so the whole history fits a laptop; under its min-width it scrolls like the calendar, the
+   milestones' column staying put (the left fade starts past it) */
+:where(body:not(.site)) .gantt-scroll { overflow-x: auto; margin-top: 12px; --stick-w: 112px !important; }
+:where(body:not(.site)) :is(.gt-group, .gt-axis > span:first-child) { position: sticky; left: 0; z-index: 2; background: var(--ground); }
+:where(body:not(.site)) .gantt { --gt-row: clamp(14px, calc((100svh - 210px) / var(--rows, 30)), 20px);
+  display: grid; grid-template-columns: max-content minmax(0, 1fr); min-width: var(--gt-min, 1000px); margin: 0;
+  font-size: clamp(11px, calc(var(--gt-row) - 8px), 12px); color: var(--muted); }
+:where(body:not(.site)) .gt-row, :where(body:not(.site)) .gt-axis { display: contents; }
+:where(body:not(.site)) .gt-group { padding-right: 12px; color: var(--text-2); font-weight: 600; white-space: nowrap; line-height: var(--gt-row); }
+:where(body:not(.site)) .gt-track { position: relative; height: var(--gt-row);
+  background: repeating-linear-gradient(to right, transparent 0 calc(12.5% - 1px), var(--rule) calc(12.5% - 1px) 12.5%); }
+:where(body:not(.site)) .gt-row.first > * { border-top: 1px solid var(--rule-strong); }
+:where(body:not(.site)) .gt-row.first:first-child > * { border-top: 0; }
+:where(body:not(.site)) .gt-track i { position: absolute; top: 3px; bottom: 3px; border-radius: 2px; }
+:where(body:not(.site)) .gt-track i:hover { filter: brightness(1.15); }
+:where(body:not(.site)) .gt-name { position: absolute; top: 0; line-height: var(--gt-row); white-space: nowrap; color: var(--text-2); cursor: default; }
+:where(body:not(.site)) .gt-name:hover { color: var(--ink); }
+:where(body:not(.site)) .gt-axis .ch-months { margin-left: 0; }
+
+/* Technical domains (projects.ts domainsBody): Preview and the Skills | RNCP switch by the title (from 600px; phones: the
+   switch alone, on top of the rows as the log's filters, a line under it), then a row per skill or domain: its
+   name, a square per validated project (charts.ts seatbars, as ravazque.github.io's skill bars) and what they add up to.
+   Distances and sizes: spacing.css #domains */
+:where(body:not(.site)) .dom-actions { display: flex; align-items: center; gap: var(--domains-buttons-gap, 14px); }
+:where(body:not(.site)) .seg.dom-phone { display: none; }
+@media (max-width: 599.98px) {
+  :where(body:not(.site)) .dom-actions { display: none; }
+  :where(body:not(.site)) .seg.dom-phone { display: flex; margin: 0; }
+  /* the title's line → the switch: its own value on phones (laptops keep --charts-top to the first row) */
+  :where(body:not(.site)) #domains > .panel-head + .cols { margin-top: var(--domains-switch-top-phone, var(--charts-top, 36px)); }
+  :where(body:not(.site)) .seg.dom-phone > * { flex: 1 1 0; }
+  /* a line under the switch keeps it apart from the rows (owner, 2026-11-23) */
+  :where(body:not(.site)) .seg.dom-phone + .seatbars { margin-top: var(--domains-switch-gap, 16px); padding-top: var(--domains-switch-pad, 12px);
+    border-top: var(--domains-switch-line, 2px) solid var(--domains-switch-line-color, var(--rule-strong)); }
+}
+:where(body:not(.site)) .seatbars { margin: 0; container: seatbars / inline-size; }
+:where(body:not(.site)) .seatbars ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, max-content) auto max-content 1fr; column-gap: var(--domains-cols-gap, 24px); }
+:where(body:not(.site)) .seatbars li { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center; padding: var(--domains-row-pad, 9px) 0;
+  border-bottom: var(--domains-row-line, 0px) solid var(--rule); }
+:where(body:not(.site)) .seatbars li > * { grid-row: 1; }
+:where(body:not(.site)) .sb-label { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-2); font: 600 16px var(--type-font-text); }
+:where(body:not(.site)) .seatbars li > [data-tip] { cursor: default; }
+:where(body:not(.site)) .seatbars .seats { justify-self: start; display: grid; grid-template-columns: repeat(var(--of), minmax(4px, var(--domains-seat, 12px))); gap: var(--domains-seat-gap, 3px); }
+:where(body:not(.site)) .seatbars .seats i { height: var(--domains-seat, 12px); border-radius: 2px; background: var(--seat-empty); }
+:where(body:not(.site)) .seatbars .seats i.on { background: var(--accent-data); }
+:where(body:not(.site)) .seatbars b { justify-self: start; color: var(--text-2); font: 600 15px var(--type-font-display); white-space: nowrap; }
+:where(body:not(.site)) .sb-label { justify-self: start; }
+/* the row lights up while the pointer is on its name, squares or figures (not on the empty rest) */
+:where(body:not(.site)) .seatbars li:has(> [data-tip]:hover) :is(.sb-label, b) { color: var(--ink); }
+:where(body:not(.site)) .seatbars li:has(> [data-tip]:hover) .on { filter: brightness(1.15); }
+/* narrow (phones, half widgets): the name and the figures on a line, the squares under them across the row */
+@container seatbars (max-width: 699.98px) {
+  :where(body:not(.site)) .seatbars ul { display: block; }
+  :where(body:not(.site)) .seatbars li { grid-template-columns: minmax(0, 1fr) max-content; column-gap: 12px; row-gap: 8px; }
+  :where(body:not(.site)) .seatbars .seats { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; grid-template-columns: repeat(var(--of), minmax(0, 1fr)); gap: 2px; }
+  :where(body:not(.site)) .seatbars .seats i { height: var(--domains-seat-phone, 10px); }
+  :where(body:not(.site)) .sb-label { max-width: none; font-size: 15px; }
+  :where(body:not(.site)) .seatbars b { font-size: 14px; }
+}

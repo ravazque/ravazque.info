@@ -21,6 +21,7 @@ services:
         required: false  # make clean / down / logs work before .env exists; make dev-build creates it first
     environment:
       CONSENT_LOG: /data/consent.log
+      VISITORS_LOG: /data/visitors.json  # who signed in (Server stats, privacy policy v5)
       BASE_URL: https://ravazque.info
       TUNNEL_TOKEN: ""  # only the tunnel needs it
     volumes: ["consent:/data"]
@@ -28,7 +29,7 @@ services:
   # make production: the named Cloudflare tunnel that serves ravazque.info; its public hostname (ravazque.info ->
   # http://caddy:8080) is set in Cloudflare's dashboard. Only with the profile, so make dev never starts it.
   tunnel:
-    image: cloudflare/cloudflared:2026.11.1@sha256:e613aadbc2d9511785d2e67a86b0c8ac18dd63a3f9af0d06faf04cbfdcb35f2d
+    image: cloudflare/cloudflared:2026.11.2@sha256:55c7e3e8d89d5e8d20b75a82f3602cbf98e06db406e73e282073cfdc5a9a3af6
     profiles: [tunnel]
     command: ["tunnel", "--no-autoupdate", "run"]
     environment:

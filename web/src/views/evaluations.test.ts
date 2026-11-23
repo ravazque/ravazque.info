@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { Fmt } from "../fmt";
-import { absence, autoFeedback, binLabels, staffApart, cancelledSection, pointsSection, deletedApart, evaluations, lateText, logSection, milestoneOf, seatMatch, seatOptions, teamCell, withoutWorkLate, workExperience } from "./evaluations";
+import { absence, autoFeedback, binLabels, longOnes, staffApart, cancelledSection, pointsSection, deletedApart, evaluations, lateText, logSection, milestoneOf, seatMatch, seatOptions, teamCell, withoutWorkLate, workExperience } from "./evaluations";
 import { Page, shownLogin } from "./page";
 
 test("the log's seat filter: the evaluated side only, you received with no session open, or the students you evaluated not logged where it was looked up", () => {
@@ -23,6 +23,23 @@ test("the seat filter by cluster keeps the evaluations you had in that cluster",
 test("a histogram's bins carry their unit beside the numbers", () => {
   expect(binLabels([0, 1, 3], "h")).toEqual(["0–1h", "1–3h", "3+h"]);
   expect(binLabels([0, 15], "m")).toEqual(["0–15m", "15+m"]);
+});
+
+test("the long bars of a histogram name their evaluations: project, the other side and the value, longest first, at most eight", () => {
+  const f = new Fmt("en"), edges = [0, 15, 30, 45, 60, 75, 90, 120, 180];
+  const recv = (project: string, login: string, duration_min: number, status = "done") => ({ project, corrector: { login }, duration_min, status });
+  const got = longOnes(f, [recv("webserv", "peer01", 135), recv("cub3d", "peer02", 200), recv("libft", "peer03", 60), recv("minirt", "peer04", 150, "canceled"),
+    recv("inception", "peer05", 170)], "received", "duration_min", edges, 120);
+  expect(got.slice(0, 7).every((b) => !b.length)).toBe(true); // short ones, none
+  expect(got[7]).toEqual(["inception · peer05 · 170m", "webserv · peer01 · 135m"]); // the canceled one is not in the chart either
+  expect(got[8]).toEqual(["cub3d · peer02 · 200m"]);
+  const team = { project: "ft_transcendence", correcteds: [{ login: "peer06" }, { login: "peer07" }, { login: "peer08" }], lead_h: 30.5 };
+  expect(longOnes(f, [team], "given", "lead_h", [0, 1, 3, 6, 12, 24, 48, 96], 12)[5]).toEqual(["ft_transcendence · peer06 +2 · 30:30h"]);
+  const many = Array.from({ length: 10 }, (_, i) => recv("webserv", `peer${10 + i}`, 121 + i));
+  const capped = longOnes(f, many, "received", "duration_min", edges, 120)[7];
+  expect(capped.length).toBe(9);
+  expect(capped[0]).toBe("webserv · peer19 · 130m");
+  expect(capped[8]).toBe(f.t("common.plus_more", { n: 2 }));
 });
 
 test("deleted accounts get their own row by milestone, and no evaluation is lost on the way", () => {
@@ -100,6 +117,16 @@ const logPage = (q: Record<string, string>) => new Page(new Fmt("en"), { period:
   given: [ev({ id: 1, project: "Libft", slug: "42cursus-libft", mark: 100 }), ev({ id: 2, project: "minishell", slug: "42cursus-minishell", truant: "peer02" }),
     ev({ id: 3, project: "Inception of Things", slug: "42cursus-inception-of-things", mark: 0, truant: "peer02" })] }, all_projects: [] } as any, "evaluations", { log: "given", ...q });
 const logOf = (q: Record<string, string>) => logSection(logPage(q)).html;
+
+test("the log goes by when you took part: a rush corrected as a student is in the student's log, not in the Piscine's", () => {
+  const rush = { ...ev({ id: 9, project: "C Piscine Rush 00", slug: "c-piscine-rush-00", mark: 84 }), begin: "2025-11-02 10:00", cursus: ["C Piscine"] };
+  const cursus = [{ name: "42cursus", begin: "2025-08-29 09:42" }];
+  const page = (period: string, given: any[], moved?: any) => new Page(new Fmt("en"), { period, layout: {}, report: { profile: { login: "peer01" }, received: [], projects: [], given },
+    all_projects: [], all_cursus: cursus, piscine_as_student: moved } as any, "evaluations", { log: "given" });
+  expect(logSection(page("student", [], { received: [], given: [rush] })).html).toContain("C Piscine Rush 00");
+  expect(logSection(page("piscine", [rush])).html).not.toContain("C Piscine Rush 00");
+  expect(logSection(page("piscine", [{ ...rush, begin: "2025-08-10 10:00" }])).html).toContain("C Piscine Rush 00");
+});
 
 test("who marked whom absent: the API names the one who reported it, the side that was there", () => {
   const f = new Fmt("en"), e = (truant: string) => ({ truant, corrector: { login: "peer01" }, correcteds: [{ login: "me" }, { login: "peer03" }] });
@@ -311,6 +338,22 @@ test("Feedback goes by when you corrected: a rush corrected as a student is the 
   expect(piscine).toContain("Rush as a pisciner.");
   expect(piscine).not.toContain("Rush as a student.");
   expect(feedbackOf("all", { ...all, given: [...all.given, asStudent, asPisciner] })).toContain("Rush as a student.");
+});
+
+test("your rating as evaluator counts what Feedback counts: a rush corrected as a student is in the student's average", async () => {
+  const { readFileSync } = await import("node:fs");
+  const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8")), P = doc.periods;
+  const f = new Fmt("en");
+  const rush = { ...P.student.given[0], id: 900211, project: "C Piscine Rush 00", slug: "c-piscine-rush-00", cursus: ["C Piscine"], begin: "2025-11-02 10:00",
+    feedbacks: [{ by: "peer41", rating: 0 }] };
+  const secs = evaluations(new Page(f, { period: "student", report: P.student, layout: doc.layout, all_projects: P.all.projects, all_cursus: P.all.extras.cursus,
+    piscine_as_student: { received: [], given: [rush] } } as any, "evaluations", { role: "given" }));
+  const ratings = [...P.student.given, rush].flatMap((e: any) => e.feedbacks.filter((x: any) => !autoFeedback(x) && typeof x.rating === "number").map((x: any) => x.rating));
+  const mean = ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length;
+  const html = (id: string) => secs.find((s) => s.id === id)!.html;
+  expect(html("community")).toContain(`>${f.num(mean, 2)}<`);
+  expect(html("community")).toContain(f.t("community.s_rating", { n: f.num(ratings.length) }));
+  expect(html("over-time")).toContain(f.num(mean, 2));
 });
 
 test("in the lists that open (Discovery piscines, 42's automatic feedback) a rating under the maximum shows its squares; at the maximum a plain line", async () => {

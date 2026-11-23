@@ -61,6 +61,7 @@ func (s *Server) refresh(w http.ResponseWriter, r *http.Request, si signedIn) {
 
 func (s *Server) deleteMe(w http.ResponseWriter, r *http.Request, si signedIn) {
 	app.DeleteEverything(s.Store, s.Jobs, si.u.ID)
+	s.Visitors.Forget(si.u.Login)
 	s.M.Delete("published:" + s.Store.Digest(si.u.ID))
 	s.Sessions.DeleteUser(si.u.ID)
 	s.setCookie(w, app.SessionCookie, "", -1)
@@ -140,7 +141,7 @@ func (s *Server) view(w http.ResponseWriter, r *http.Request, si signedIn) {
 	periods := data.Obj("periods")
 	p := r.URL.Query().Get("period")
 	if !slices.Contains(periods.Keys(), p) {
-		p = data.S("default_period")
+		p = "all" // the default since 2026-11-20 (owner), whatever a saved report names
 		if !slices.Contains(periods.Keys(), p) {
 			p = periods.Keys()[0]
 		}
@@ -160,7 +161,7 @@ func (s *Server) view(w http.ResponseWriter, r *http.Request, si signedIn) {
 		asStudent = core.FromKickoff(periods.Obj("piscine"), all)
 	}
 	writeJSON(w, 200, map[string]any{
-		"period": p, "periods": periods.Keys(), "default_period": data.V("default_period"), "light": data.V("light"),
+		"period": p, "periods": periods.Keys(), "default_period": "all", "light": data.V("light"),
 		"seat_days": data.V("seat_days"), "report": rep, "derive": core.Derive(rep, all, s.now()),
 		"layout": data.V("layout"), "connections": data.Obj("connections").V(p), "network": data.Obj("network").V(p),
 		"promo": data.V("promo"), "coalitions": s.coalitionsFor(data), "all_projects": all.V("projects"), "all_cursus": all.Obj("extras").V("cursus"),
@@ -383,6 +384,7 @@ func (s *Server) stats(w http.ResponseWriter, r *http.Request, si signedIn) {
 		"extractions": st.Extractions, "extraction_requests": st.ExtractionRequests, "extraction_seconds": st.ExtractionTime.Seconds(),
 		"failed": st.Failed, "timeouts": st.Timeouts, "denied": st.Denied, "queued": len(s.Jobs.Queued()),
 		"last_publish": nullTime(st.LastPublish), "peak_sessions": st.PeakSessions, "memory_keys": s.M.Size(), "sessions": sessions,
+		"visitors": s.Visitors.List(),
 		"uptime_s": int(s.now().Sub(st.StartedAt).Seconds()), "budget_ok": s.Lim.BudgetOK(), "apps": s.Lim.Apps(),
 	})
 }

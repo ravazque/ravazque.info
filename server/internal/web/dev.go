@@ -76,6 +76,7 @@ func (s *Server) devLogin(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	sid := s.Sessions.Create(d.session)
+	s.Visitors.Saw(d.session.Login, s.now()) // dev keeps no VISITORS_LOG: memory only
 	app.RecordConsent(s.Store, d.session.ID, s.now())
 	s.setCookie(w, app.SessionCookie, sid, s.S.SessionS)
 	http.Redirect(w, r, "/app", http.StatusSeeOther)

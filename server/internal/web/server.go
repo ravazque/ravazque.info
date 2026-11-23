@@ -39,6 +39,7 @@ type Server struct {
 	Lim       *app.Limiter
 	API       *api42.Client
 	Stats     *app.Stats
+	Visitors  *app.Visitors // who signed in, for the owner's Server stats
 	now       func() time.Time
 	mux       *http.ServeMux
 	static    fs.FS
@@ -90,6 +91,7 @@ func New(s app.Settings, static fs.FS, o Options) *Server {
 	if err := app.LoadConsent(srv.Store, o.Now()); err != nil {
 		slog.Error("consent log", "error", err.Error())
 	}
+	srv.Visitors = app.LoadVisitors(s.VisitorsLog, s.VisitorsSeed, o.Now())
 	if s.DevProfiles != "" {
 		srv.seedDev()
 	}

@@ -110,8 +110,9 @@ blackhole o congeladas ven una página con el motivo. El acceso se comprueba de 
 - De otros estudiantes solo se guarda login, nombre, grupo (milestone, alumni, blackhole…) y si son staff y, en tus
   evaluaciones de los últimos 60 días, el asiento que usó la otra parte (y cuánto tarde hicieron login los estudiantes que
   evaluaste). Del feedback que recibiste, solo el tuyo.
-- El único fichero que escribe el servidor es el registro de aceptación: un hash con clave de tu id de 42, la versión
-  de la política y la fecha, que se conserva dos años.
+- El servidor escribe dos ficheros: el registro de aceptación (un hash con clave de tu id de 42, la versión de la política
+  y la fecha, que se conserva dos años) y el registro de visitas de la página de operaciones del responsable (tu login con
+  tu primer y último inicio de sesión, que se va con *Borrar mis datos* o dos años después de tu último inicio de sesión).
 - *Borrar mis datos* elimina la copia del servidor, cancela una actualización pendiente y le pide a tu navegador que
   borre lo que guarda.
 - Quien pide no aparecer sale como "Hidden N", sin nombre, foto ni asiento, en los informes de los demás (`OPTOUT_LOGINS`):
@@ -192,6 +193,7 @@ CONTACT_EMAIL                # contacto para solicitudes de privacidad (páginas
 TUNNEL_TOKEN                 # producción: el token del túnel de Cloudflare
 DEV_REAL_LOGINS              # dev: logins de 42 (separados por comas) cuyos informes reales sirve make dev-real
 OPTOUT_LOGINS                # opcional: logins que se muestran como "Hidden"
+VISITORS_SEED                # opcional, una vez: logins que entraron antes del registro de visitas (solo sin fichero)
 ISSUES_URL                   # opcional: enlace "Informar de un problema"
 OWNER_LOGIN, GITHUB_TOKEN,   # opcional: el botón de publicar (oculto salvo que OWNER_LOGIN,
 GITHUB_REPO, GITHUB_BRANCH   #   GITHUB_TOKEN y GITHUB_REPO estén definidos)

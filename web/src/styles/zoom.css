@@ -63,6 +63,7 @@ html:has(dialog:modal, .tour-shade) { overflow: hidden; }
 :where(body:not(.site)) .zoom-only { display: none; }
 :where(body:not(.site)) dialog.zoom .zoom-only { display: revert; }
 :where(body:not(.site)) dialog.zoom .zoom-hide { display: none; }
+@media (max-width: 599.98px) { :where(body:not(.site)) .zoom-only { display: revert; } :where(body:not(.site)) .zoom-hide { display: none; } }  /* phones get the finer view (owner, 2026-11-23) */
 :where(body:not(.site)) .zoom-body .heat, :where(body:not(.site)) .zoom-body .heat-wide .heat { max-width: none; }
 @media (min-width: 960px) {
   :where(body:not(.site)) dialog.zoom { width: min(var(--zoom-width-laptop, 1200px), calc(100vw - 2 * var(--zoom-edge-laptop, 32px)));
