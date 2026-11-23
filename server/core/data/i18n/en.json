@@ -731,7 +731,7 @@
  "home.k_hours": "Logged time",
  "home.hours_avg": "{time} a day on average",
  "profile.alumni": "Alumni around (est.)",
- "profile.paused": "Paused: work experience open",
+ "profile.paused": "Paused [Work Exp.]",
  "standing.level_tip": "Level {level}",
  "standing.n_students": {"one": "{n} student", "other": "{n} students"},
  "standing.you_here": "you are here",
@@ -1038,7 +1038,7 @@
  "stats.col_last": "Last",
  "stats.no_visitors": "Nobody yet.",
  "stats.before": "before {date}",
- "pace.transcended": "Common Core to Transcender in",
+ "pace.transcended": "Time to Transcender",
  "pace.alumni_in": "Alumni in (est.)",
  "pace.alumni_due": "any day now (est.)"
 }

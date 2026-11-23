@@ -731,7 +731,7 @@
  "home.k_hours": "Tiempo logueado",
  "home.hours_avg": "{time} de media al día",
  "profile.alumni": "Alumni hacia el (est.)",
- "profile.paused": "En pausa: work experience abierta",
+ "profile.paused": "En pausa [Work Exp.]",
  "standing.level_tip": "Nivel {level}",
  "standing.n_students": {"one": "{n} estudiante", "other": "{n} estudiantes"},
  "standing.you_here": "aquí estás tú",
@@ -908,7 +908,7 @@
  "pin.unstar": "Quita la estrella de “{name}”",
  "best.empty": "Aún no hay nada marcado. Marca cualquier sección con la estrella junto a su título y aparecerá aquí.",
  "widgets.title": "Añadir a tu perfil",
- "widgets.add_label": "Añade una sección debajo de tu perfil",
+ "widgets.add_label": "Añade una sección",
  "widgets.add": "Añadir",
  "widgets.remove": "Quita “{name}” de tu perfil",
  "widgets.none": "No hay nada aquí en este periodo.",
@@ -1038,7 +1038,7 @@
  "stats.col_last": "Última vez",
  "stats.no_visitors": "Nadie todavía.",
  "stats.before": "antes del {date}",
- "pace.transcended": "Del Common Core a Transcender en",
+ "pace.transcended": "Tiempo para Trascender",
  "pace.alumni_in": "Alumni en (est.)",
  "pace.alumni_due": "en cualquier momento (est.)"
 }

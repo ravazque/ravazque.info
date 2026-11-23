@@ -247,7 +247,7 @@ main[data-page="web-projects"] #domains {
   --block-pad: 12px;           /* each of those lines → what is under it */
   /* Preview and the Skills | RNCP buttons by the title, and the rows of squares */
   --domains-buttons-gap: 14px; /* Preview → Skills | RNCP, larger screens */
-  --domains-switch-top-phone: 36px; /* phones: the title's line → Skills | RNCP (smaller = closer to the title) */
+  --domains-switch-top-phone: 16px; /* phones: the title's line → Skills | RNCP (smaller = closer to the title) */
   --domains-switch-gap: 16px;  /* phones: Skills | RNCP (a full row over the rows) → the line under it */
   --domains-switch-line: 2px;  /* phones: that line (0 hides it) */
   --domains-switch-pad: 12px;  /* phones: the line → the first row */
