@@ -40,6 +40,9 @@ function enhanceSelect(select) {
   list.className = "select-list"; list.id = `${id}-list`; list.setAttribute("role", "listbox"); list.tabIndex = -1; list.hidden = true;
   btn.setAttribute("aria-controls", list.id);
   select.hidden = true; select.tabIndex = -1;
+  const value = document.createElement("span"); // its own box: one line, shrunk or cut by the page (Dashboard fitSelects)
+  value.className = "select-val";
+  btn.append(value);
   wrap.append(btn, list);
   // a <label> would forward clicks to the hidden select; point it at the button instead
   if (label) { const text = label.querySelector("span"); if (text) { text.id = `${id}-label`; btn.setAttribute("aria-labelledby", `${text.id} ${btn.id}`); } }
@@ -50,7 +53,7 @@ function enhanceSelect(select) {
     const opts = options();
     state = {...state, labels: opts.map((o) => o.textContent), committed: select.selectedIndex < 0 ? 0 : select.selectedIndex};
     if (!state.open) state.index = state.committed;
-    btn.textContent = opts[state.committed]?.textContent ?? "";
+    value.textContent = opts[state.committed]?.textContent ?? "";
     list.innerHTML = opts.map((o, i) => `<li role="option" id="${id}-o${i}" aria-selected="${i === state.committed}"${i === state.index ? ' class="active"' : ""}>${o.textContent.replace(/[&<>]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;"}[c]))}</li>`).join("");
     list.hidden = !state.open;
     btn.setAttribute("aria-expanded", String(state.open));

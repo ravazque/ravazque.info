@@ -93,9 +93,11 @@ export function evaluations(pg: Page): Section[] {
   const role = pg.q("role", "received", ["received", "given"]);
   const base = role === "received" ? S1 : S2;
   const m = W[`${role}_monthly`];
-  const lede = role === "received"
-    ? f.t("received.lede", { n: S.received, mark: f.num(S.received_avg_mark, 1), outstanding: S.received_outstanding, pct: f.pct(S.received_outstanding, S.received), negative: S.received_negative })
-    : f.t("given.lede", { n: S.given, mark: f.num(S.given_avg_mark, 1), outstanding: S.given_outstanding, negative: S.given_negative, rating: f.num(myRating, 2) });
+  // negative flags only when there are some, a full stop only after them (owner, 2026-11-24)
+  const negatives = role === "received" ? S.received_negative : S.given_negative;
+  const lede = (role === "received"
+    ? f.t("received.lede", { mark: f.num(S.received_avg_mark, 1), pct: f.pct(S.received_outstanding, S.received) })
+    : f.t("given.lede", { mark: f.num(S.given_avg_mark, 1) })) + (negatives ? ` · ${f.plural(negatives, "over_time.negatives")}.` : "");
   const bins: [string, (x: number) => boolean][] = [["0", (x) => x === 0], ["1–49", (x) => x > 0 && x < 50], ["50–79", (x) => x >= 50 && x < 80], ["80–99", (x) => x >= 80 && x < 100],
     ["100", (x) => x === 100], ["101–124", (x) => x > 100 && x < 125], ["125", (x) => x >= 125]];
   const count = (evs: any[]) => bins.map(([, ok]) => evs.filter((e) => e.mark !== null && e.mark !== undefined && ok(e.mark)).length);
@@ -143,7 +145,8 @@ export function evaluations(pg: Page): Section[] {
   out.push({ id: "by-group", nav: f.t("stats.group_section"), html: section("by-group", "", cols(byGroup, corrected),
     { head: `<h2>${esc(f.t("stats.group_section"))} ${info(f.t("stats.group_note"))}</h2>` }) });
 
-  const sw = pg.seg("role", [["received", f.t("role.received")], ["given", f.t("role.given")]], role, f.t("log.role_label"), "over-time", "title-line");
+  // by the title; on phones under its line, over the description (owner, 2026-11-23)
+  const sw = (cls: string) => pg.seg("role", [["received", f.t("role.received")], ["given", f.t("role.given")]], role, f.t("log.role_label"), "over-time", cls);
   const reportDay = pg.asOf ? Date.parse(`${pg.asOf}T12:00:00Z`) : undefined; // the cumulative lines carry on to it
   // the months up to the report's, the quiet ones as zero
   const months: string[] = W.months.length ? monthsBetween(W.months[0], [W.months[W.months.length - 1], pg.asOf.slice(0, 7)].sort()[1]) : [];
@@ -163,7 +166,7 @@ export function evaluations(pg: Page): Section[] {
       { label: f.t("received.cum_title"), emptyText: f.t("empty.period"), to: reportDay })),
     headBlock("cum-out", f.t("received.cum_out_title"), legend(roles), lines(f, [[f.t("received.out_received"), W.cum_out_received, S1], [f.t("received.out_given"), W.cum_out_given, S2]],
       { label: f.t("received.cum_out_title"), emptyText: f.t("empty.period"), to: reportDay }))),
-  { head: `<div class="panel-head"><h2>${esc(f.t("over_time.title"))}</h2>${sw}</div>`, lede: esc(lede) }) });
+  { head: `<div class="panel-head"><h2>${esc(f.t("over_time.title"))}</h2>${sw("wide-only")}</div>${sw("under-title")}`, lede: esc(lede) }) });
 
   const dp = D.insights?.evaluations;
   const dur = (d: any) => (d.avg === null || d.avg === undefined ? "–" : f.t("depth.minutes", { avg: f.num(d.avg), median: f.num(d.median) }));
@@ -306,9 +309,12 @@ export const lateText = (f: Fmt, min: number) => f.t("log.late", { time: min < 6
  * between students: no booking lead or lateness for them. */
 export const workExperience = (e: any) => /^(42cursus-)?work-experience-i/.test(e.slug || "") || /^work (experience|exp\.)/i.test(e.project || "");
 
-/** No lateness in a work experience evaluation, also in reports saved before the server stopped working it out. */
-export const withoutWorkLate = (e: any) => (workExperience(e)
-  ? { ...e, my_late_min: null, correcteds: (e.correcteds || []).map((c: any) => ({ ...c, late_min: null })) } : e);
+/** No lateness in a work experience evaluation, nor of 3 minutes or less (server's LateGraceMin: logging in takes about
+ * that long), also in reports saved before the server stopped working them out. */
+export const shownLate = (e: any) => {
+  const keep = (m: any) => (workExperience(e) || !(m > 3) ? null : m);
+  return { ...e, my_late_min: keep(e.my_late_min), correcteds: (e.correcteds || []).map((c: any) => ({ ...c, late_min: keep(c.late_min) })) };
+};
 
 const seatText = (f: Fmt, p: any, checked: boolean) => (checked ? (p.host ? f.t("log.at_seat", { seat: p.host }) : f.t("log.not_logged")) : "");
 
@@ -399,13 +405,22 @@ export function cancelledSection(pg: Page): Section | null {
   if (!cs && !r && !miss) return null;
   const of = (kind: string) => (cs ? cs.filter((c) => (c.kind || (c.booked ? "corrector" : "you")) === kind) : null);
   const count = (kind: string, old: number | null) => { const l = of(kind); return l ? l.length : old; };
-  // yours you cancelled: of your projects handed in and not closed when you booked it (never an exam), the one evaluated
-  // soonest after the booking; else the only one waiting; else none
+  // yours you cancelled, at the time you booked it (the cancel itself leaves no trace): of your projects handed in (the
+  // team closed: closed_at; locked_at is when it was formed) and still waiting for their evaluations then (never an exam,
+  // nor a work experience part but the peer video), leaving out one with every evaluation it had already booked; the
+  // only one left, else the one with a booking that stayed within two hours of it (you booked it again), else none: it
+  // can't be told (owner, 2026-11-24)
+  const wall = (s: string) => Date.parse(`${s.replace(" ", "T")}:00Z`); // Madrid's clock on both sides: only differences count
   const guess = (c: any): string => {
-    const waiting = new Set<string>((D.projects || []).filter((p: any) => !p.exam)
-      .filter((p: any) => (p.attempts || []).some((a: any) => a.locked && a.locked <= c.at && (!a.closed || a.closed >= c.at))).map((p: any) => p.name));
-    const next = (D.received || []).filter((e: any) => e.begin_ms >= c.at_ms && waiting.has(e.project)).sort((a: any, b: any) => a.begin_ms - b.begin_ms)[0];
-    return next ? next.project : waiting.size === 1 ? [...waiting][0] : "";
+    const evalsOf = (team: any) => (D.received || []).filter((e: any) => team != null && e.team_id === team);
+    const booked = (a: any) => a.status === "finished" && evalsOf(a.team_id).length > 0 && evalsOf(a.team_id).every((e: any) => e.booked && e.booked <= c.at);
+    const waiting = new Set<string>((D.projects || []).filter((p: any) => !p.exam && !(workExperience({ project: p.name }) && !/peer video/i.test(p.name)))
+      .filter((p: any) => (p.attempts || []).some((a: any) => a.closed && a.closed <= c.at && (a.status !== "finished" || a.end_ms >= c.at_ms) && !booked(a)))
+      .map((p: any) => p.name));
+    if (waiting.size === 1) return [...waiting][0];
+    const gap = (e: any) => Math.abs(wall(e.booked) - wall(c.at));
+    const again = (D.received || []).filter((e: any) => waiting.has(e.project) && e.booked && gap(e) <= 2 * 3600e3).sort((a: any, b: any) => gap(a) - gap(b))[0];
+    return again ? again.project : "";
   };
   const absentProject = (c: any) => (D.received || []).find((e: any) => e.id === c.st)?.project || "";
   const lines = (kind: string, head: string, more?: (c: any) => string) => {
@@ -480,7 +495,7 @@ export function logSection(pg: Page): Section {
     const hay = JSON.stringify([e.corrector?.login, (e.correcteds || []).map((c: any) => c.login), e.comment, e.feedback, e.feedbacks, e.my_host, e.other_host, e.project, e.begin]).toLowerCase();
     return !q || hay.includes(q);
   };
-  const rows = evs[role].map(withoutWorkLate).filter(match);
+  const rows = evs[role].map(shownLate).filter(match);
   const fbText = (e: any) => {
     if (!e.comment && !e.feedbacks?.length) return "";
     const parts = e.comment ? [`<div class="txt"><b>${esc(f.t("log.corrector_comment"))}</b>\n${esc(e.comment)}</div>`] : [];
@@ -505,7 +520,8 @@ export function logSection(pg: Page): Section {
     // planned and booked: a line each, never broken inside (dash.css .sub.dur)
     f: (e: any) => esc(f.t("unit.min", { n: f.num(e.duration_min) })) + `<span class="sub dur">${[f.t("log.planned", { n: e.planned_min }),
       e.lead_h !== null && e.lead_h !== undefined && !workExperience(e) ? f.t("log.booked_ahead", { h: f.hmm(e.lead_h) }) : ""].filter(Boolean).map((t) => `<span class="nw">${esc(t)}</span>`).join("")}</span>` };
-  const mySeat = { k: "my_host", t: f.t("col.your_seat"), nw: true, hide: true, cls: "ctr",
+  // phones hide it, unless a seat filter is on: how late you were is under your seat (owner, 2026-11-24)
+  const mySeat = { k: "my_host", t: f.t("col.your_seat"), nw: true, hide: !seat, cls: "ctr",
     f: (e: any) => { const sub = [e.my_campus || "", e.my_late_min ? lateText(f, e.my_late_min) : ""].filter(Boolean).join(" · ");
       return esc(e.my_host || f.t("log.not_logged")) + (sub ? `<span class="sub">${esc(sub)}</span>` : ""); } };
   const columns = role === "received" ? [when,
@@ -527,5 +543,6 @@ export function logSection(pg: Page): Section {
     + (flag || proj || milestone || seat || q ? `<a class="btn secondary log-clear" href="${esc(pg.url(undefined, { flag: "", project: "", milestone: "", seat: "", q: "" }))}" data-keep>${esc(f.t("log.clear"))}</a>` : ""));
   return { id: "log", nav: f.t("nav.log"), html: section("log", f.t("log.title"), form + `<div id="log-results">`
     + cols(block("table-log", `<div class="table-wrap tall">${table(f, columns as any, rows, { label: f.t("log.title"), sort: ["begin_ms", -1], empty: f.t("empty.search_log"), sticky: true, detail: fbText })}</div>`)) + "</div>",
-  { count: f.plural(rows.length, "count.evaluations") }) };
+  // lateness is an estimate: how, and what it can't tell, in the title's ⓘ (owner, 2026-11-24)
+  { head: `<h2>${esc(f.t("log.title"))} ${info(f.t("log.late_note"))}<span class="count"><span class="sep"> · </span>${esc(f.plural(rows.length, "count.evaluations"))}</span></h2>` }) };
 }

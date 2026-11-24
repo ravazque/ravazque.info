@@ -27,7 +27,7 @@ onMounted(() => { document.title = title.value; });
       <p class="lede">{{ f.t("about.why") }}</p>
       <p>{{ f.t("about.p1") }}</p>
       <h2 id="features">{{ f.t("about.h_features") }}</h2>
-      <ul class="features-list"><li v-for="n in 13" :key="n">{{ f.t(`about.feature_${n}`) }}</li></ul>
+      <ul class="features-list"><li v-for="n in 14" :key="n">{{ f.t(`about.feature_${n}`) }}</li></ul>
       <h2>{{ f.t("about.h_how") }}</h2>
       <dl class="stack">
         <div><dt>{{ f.t("about.k_pages") }}</dt><dd>{{ f.t("about.pages") }}</dd></div>

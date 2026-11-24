@@ -111,6 +111,15 @@ body.site .back:hover { background: var(--ink); color: var(--ground); }
   padding-top: 10px; border-top: 2px solid var(--rule-strong); }
 .site-main p { margin: 0 0 14px; max-width: 70ch; }
 
+/* the landing on a phone: About, Privacy, Report an issue and EN | ES on one line, all of it scaled by --fit until it
+   fits (Landing.vue fitLinks; .wrap: too narrow even so, it wraps as before) */
+@media (max-width: 599.98px) {
+  .landing .site-links:not(.wrap) { flex-wrap: nowrap; gap: 0 calc(20px * var(--fit, 1)); font-size: calc(100% * var(--fit, 1)); white-space: nowrap; }
+  .landing .site-links:not(.wrap) > * { flex: none; }
+  .landing .site-links:not(.wrap) .lang button { min-height: calc(var(--c-lang-height) * var(--fit, 1)); padding: 0 calc(var(--c-lang-padding-x) * var(--fit, 1));
+    font-size: calc(var(--c-lang-font-size) * var(--fit, 1)); }
+}
+
 /* EN / ES */
 .lang { display: inline-flex; border: 1px solid var(--c-lang-border); border-radius: var(--c-lang-radius); overflow: hidden; }
 .lang button { min-height: var(--c-lang-height); padding: 0 var(--c-lang-padding-x); border: 0; background: transparent; color: var(--c-lang-fg);

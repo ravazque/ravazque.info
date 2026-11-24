@@ -111,11 +111,14 @@ export function calendar(f: Fmt, days: string[], hours: number[]): string {
 
 export type Skill = { name: string; level: number };
 
+/** The radar's outer ring: the highest level rounded up to a multiple of 5 (5 at least). */
+export const radarTop = (items: Skill[]) => Math.max(5, Math.ceil(Math.max(0, ...items.map((s) => s.level)) / 5) * 5);
+
 /** The skills radar: a ringed polygon with the skill names around it; the bars beside it carry the values. */
 export function radar(f: Fmt, items: Skill[], label: string, compact = false): string {
   const [W, H] = compact ? [400, 380] : [560, 440];
   const cx = W / 2, cy = H / 2, r = 150, n = items.length;
-  const top = Math.max(5, Math.ceil(Math.max(0, ...items.map((s) => s.level)) / 5) * 5);
+  const top = radarTop(items);
   const ang = (i: number) => -Math.PI / 2 + (2 * Math.PI * (i + 0.5)) / n;
   const pt = (i: number, v: number) => {
     const k = Math.max(0, Math.min(1, (v || 0) / top));

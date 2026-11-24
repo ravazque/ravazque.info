@@ -5,7 +5,7 @@ import { ACCENT, calendar, heat, seatPlan } from "../lib/graphs";
 import { esc } from "../lib/h";
 import { table } from "../lib/table";
 import { Page, Section, block, cols, daysTo, filters, headBlock, info, kpis, monthsBetween, search, section } from "./page";
-import { withoutWorkLate } from "./evaluations";
+import { shownLate } from "./evaluations";
 
 
 export function campus(pg: Page): Section[] {
@@ -161,7 +161,7 @@ function where(pg: Page): Section {
     ], away, { label: f.t("where.nl_title"), sort: ["me", -1] })}</div>`, pg.seats ? f.t("where.nl_note", { days: pg.seats }) : "") : "";
   // each bar tells its own side (owner, 2026-11-16): its count, on "not logged" its projects, on a cluster how many of
   // the evaluated side logged in late (you on received ones, the students you evaluated on given ones)
-  const late = lateByCluster(role, (recv ? D.received : D.given).map(withoutWorkLate)), lateSide = recv ? 0 : 1;
+  const late = lateByCluster(role, (recv ? D.received : D.given).map(shownLate)), lateSide = recv ? 0 : 1;
   const barTips = series.map(([n, v], i) => ckeys.map((k) => [lab(k), `${n}: ${f.num(v[k] || 0)}` + (k === "not logged" && awayLists[i] ? ` · ${awayLists[i]}` : ""),
     ...(k !== "not logged" && i === lateSide ? [`${f.t(recv ? "log.late_you" : "log.late_them")}: ${f.num(late[k] || 0)}`] : []),
     ...(k === "not logged" && recv && i === 0 ? [f.t("where.note_not_logged"), f.plural(led, "where.leader")] : [])].join("\n")));

@@ -1,6 +1,6 @@
 // Projects: your level and pace, skills, every project and attempt, exams, technical domains and the timeline.
 import { BAD, GOOD, NEUTRAL, S1, S2, type GanttItem, type SeatRow, empty, gantt, hbars, legend, lines, seatbars, vbars } from "../lib/charts";
-import { radar } from "../lib/graphs";
+import { radar, radarTop, type Skill } from "../lib/graphs";
 import { ARROW, badge, esc } from "../lib/h";
 import { pyRound } from "../fmt";
 import { csv, facts, table } from "../lib/table";
@@ -24,6 +24,12 @@ function skillRows(D: any): [string, string[]][] {
     for (const s of skills) by.set(s, [...(by.get(s) || []), p.name]);
   }
   return [...by].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+}
+
+/** The skills radar's levels for the page's period (owner, 2026-11-19: no switch of its own). */
+function radarSkills(pg: Page): Skill[] {
+  const X = pg.D.extras, cursus = pg.period === "piscine" ? "C Piscine" : "42cursus";
+  return X.skills_by_cursus?.[cursus] || (cursus === "42cursus" ? X.skills || [] : []);
 }
 
 const PROJECT_GROUPS = ["rank-00", "rank-01", "rank-02", "rank-03", "rank-04", "rank-05", "rank-06", "outer-core", "outside", "piscine"];
@@ -142,9 +148,8 @@ export function projects(pg: Page): Section[] {
       + legend([[f.t("standing.below_you"), S2], [f.t("standing.your_level"), S1], [f.t("standing.above_you"), ABOVE]])
       + "</div>" + promoChart(pg, promo) + "</div>" : "")) });
 
-  const cursus = pg.period === "piscine" ? "C Piscine" : "42cursus"; // the page's period (owner, 2026-11-19: no switch of its own)
   const show = pg.q("skills", "radar", ["radar", "bars"]); // phones show one of the two (the switch is theirs only)
-  const items = X.skills_by_cursus?.[cursus] || (cursus === "42cursus" ? X.skills || [] : []);
+  const items = radarSkills(pg);
   let skills = empty(f.t("empty.period"));
   if (items.length) {
     const graded = items.filter((s: any) => s.level > 0);
@@ -299,9 +304,10 @@ function promoChart(pg: Page, promo: any) {
 }
 
 /** Technical domains: the skills 42's transcript gives your validated projects, or the RNCP domains, one at a time (RNCP
- * first when you have any, owner 2026-11-23), both told the same way: a square per validated project, out of the longest
- * list of the two, and the XP they add up to (a project counts in each of its skills or domains). Returns the body and
- * the Skills | RNCP switch (by the title from 600px; on phones on top of the rows, as the log's filters). */
+ * first when you have any, owner 2026-11-23), each row across the whole width with the projects and the XP they add up to
+ * (a project counts in each of its skills or domains). RNCP: a square per validated project, out of the longest list (ten
+ * at least). Skills: twenty squares lit by the skill's level on the radar's scale, a square per 5 % (owner, 2026-11-23).
+ * Returns the body and the Skills | RNCP switch (by the title from 600px; on phones under the title's line). */
 function domainsBody(pg: Page): [string, (cls: string) => string] {
   const f = pg.f, areas: any[] = pg.v.derive?.domains || [];
   const cap = (s: string) => s.slice(0, 1).toUpperCase() + s.slice(1);
@@ -310,13 +316,21 @@ function domainsBody(pg: Page): [string, (cls: string) => string] {
     skills: skillRows(pg.D).map(([label, projects]) => ({ label, projects, xp: projects.reduce((t, n) => t + (xpOf.get(n) || 0), 0) })),
     rncp: areas.map((a) => ({ label: cap(f.t(`domains.tag.${a.key}`)), projects: a.projects as string[], xp: a.xp as number })),
   };
-  const of = Math.max(10, ...[...lists.skills, ...lists.rncp].map((r) => r.projects.length));
   const show = pg.q("domains", lists.rncp.length ? "rncp" : "skills", ["skills", "rncp"]) as "skills" | "rncp";
-  const rows: SeatRow[] = [...lists[show]].sort((a, b) => b.projects.length - a.projects.length || b.xp - a.xp).map((r) => {
-    const end = f.plural(r.projects.length, "domains.projects") + (r.xp ? ` · ≈ ${f.num(r.xp)} XP` : ""); // work experience parts carry none
-    return { label: r.label, n: r.projects.length, end, tip: `${r.label}\n${end}\n---\n${r.projects.join("\n")}` };
-  });
+  const radarItems = radarSkills(pg), top = radarTop(radarItems), SQUARES = 20;
+  const levelOf = new Map(radarItems.map((s) => [s.name, s.level || 0]));
+  const of = show === "skills" ? SQUARES : Math.max(10, ...lists.rncp.map((r) => r.projects.length));
+  const rows: SeatRow[] = lists[show].map((r) => ({ ...r, level: levelOf.get(r.label) || 0 }))
+    .sort((a, b) => (show === "skills" ? b.level - a.level : 0) || b.projects.length - a.projects.length || b.xp - a.xp).map((r) => {
+      const end = f.plural(r.projects.length, "domains.projects") + (r.xp ? ` · ≈ ${f.num(r.xp)} XP` : ""); // work experience parts carry none
+      const note = show === "skills" ? f.t("domains.level_tip", { level: f.level(r.level), pct: f.num(Math.round((100 * r.level) / top)), top: f.num(top) }) : "";
+      return { label: r.label, n: show === "skills" ? Math.min(SQUARES, Math.round((SQUARES * r.level) / top)) : r.projects.length, end, note,
+        tip: `${r.label}\n${note ? `${note}\n` : ""}${end}\n---\n${r.projects.join("\n")}` };
+    });
   const sw = (cls: string) => pg.seg("domains", [["skills", f.t("domains.skills_title")], ["rncp", f.t("domains.rncp_title")]], show, f.t("domains.title"), "domains", `dom-switch ${cls}`);
   const chart = seatbars(rows, { label: f.t(`domains.${show}_title`), of, emptyText: f.t("domains.none") });
-  return [cols(`<div class="block" data-panel="domains">${sw("dom-phone")}${chart}</div>`), sw];
+  // phones: Preview under the rows, as Projects' buttons (owner, 2026-11-24)
+  const preview = `<div class="table-foot csv-bottom"><span class="head-actions csv-bottom"><button class="btn secondary" type="button" data-preview="portfolio" `
+    + `data-title="${esc(f.t("domains.portfolio_title"))}" aria-haspopup="dialog">${esc(f.t("common.preview"))}</button></span></div>`;
+  return [cols(`<div class="block" data-panel="domains">${sw("under-title")}${chart}${preview}</div>`), sw];
 }

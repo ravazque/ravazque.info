@@ -34,6 +34,7 @@ input[type=search]::placeholder { color: var(--c-input-placeholder); }
 
 /* custom select: a button and a listbox; the native <select> stays hidden and keeps the value */
 .select-btn { display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; text-align: left; }
+.select-val { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } /* one line: smaller type, then "…" */
 .select-btn::after { content: ""; flex: none; border: var(--c-select-arrow-size) solid transparent; border-top-color: currentColor; margin-top: var(--c-select-arrow-size); }
 .select-btn[aria-expanded="true"]::after { border-top-color: transparent; border-bottom-color: currentColor; margin-top: calc(-1 * var(--c-select-arrow-size)); }
 .select-list {

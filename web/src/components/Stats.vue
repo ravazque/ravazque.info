@@ -82,7 +82,6 @@ const intra = (login: string) => `https://profile.intra.42.fr/users/${encodeURIC
       </table></div>
       <p v-else class="note">{{ f.t("stats.no_sessions") }}</p></section>
     <section class="stats-sec"><h2>{{ f.t("stats.visitors_title") }}</h2>
-      <p class="note">{{ f.t("stats.visitors_note") }}</p>
       <div class="stat-visitors">
         <div v-for="[title, list] in lists" :key="title" class="block">
           <h3>{{ title }}<span class="count"><span class="sep"> · </span>{{ list.length }}</span></h3>

@@ -171,35 +171,36 @@ export function activity(pg: Page): Section[] {
 }
 
 /** Every section of the other pages a student can add under their profile, in the order of the band, with its title.
- * All start at full width; the student can make any of them half width. */
-export const WIDGETS: [PageKey, string, string][] = [
+ * All start at full width; the student can make any of them half width. "fold": it has figures, or a sentence of them,
+ * over its charts, so it can fold to those (owner, 2026-11-24: only where folding hides nothing it would need). */
+export const WIDGETS: [PageKey, string, string, "fold"?][] = [
   ["home", "activity", "activity.title"],
-  ["projects", "pace", "nav.pace"], ["projects", "skills", "extras.skills_title"], ["projects", "projects-table", "nav.projects_table"],
+  ["projects", "pace", "nav.pace", "fold"], ["projects", "skills", "extras.skills_title"], ["projects", "projects-table", "nav.projects_table"],
   ["projects", "exams", "nav.exams"], ["projects", "domains", "domains.title"], ["projects", "timeline", "nav.projects"],
-  ["evaluations", "community", "community.title"], ["evaluations", "by-group", "stats.group_section"], ["evaluations", "over-time", "over_time.title"],
-  ["evaluations", "when", "nav.when"], ["evaluations", "feedback", "nav.feedback"], ["evaluations", "points", "nav.points"],
+  ["evaluations", "community", "community.title"], ["evaluations", "by-group", "stats.group_section"], ["evaluations", "over-time", "over_time.title", "fold"],
+  ["evaluations", "when", "nav.when", "fold"], ["evaluations", "feedback", "nav.feedback"], ["evaluations", "points", "nav.points", "fold"],
   ["evaluations", "cancelled", "cancel.title"], ["evaluations", "log", "nav.log"],
-  ["coalition", "standing", "nav.standing"], ["coalition", "bonus", "bonus.title"], ["coalition", "coal-points", "nav.coal"],
-  ["people", "who", "nav.who"], ["people", "crossed", "nav.crossed"], ["people", "connections", "nav.connections"], ["people", "circle", "nav.network"],
+  ["coalition", "standing", "nav.standing"], ["coalition", "bonus", "bonus.title"], ["coalition", "coal-points", "nav.coal", "fold"],
+  ["people", "who", "nav.who", "fold"], ["people", "crossed", "nav.crossed"], ["people", "connections", "nav.connections"], ["people", "circle", "nav.network"],
   ["campus", "rhythm", "rhythm.title"], ["campus", "seats", "nav.seats"], ["campus", "days", "nav.days"], ["campus", "sessions", "nav.sessions"], ["campus", "where", "nav.where"],
 ];
 const BUILD: Record<string, (pg: Page) => Section[]> = { home: activity, projects, evaluations, coalition, people, campus };
 
 /** The added sections on a two-column grid, each built by its own page (once per page), in the student's order, size
  * and column. */
-export function widgets(pg: Page, chosen: { page: string; id: string; wide?: boolean; side?: string }[]): Section[] {
+export function widgets(pg: Page, chosen: { page: string; id: string; wide?: boolean; side?: string; folded?: boolean }[]): Section[] {
   const f = pg.f, built = new Map<string, Section[]>(), cells: string[] = [];
   const title = (page: string, id: string) => {
     const w = WIDGETS.find(([p, i]) => p === page && i === id);
     return w ? f.t(w[2]) : id;
   };
-  chosen.forEach(({ page, id, wide, side }, i) => {
+  chosen.forEach(({ page, id, wide, side, folded }, i) => {
     if (!BUILD[page] || !WIDGETS.some(([p, k]) => p === page && k === id)) return;
     if (!built.has(page)) built.set(page, BUILD[page](pg));
     const s = built.get(page)!.find((x) => x.id === id);
     const html = s ? s.html : `<section id="${esc(id)}"><h2>${esc(title(page, id))}</h2><p class="note">${esc(f.t("widgets.none"))}</p></section>`;
-    const big = wide ?? true;
-    cells.push(`<div class="widget ${big ? "wide" : "half"}${!big && side ? ` ${side}` : ""}" data-widget="${esc(page)}:${esc(id)}" data-i="${i}" data-name="${esc(s?.nav || title(page, id))}">${html}</div>`);
+    const big = wide ?? true, fold = WIDGETS.some(([p, k, , can]) => p === page && k === id && can);
+    cells.push(`<div class="widget ${big ? "wide" : "half"}${!big && side ? ` ${side}` : ""}${fold && folded ? " folded" : ""}"${fold ? " data-fold" : ""} data-widget="${esc(page)}:${esc(id)}" data-i="${i}" data-name="${esc(s?.nav || title(page, id))}">${html}</div>`);
   });
   return cells.length ? [{ id: "widget-grid", nav: f.t("widgets.title"), html: `<div class="widgets">${cells.join("")}</div>` }] : [];
 }

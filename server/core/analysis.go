@@ -87,8 +87,13 @@ func workExperienceEval(slug, name any) bool {
 	return strings.HasPrefix(strings.TrimPrefix(s, "42cursus-"), "work-experience-i") || strings.HasPrefix(strings.ToLower(n), "work experience")
 }
 
+// LateGraceMin: logging in and 42 recording it take about this long, so up to it is not late (owner, 2026-11-24: their
+// own "3 minutes late" came with their previous session closed minutes before). web/src/views/evaluations.ts shownLate
+// drops the same in reports saved before.
+const LateGraceMin = 3
+
 // LateMinutes: whole minutes from an evaluation's start to the first login during it, when no session was open at the
-// start; nil when on time, under a minute late or never logged in before its end.
+// start; nil when on time, LateGraceMin minutes late or less, or never logged in before its end.
 func LateMinutes(sessions []Raw, start, end, now time.Time) any {
 	var first time.Time
 	for _, s := range sessions {
@@ -103,7 +108,7 @@ func LateMinutes(sessions []Raw, start, end, now time.Time) any {
 			first = b
 		}
 	}
-	if m := int(first.Sub(start).Minutes()); !first.IsZero() && m >= 1 {
+	if m := int(first.Sub(start).Minutes()); !first.IsZero() && m > LateGraceMin {
 		return m
 	}
 	return nil

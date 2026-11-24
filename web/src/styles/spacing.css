@@ -247,14 +247,14 @@ main[data-page="web-projects"] #domains {
   --block-pad: 12px;           /* each of those lines → what is under it */
   /* Preview and the Skills | RNCP buttons by the title, and the rows of squares */
   --domains-buttons-gap: 14px; /* Preview → Skills | RNCP, larger screens */
-  --domains-switch-top-phone: 16px; /* phones: the title's line → Skills | RNCP (smaller = closer to the title) */
-  --domains-switch-gap: 16px;  /* phones: Skills | RNCP (a full row over the rows) → the line under it */
-  --domains-switch-line: 2px;  /* phones: that line (0 hides it) */
-  --domains-switch-pad: 12px;  /* phones: the line → the first row */
+  --switch-top-phone: 16px;    /* phones: the title's line → Skills | RNCP (smaller = closer to the title) */
+  --switch-gap: 16px;          /* phones: Skills | RNCP (a full row over the rows) → the line under it */
+  --switch-line: 2px;          /* phones: that line (0 hides it) */
+  --switch-pad: 12px;          /* phones: the line → the first row */
   --domains-row-pad: 9px;      /* above and below each row's squares */
   --domains-row-line: 0px;     /* between the rows (0 hides it, owner 2026-11-23) */
   --domains-cols-gap: 24px;    /* name → squares → figures, larger screens */
-  --domains-seat: 12px;        /* a square (it shrinks when the row has no room) */
+  --domains-seat: 12px;        /* a square's height (the squares share the row's width) */
   --domains-seat-gap: 3px;     /* between two squares */
   --domains-seat-phone: 10px;  /* a square's height on phones (its width fills the row) */
 }
@@ -394,6 +394,10 @@ main[data-page="web-evaluations"] #over-time {
   --sections-laptop: var(--sections-all-laptop, 65px); /* the same, laptops: the global value; 65px when it is off */
   --title-gap: 20px;           /* "Over time": its title's line → its description, and the description → the charts'
                                   lines (the same, so the description sits halfway between them) */
+  --switch-top-phone: 16px;    /* phones: the title's line → Received | Given (smaller = closer to the title) */
+  --switch-gap: 16px;          /* phones: Received | Given (a full row under the title) → the line under it */
+  --switch-line: 2px;          /* phones: that line (0 hides it) */
+  --switch-pad: 12px;          /* phones: the line → the description */
   --charts-y: 40px;            /* charts one under the other, phones and tablets */
   --charts-y-laptop: 40px;     /* the two charts on top → the two under them, laptops */
   --charts-x: 12px;            /* charts side by side, phones and tablets */
@@ -537,7 +541,11 @@ main[data-page="web-people"] #who {
 main[data-page="web-people"] #crossed {
   --sections: 56px;            /* Who evaluated you → "Everyone you met", phones */
   --sections-laptop: var(--sections-all-laptop, 60px); /* the same, laptops: the global value; 60px when it is off */
-  --charts-top: 10px;          /* "Everyone you met" → the search and the table */
+  --charts-top: 10px;          /* "Everyone you met" → the search and the table (larger screens) */
+  --switch-top-phone: 16px;    /* phones: the title's line → Evaluations | Teammates (smaller = closer to the title) */
+  --switch-gap: 16px;          /* phones: Evaluations | Teammates (a full row under the title) → the line under it */
+  --switch-line: 2px;          /* phones: that line (0 hides it) */
+  --switch-pad: 12px;          /* phones: the line → the search */
   --search-gap: var(--filters-gap-all, 10px);          /* the search → the table */
   /* lines (0 hides one), and under each titled chart the space between its title and it */
   --title-line: 4px;           /* under "Everyone you met" */
@@ -548,7 +556,11 @@ main[data-page="web-people"] #crossed {
 main[data-page="web-people"] #connections {
   --sections: 56px;            /* Everyone you met → "Connections", phones */
   --sections-laptop: var(--sections-all-laptop, 60px); /* the same, laptops: the global value; 60px when it is off */
-  --charts-top: 42px;          /* "Connections": its line → the bubbles' group names (its own value: no general rule reaches it) */
+  --charts-top: 42px;          /* "Connections": its line → the bubbles' group names (its own value: no general rule reaches it; larger screens) */
+  --switch-top-phone: 16px;    /* phones: the title's line → Corrected me | I corrected | Both (smaller = closer to the title) */
+  --switch-gap: 16px;          /* phones: that switch (a full row under the title) → the line under it */
+  --switch-line: 2px;          /* phones: that line (0 hides it) */
+  --switch-pad: 12px;          /* phones: the line → the bubbles */
   /* lines (0 hides one), and under each titled chart the space between its title and it */
   --title-line: 4px;           /* under "Connections" */
   --title-pad: 12px;           /* "Connections" → its line */

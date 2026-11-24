@@ -25,28 +25,31 @@ guardar o compartir.
   kickoff, tu wallet y tus puntos de corrección ganados y gastados. Después tres módulos de resumen (proyectos,
   evaluaciones y horas), tu recorrido en una línea de tiempo (piscina, 42cursus, cambios de campus, Transcender, alumni,
   hoy y la fecha estimada de alumni) y las secciones de las otras páginas que guardes como widgets: para empezar,
-  Contribución, Ritmo, el bonus de horas, el registro de evaluaciones, las evaluaciones canceladas, el feedback y dónde
-  ocurren las evaluaciones. Añade más desde el selector del final (Actividad entre ellas: logros, eventos, títulos y
-  quests junto a tus campus), quítalos, cambia su tamaño y arrástralos a su sitio; se guarda en tu navegador.
+  Avance (plegado a sus cifras), Contribución, Ritmo, el bonus de horas, el registro de evaluaciones, las evaluaciones
+  canceladas, el feedback y dónde ocurren las evaluaciones. Añade más desde el selector del final (Actividad entre
+  ellas: logros, eventos, títulos y quests junto a tus campus), quítalos, cambia su tamaño, arrástralos a su sitio y
+  pliega a sus cifras los que las tienen sobre sus gráficas; se guarda en tu navegador.
 - **Proyectos**: tu avance (tiempo en el 42cursus, XP por mes, tu promo por nivel), skills, cada proyecto e intento
   en un solo registro con su milestone (0 = Libft … 6, para el Common Core de C y el de Python; un proyecto hecho en los
   dos cursos dice cuál es cuál) y filtros por estado y milestone, los proyectos de otros cursus (Discovery, Reload…)
-  aparte, exportación a CSV, exámenes, dominios técnicos (las etiquetas RNCP de la intra) y una
-  línea de tiempo con todos los intentos, una fila por milestone.
+  aparte, exportación a CSV, exámenes, dominios técnicos (cada skill por su nivel en la escala del radar de skills, o
+  las etiquetas RNCP de la intra con un cuadrado por proyecto validado y la XP que suman, con un portafolio para
+  previsualizar o descargar) y tus reintentos y proyectos validados a lo largo del tiempo.
 - **Evaluaciones**: lo que devuelves (horas, personas, valoración, cuántas acabaron por debajo de 50, Outstanding en
   los dos sentidos, según el milestone de la otra persona), recibidas y hechas a lo largo del tiempo, cuándo ocurren
   (día × hora, duración, con cuánta antelación se reservaron), tu feedback (como estudiante solo
   cuenta el 42cursus; las piscinas Discovery van aparte; el feedback automático de 42 se nombra como tal y queda fuera
   de las medias), los puntos de corrección, las evaluaciones canceladas (las de
-  tus proyectos que cancelaste tú, con el proyecto que probablemente eran; las que canceló tu corrector; las que ibas a
+  tus proyectos que cancelaste tú, con el proyecto que eran cuando se puede saber; las que canceló tu corrector; las que ibas a
   hacer y cancelaste; las veces que tu corrector no vino), los proyectos que has corregido y el registro completo de
   evaluaciones: búsqueda y filtros por flag (también ausencias), milestone del proyecto, proyecto y asiento (sin login,
-  login tarde, por clúster), quién marcó ausente a quién, cuánto tarde hizo login la parte evaluada, y el líder de un
-  equipo con el resto a un clic.
+  login tarde, por clúster), quién marcó ausente a quién, cuánto tarde hizo login la parte evaluada (una estimación: 3
+  minutos o menos no cuentan), y el líder de un equipo con el resto a un clic.
 - **Coalición**: las coaliciones de Madrid, actualizadas cada cuarto de hora, y cada punto que diste a la tuya, el bonus
   de horas en detalle con todos los bonus hasta ahora, tus puntos por origen (todos, también los que están a cero) y por
   mes y origen (pasa el ratón por un mes para ver sus partes). Las deducciones salen como TIGs.
-- **Personas**: quién te evaluó más, todas las personas con las que coincidiste (o solo tus compañeros de equipo), tus
+- **Personas**: quién te evaluó más, todas las personas con las que coincidiste (o solo tus compañeros de equipo, con
+  sus proyectos en una línea y el resto a un clic), tus
   conexiones agrupadas por dónde están hoy y tu círculo. Las cuentas que 42 borró forman su propio grupo en tu círculo, con
   el nombre "Borrada" y nunca con su antiguo id, no aparecen en las conexiones (una nota dice cuántas) y en las tablas salen
   como "Cuenta borrada"; el staff tiene su propio grupo. Un login de una tabla o lista
@@ -73,7 +76,8 @@ Algunas cifras son deducciones, y la aplicación lo indica donde aparecen: la re
 premios porque la intra no la publica, comprobada con 11 estudiantes durante 12 días; ahí las sesiones en dos
 ordenadores a la vez cuentan dos veces, mientras que el tiempo conectado las une como hace la intra), la fecha de alumni, la XP por
 dominio, los asientos y retrasos calculados con las sesiones de login, y qué evaluaciones canceladas cancelaste tú (con
-el proyecto que probablemente eran). 42 borra una evaluación cancelada, así que se leen de tus puntos de corrección;
+el proyecto que eran cuando se puede saber: uno entregado y esperando sus evaluaciones entonces, o si no el que volviste
+a reservar en menos de dos horas; si no, "–"). 42 borra una evaluación cancelada, así que se leen de tus puntos de corrección;
 cuando cancela el estudiante al que ibas a evaluar no se escribe nada en tu lado y no se puede contar.
 
 <details>

@@ -66,14 +66,16 @@ const tour = ref(false);
 onMounted(() => { tour.value = !offline && !settings.get("tour:star") && props.page !== undefined; });
 function tourDone() { tour.value = false; settings.set("tour:star", "1"); }
 function go(path: string) { closePops(); router.push(path); }
+// the page you are on, again (or the brand on Profile): back to its top, sliding unless the system asks for less motion
+function toTop() { window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }
 </script>
 
 <template>
   <a class="skip" href="#main">{{ f.t("a11y.skip") }}</a>
   <header class="topbar">
-    <RouterLink class="brand" to="/app" :aria-label="f.t('brand.name')"><BrandMark /><span>{{ f.t("brand.name") }}</span></RouterLink>
+    <RouterLink class="brand" to="/app" :aria-label="f.t('brand.name')" @click="page === 'home' && toTop()"><BrandMark /><span>{{ f.t("brand.name") }}</span></RouterLink>
     <nav v-if="page || nav" class="pages" :aria-label="f.t('pages.label')">
-      <RouterLink v-for="k in PAGES" :key="k" :to="href(k)" :aria-current="k === page ? 'page' : undefined">{{ label(k) }}</RouterLink>
+      <RouterLink v-for="k in PAGES" :key="k" :to="href(k)" :aria-current="k === page ? 'page' : undefined" @click="k === page && toTop()">{{ label(k) }}</RouterLink>
     </nav>
     <div class="topbar-end">
       <div v-if="status && !offline" class="sync" aria-live="polite">
@@ -149,7 +151,7 @@ function go(path: string) { closePops(); router.push(path); }
           <svg class="shut" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
         </summary>
         <nav class="menu" :aria-label="f.t('pages.label')">
-          <a v-for="k in PAGES" :key="k" :href="href(k)" :aria-current="k === page ? 'page' : undefined" @click.prevent="go(href(k))">{{ label(k) }}</a>
+          <a v-for="k in PAGES" :key="k" :href="href(k)" :aria-current="k === page ? 'page' : undefined" @click.prevent="go(href(k)); k === page && toTop()">{{ label(k) }}</a>
         </nav>
       </details>
     </div>

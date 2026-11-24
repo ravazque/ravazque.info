@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { Fmt } from "../fmt";
-import { absence, autoFeedback, binLabels, longOnes, staffApart, cancelledSection, pointsSection, deletedApart, evaluations, lateText, logSection, milestoneOf, seatMatch, seatOptions, teamCell, withoutWorkLate, workExperience } from "./evaluations";
+import { absence, autoFeedback, binLabels, longOnes, staffApart, cancelledSection, pointsSection, deletedApart, evaluations, lateText, logSection, milestoneOf, seatMatch, seatOptions, teamCell, shownLate, workExperience } from "./evaluations";
 import { Page, shownLogin } from "./page";
 
 test("the log's seat filter: the evaluated side only, you received with no session open, or the students you evaluated not logged where it was looked up", () => {
@@ -55,11 +55,11 @@ test("deleted accounts get their own row by milestone, and no evaluation is lost
   expect(deletedApart(stats, [{ corrector: { login: "peer01" } }], [], "me")).toEqual(stats);
 });
 
-test("how late the evaluated student logged in reads in minutes, then hours and minutes", () => {
+test("how late someone logged in reads as an estimate, in minutes, then hours and minutes", () => {
   const en = new Fmt("en"), es = new Fmt("es");
-  expect(lateText(en, 12)).toBe("12m late");
-  expect(lateText(en, 75)).toBe("1h 15m late");
-  expect(lateText(es, 12)).toBe("12m tarde");
+  expect(lateText(en, 12)).toBe("first login 12m late (est.)");
+  expect(lateText(en, 75)).toBe("first login 1h 15m late (est.)");
+  expect(lateText(es, 12)).toBe("primera conexión 12m tarde (est.)");
 });
 
 test("the log's late filter: evaluations you logged into late, or where a student you evaluated did", () => {
@@ -92,16 +92,26 @@ test("a team you evaluated shows its leader, the rest in a list that opens", () 
   expect(summary).not.toContain("peer01");
   const panel = html.slice(html.indexOf("</summary>"));
   expect(panel).toContain("peer01");
-  expect(panel).toContain("leader · not logged · 5m late");
-  expect(html.slice(html.lastIndexOf("</details>"))).toContain('class="sub">not logged · 5m late'); // the leader's seat under the line
+  expect(panel).toContain("leader · not logged · first login 5m late (est.)");
+  expect(html.slice(html.lastIndexOf("</details>"))).toContain('class="sub">not logged · first login 5m late (est.)'); // the leader's seat under the line
   expect(teamCell(f, { other_host_checked: false, correcteds: [{ login: "peer03" }] })).not.toContain("<details");
 });
 
-test("a report saved before work experience lost its lateness still shows none there", () => {
+test("a report saved before work experience lost its lateness, or before 3 minutes stopped counting, shows none there", () => {
   const we = { slug: "work-experience-i-work-experience-i-company-mid-evaluation", my_late_min: 4685, correcteds: [{ late_min: 30 }] };
-  expect(withoutWorkLate(we)).toMatchObject({ my_late_min: null, correcteds: [{ late_min: null }] });
-  const peer = { slug: "libft", my_late_min: 12, correcteds: [{ late_min: 3 }] };
-  expect(withoutWorkLate(peer)).toBe(peer);
+  expect(shownLate(we)).toMatchObject({ my_late_min: null, correcteds: [{ late_min: null }] });
+  const peer = { slug: "libft", my_late_min: 12, correcteds: [{ late_min: 4 }] };
+  expect(shownLate(peer)).toEqual(peer);
+  expect(shownLate({ slug: "libft", my_late_min: 3, correcteds: [{ late_min: 1 }, { late_min: 9 }] })).toMatchObject({ my_late_min: null, correcteds: [{ late_min: null }, { late_min: 9 }] });
+});
+
+test("the log's title explains in its ⓘ that lateness is an estimate", async () => {
+  const { readFileSync } = await import("node:fs");
+  const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8")), all = doc.periods.all;
+  const f = new Fmt("en");
+  const html = logSection(new Page(f, { period: "all", report: all, layout: doc.layout, all_projects: all.projects, all_cursus: all.extras.cursus } as any, "evaluations", {})).html;
+  expect(html).toMatch(/<h2>Evaluation log <span class="info"[^>]*data-tip="Lateness is an estimate/);
+  expect(html).toMatch(/<span class="count"><span class="sep"> · <\/span>\d+ evaluations<\/span><\/h2>/); // the count stays
 });
 
 test("a project's milestone comes from the Common Core list; the rest of the 42cursus is OuterCore, anything else other", () => {
@@ -162,9 +172,12 @@ test("a login opens its page on acerezo.top in a new tab; deleted and hidden one
 });
 
 const cancelPage = (cp: any) => new Page(new Fmt("en"), { period: "student", layout: {}, report: { profile: { login: "me" }, correction_points: cp,
-  projects: [{ name: "Inception", exam: false, attempts: [{ locked: "2026-02-10 12:00", closed: "2026-02-20 10:00" }] },
-    { name: "Exam Rank 05", exam: true, attempts: [{ locked: "2026-02-17 09:00", closed: null }] },
-    { name: "Libft", exam: false, attempts: [{ locked: "2025-01-01 10:00", closed: "2025-01-02 10:00" }] }],
+  // handed in (closed) before the booking and not finished then: the only ones a defense can be booked for
+  projects: [{ name: "Inception", exam: false, attempts: [{ locked: "2026-01-20 12:00", closed: "2026-02-15 10:00", status: "finished", end_ms: Date.parse("2026-03-01T10:00:00Z") }] },
+    { name: "CPP Module 05", exam: false, attempts: [{ locked: "2026-02-10 12:00", closed: "2026-02-20 10:00", status: "finished", end_ms: Date.parse("2026-02-21T10:00:00Z") }] }, // still being written
+    { name: "Work Experience I - Company Final Evaluation", exam: false, attempts: [{ locked: "2026-01-01 10:00", closed: "2026-02-01 10:00", status: "waiting_for_correction" }] }, // the company fills it in
+    { name: "Exam Rank 05", exam: true, attempts: [{ locked: "2026-02-17 09:00", closed: "2026-02-17 10:00", status: "waiting_for_correction" }] },
+    { name: "Libft", exam: false, attempts: [{ locked: "2025-01-01 10:00", closed: "2025-01-02 10:00", status: "finished", end_ms: Date.parse("2025-01-03T10:00:00Z") }] }],
   received: [{ id: 501, project: "Inception", begin_ms: Date.parse("2026-03-01T09:30:00Z") }, { id: 502, project: "Inception", begin_ms: Date.parse("2026-02-20T09:00:00Z") }],
   given: [{ project: "CPP Module 09", begin_ms: Date.parse("2026-04-21T10:00:00Z") }, { project: "CPP Module 09", begin_ms: Date.parse("2026-04-19T10:00:00Z") },
     { project: "Libft", begin_ms: Date.parse("2026-04-01T10:00:00Z") }] }, all_projects: [] } as any, "evaluations", {});
@@ -186,7 +199,7 @@ test("cancelled evaluations: four cards, each with its dates in its tip; only yo
   expect(cardFigures(html)).toEqual(["1", "1", "2", "1"]);
   const [self, corrector, theirs, absent] = cardTips(html);
   expect(self.split("\n")).toContain("---"); // what it says, a rule, then the dates
-  expect(self).toContain("17 Feb 2026 16:16 · Inception"); // handed in, not closed, evaluated soonest after the booking
+  expect(self).toContain("17 Feb 2026 16:16 · Inception"); // handed in and waiting for its evaluations, evaluated soonest after the booking
   expect(self).not.toContain("Exam Rank 05"); // exams are never booked
   expect(corrector).toContain("17 Feb 2026 16:18");
   expect(corrector).not.toContain("Inception"); // no estimate there
@@ -384,4 +397,63 @@ test("staff get their own row by milestone, taken from the group the report coun
   expect(got["outer-core"]).toEqual({ received: 2, received_out: 0, given: 2, given_out: 0 });
   expect(got["no-cursus"]).toEqual({ received: 2, received_out: 0, given: 0, given_out: 0 });
   expect(staffApart(stats, [{ corrector: { login: "peer01" } }], [], "me", new Map())).toEqual(stats);
+});
+
+test("Over time: Received | Given by the title on larger screens, under the title's line on phones, over the description", async () => {
+  const { readFileSync } = await import("node:fs");
+  const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8")), all = doc.periods.all;
+  const derive = JSON.parse(readFileSync("../server/core/testdata/golden/mid.derive.json", "utf8")).all;
+  const pg = new Page(new Fmt("en"), { period: "all", report: all, derive, layout: doc.layout, all_projects: all.projects, all_cursus: all.extras.cursus } as any, "evaluations", {});
+  const html = evaluations(pg).find((s) => s.id === "over-time")!.html;
+  expect(html).toMatch(/<\/h2><div class="seg wide-only"[^>]*>/); // by the title
+  expect(html).toMatch(/<\/div><\/div><div class="seg under-title"[^>]*>.*?<\/div><p class="lede">/); // phones: under the title's line, then the description
+});
+
+test("Over time's description names negative flags only when there are some, and ends without a full stop when it doesn't", async () => {
+  const { readFileSync } = await import("node:fs");
+  const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8")), all = doc.periods.all;
+  const derive = JSON.parse(readFileSync("../server/core/testdata/golden/mid.derive.json", "utf8")).all;
+  const lede = (summary: any, q = {}) => evaluations(new Page(new Fmt("en"), { period: "all", report: { ...all, summary: { ...all.summary, ...summary } }, derive, layout: doc.layout,
+    all_projects: all.projects, all_cursus: all.extras.cursus } as any, "evaluations", q)).find((s) => s.id === "over-time")!.html.match(/<p class="lede">([^<]*)<\/p>/)![1];
+  expect(lede({ received_negative: 0 })).toMatch(/^Average mark [\d.]+ · [\d.]+% Outstanding$/);
+  expect(lede({ received_negative: 2 })).toMatch(/ Outstanding · 2 negative flags\.$/);
+  expect(lede({ received_negative: 1 })).toMatch(/ · 1 negative flag\.$/);
+  expect(lede({ given_negative: 0 }, { role: "given" })).toMatch(/^Average mark [\d.]+$/);
+});
+
+test("yours you cancelled: the only project handed in and waiting then, even before any evaluation of it, never a company's work experience part", () => {
+  const html = cancelledSection(cancelPage({ cancels: [{ kind: "self", at: "2026-02-16 16:16", at_ms: Date.parse("2026-02-16T15:16:00Z") }] }))!.html;
+  expect(cardTips(html)[0]).toContain("16 Feb 2026 16:16 · Inception"); // CPP Module 05 was not handed in yet
+});
+
+test("yours you cancelled with several projects waiting: not one with every evaluation already booked; the one booked again within two hours; else none", () => {
+  const at = (s: string) => Date.parse(s.replace(" ", "T") + ":00Z");
+  const done = (team: number, closed: string, end: string) => [{ team_id: team, closed, status: "finished", end_ms: at(end) }];
+  const ev = (team: number, project: string, booked: string, begin: string) => ({ team_id: team, project, booked, begin, begin_ms: at(begin) });
+  const pg = (received: any[]) => new Page(new Fmt("en"), { period: "student", layout: {}, report: { profile: { login: "me" },
+    correction_points: { cancels: [{ kind: "self", at: "2026-02-26 17:18", at_ms: at("2026-02-26 17:18") }] },
+    projects: [{ name: "CPP Module 06", exam: false, attempts: done(6, "2026-02-26 15:49", "2026-02-26 18:30") },
+      { name: "CPP Module 08", exam: false, attempts: done(8, "2026-02-26 17:18", "2026-02-26 20:00") },
+      { name: "Work Experience I - Duration", exam: false, attempts: [{ team_id: 9, closed: "2026-01-01 10:00", status: "waiting_for_correction" }] }],
+    received, given: [] }, all_projects: [] } as any, "evaluations", {});
+  const tip = (received: any[]) => cardTips(cancelledSection(pg(received))!.html)[0];
+  const six = [ev(6, "CPP Module 06", "2026-02-26 15:49", "2026-02-26 17:30"), ev(6, "CPP Module 06", "2026-02-26 15:49", "2026-02-26 18:00")];
+  // CPP Module 06 had both its evaluations booked already, though it was evaluated first
+  expect(tip([...six, ev(8, "CPP Module 08", "2026-02-27 10:00", "2026-02-27 19:00"), ev(8, "CPP Module 08", "2026-02-27 10:01", "2026-02-27 19:30")])).toContain("26 Feb 2026 17:18 · CPP Module 08");
+  // neither booked through: CPP Module 08 booked again a minute later
+  const sixOpen = [ev(6, "CPP Module 06", "2026-02-26 15:49", "2026-02-26 17:30"), ev(6, "CPP Module 06", "2026-02-27 09:00", "2026-02-27 18:00")];
+  expect(tip([...sixOpen, ev(8, "CPP Module 08", "2026-02-26 17:19", "2026-02-26 19:00")])).toContain("26 Feb 2026 17:18 · CPP Module 08");
+  // neither booked through and nothing booked near it: it can't be told
+  const sixFar = [ev(6, "CPP Module 06", "2026-02-25 10:00", "2026-02-26 17:30"), ev(6, "CPP Module 06", "2026-02-27 09:00", "2026-02-27 18:00")];
+  expect(tip([...sixFar, ev(8, "CPP Module 08", "2026-02-27 12:00", "2026-02-27 19:00")])).toContain("26 Feb 2026 17:18 · –");
+});
+
+test("the log's seat column shows on phones too while a seat filter is on (how late you were is under your seat)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8")), all = doc.periods.all;
+  const html = (q = {}) => logSection(new Page(new Fmt("en"), { period: "all", report: all, layout: doc.layout, all_projects: all.projects, all_cursus: all.extras.cursus } as any, "evaluations", q)).html;
+  const seatTh = (h: string) => h.match(/<th[^>]*>(?:(?!<\/th>).)*?>Seat<(?:(?!<\/th>).)*<\/th>/)![0];
+  expect(seatTh(html())).toContain("narrow-hide");
+  expect(seatTh(html({ seat: "late" }))).not.toContain("narrow-hide");
+  expect(seatTh(html({ seat: "me" }))).not.toContain("narrow-hide");
 });

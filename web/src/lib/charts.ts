@@ -143,7 +143,7 @@ export function hbars(f: Fmt, labels: string[], series: Series[], o: HOpts): str
   return `<figure class="hchart${o.big ? " big" : ""}" role="img" aria-label="${esc(summary)}">${rows.join("")}</figure>`;
 }
 
-export type SeatRow = { label: string; n: number; end: string; tip: string };
+export type SeatRow = { label: string; n: number; end: string; tip: string; note?: string }; // note: what the squares stand for when they are not a count, read out
 
 /** Rows read by name as a line of squares, one lit per unit out of `of` (ravazque.github.io's skill bars): the longest
  * list sets `of`, so a square is the same thing on every row. */
@@ -152,7 +152,7 @@ export function seatbars(rows: SeatRow[], o: { label: string; of: number; emptyT
   // the tip opens on the name, the squares or the figures, beside the one under the pointer; the empty rest of the row is quiet
   const body = rows.map((r) => `<li><span class="sb-label"${tipAttr(r.tip)}>${esc(r.label)}</span><span class="seats"${tipAttr(r.tip)}>`
     + `${'<i class="on"></i>'.repeat(r.n)}${"<i></i>".repeat(Math.max(0, o.of - r.n))}</span><b${tipAttr(r.tip)}>${esc(r.end)}</b></li>`).join("");
-  return `<figure class="seatbars" style="--of:${o.of}" role="img" aria-label="${esc(`${o.label}: ${rows.map((r) => `${r.label} ${r.end}`).join(", ")}`)}"><ul>${body}</ul></figure>`;
+  return `<figure class="seatbars" style="--of:${o.of}" role="img" aria-label="${esc(`${o.label}: ${rows.map((r) => `${r.label}${r.note ? ` ${r.note}` : ""} ${r.end}`).join(", ")}`)}"><ul>${body}</ul></figure>`;
 }
 
 /** Month labels under a time axis: one per real month, under its middle (the 15th), every k-th counted back from the

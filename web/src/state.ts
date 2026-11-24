@@ -83,16 +83,18 @@ export const settings = store;
 
 /** Sections a student keeps, in this browser and per login: starred ones (shortcuts in the star menu) and widgets
  * (shown under Profile). A star keeps its section's title in the language it was seen in until its page shows again. */
-export type Pin = { page: string; id: string; label: string; wide?: boolean; side?: "left" | "right" };
+export type Pin = { page: string; id: string; label: string; wide?: boolean; side?: "left" | "right"; folded?: boolean };
 export const pins = reactive({ login: "", stars: [] as Pin[], widgets: [] as Pin[] });
 
 /** What a profile starts with: given once, so that taking one away stays that way. */
-// The first widgets, in the order they were offered, each with the one it goes under (the one before it unless said);
-// `widgets:<login>:seeded` says how far down this list a profile was offered: "1" the first three, one more per number
+// The first widgets, in the order they were offered, each with the one it goes under (the one before it unless said; over
+// it when the third item says so); `widgets:<login>:seeded` says how far down this list a profile was offered: "1" the
+// first three, one more per number
 const pin = (page: string, id: string): Pin => ({ page, id, label: "" });
-const FIRST_WIDGETS: [Pin, Pin | null][] = [[pin("evaluations", "community"), null], [pin("campus", "rhythm"), pin("evaluations", "community")],
+const FIRST_WIDGETS: [Pin, Pin | null, "over"?][] = [[pin("evaluations", "community"), null], [pin("campus", "rhythm"), pin("evaluations", "community")],
   [pin("coalition", "bonus"), pin("campus", "rhythm")], [pin("evaluations", "log"), pin("coalition", "bonus")], [pin("campus", "where"), pin("evaluations", "log")],
-  [pin("evaluations", "feedback"), pin("evaluations", "log")], [pin("evaluations", "cancelled"), pin("evaluations", "log")]];
+  [pin("evaluations", "feedback"), pin("evaluations", "log")], [pin("evaluations", "cancelled"), pin("evaluations", "log")],
+  [{ ...pin("projects", "pace"), folded: true }, pin("evaluations", "community"), "over"]]; // its figures, the charts folded away (owner, 2026-11-24)
 
 /** The sections a new profile finds starred (owner, 2026-11-13), each with its title's text: only where nothing was ever
  * starred in this browser, so taking them away stays that way. A profile still holding exactly the five it was given the
@@ -107,7 +109,8 @@ function readPins(key: string): Pin[] {
     // Activity moved to Profile, where it always shows: an old star of it could never be taken away
     return Array.isArray(v) ? v.filter((p) => p && typeof p.page === "string" && typeof p.id === "string" && !(p.page === "projects" && p.id === "activity")).map((p) => ({
       page: p.page, id: p.id, label: String(p.label || ""),
-      ...(typeof p.wide === "boolean" ? { wide: p.wide } : {}), ...(p.side === "left" || p.side === "right" ? { side: p.side } : {}) })) : [];
+      ...(typeof p.wide === "boolean" ? { wide: p.wide } : {}), ...(p.side === "left" || p.side === "right" ? { side: p.side } : {}),
+      ...(p.folded === true ? { folded: true } : {}) })) : [];
   } catch { return []; }
 }
 
@@ -117,10 +120,10 @@ export function loadPins(login: string) {
   let widgets = readPins(key);
   const seeded = store.get(`${key}:seeded`), same = (a: Pin, b: Pin) => a.page === b.page && a.id === b.id;
   const offered = seeded ? +seeded + 2 : 0, now = String(FIRST_WIDGETS.length - 2);
-  const place = (list: Pin[], [d, under]: [Pin, Pin | null]) => { // once, under the one it goes under (last without it)
+  const place = (list: Pin[], [d, under, over]: [Pin, Pin | null, "over"?]) => { // once, under (or over) the one it goes by (last without it)
     if (list.some((w) => same(w, d))) return;
     const at = under ? list.findIndex((w) => same(w, under)) : -1;
-    list.splice(at < 0 ? list.length : at + 1, 0, d);
+    list.splice(at < 0 ? list.length : at + (over ? 0 : 1), 0, { ...d });
   };
   if (!seeded) {
     const first: Pin[] = [];
@@ -160,12 +163,13 @@ export function moveWidget(from: number, to: number) {
   store.set(`widgets:${pins.login}`, JSON.stringify(w));
 }
 
-/** A widget's size (wide: both columns) or column (side; none: the next free place). */
-export function setWidget(page: string, id: string, patch: { wide?: boolean; side?: "left" | "right" | null }) {
+/** A widget's size (wide: both columns), column (side; none: the next free place) or fold (its title and first row only). */
+export function setWidget(page: string, id: string, patch: { wide?: boolean; side?: "left" | "right" | null; folded?: boolean }) {
   pins.widgets = pins.widgets.map((p) => {
     if (p.page !== page || p.id !== id) return p;
     const next: Pin = { ...p, ...("wide" in patch ? { wide: patch.wide } : {}) };
     if ("side" in patch) { if (patch.side) next.side = patch.side; else delete next.side; }
+    if ("folded" in patch) { if (patch.folded) next.folded = true; else delete next.folded; }
     return next;
   });
   store.set(`widgets:${pins.login}`, JSON.stringify(pins.widgets));

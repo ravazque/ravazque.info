@@ -139,6 +139,7 @@ test("seat bars: a lit square per unit out of the longest list's, the same count
   expect(html).toContain("<li><span class=\"sb-label\" data-tip="); // the tip on the name, the squares and the figures, not the row
   expect(html.match(/data-tip="C"/g)?.length).toBe(3);
   expect(seatbars([], { label: "x", of: 5, emptyText: "none" })).toContain("none");
+  expect(seatbars([{ label: "C", n: 3, end: "3", tip: "C", note: "Level 9" }], { label: "x", of: 5 })).toContain('aria-label="x: C Level 9 3"'); // what the squares stand for, read out
 });
 
 test("a bar chart's labels are counted back from the last, which always shows, narrow charts too (never .alt)", () => {

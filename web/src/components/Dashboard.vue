@@ -172,6 +172,8 @@ watch(sections, async () => {
   fitCard(main.value);
   fitTags(main.value);
   fitKeys(main.value);
+  fitLists(main.value);
+  fitSelects(main.value);
   evenRows(main.value);
   hideTip();
   if (typingIn) {
@@ -211,6 +213,8 @@ const NARROW = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h7M15 
 const UP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V4M5 11l7-7 7 7"/></svg>';
 const DOWN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M5 13l7 7 7-7"/></svg>';
 const ZOOM = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>';
+const FOLD = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>'; // a chevron: no stem, unlike the move arrows
+const UNFOLD = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 let refocus = "";
 const tool = (cls: string, icon: string, label: string, data: Record<string, string>) => {
   const b = Object.assign(document.createElement("button"), { type: "button", className: `pin ${cls}`, innerHTML: icon, title: label });
@@ -246,6 +250,11 @@ function markSections(root: HTMLElement) {
       const up = tool("widget-move", UP, f.value.t("widgets.up", { name: wname }), { widgetMove: "up" });
       const down = tool("widget-move", DOWN, f.value.t("widgets.down", { name: wname }), { widgetMove: "down" });
       up.disabled = i === 0; down.disabled = last;
+      // folded: its title and first row (figures, a description) only, the charts and tables away (owner, 2026-11-24)
+      const folded = sec.parentElement!.classList.contains("folded");
+      const fold = tool("widget-fold", folded ? UNFOLD : FOLD, f.value.t(folded ? "widgets.unfold" : "widgets.fold", { name: wname }), { widgetFold: widget });
+      fold.setAttribute("aria-expanded", String(!folded));
+      if ("fold" in sec.parentElement!.dataset) h2.append(fold); // only the ones with figures over their charts (profile.ts WIDGETS)
       h2.append(up, down, grip, tool("widget-size", wide ? NARROW : WIDEN, f.value.t(wide ? "widgets.half" : "widgets.wide", { name: wname }), { widgetSize: widget }),
         tool("widget-off", CROSS, f.value.t("widgets.remove", { name: wname }), { widgetOff: widget }));
     }
@@ -290,8 +299,9 @@ function fitTicks(root: HTMLElement) {
     }
   });
 }
-/** On a phone a section's title stays on one line, its count and buttons beside it: the type shrinks until it fits
- * (never under 18px: a title that long wraps as before). */
+/** On a phone a section's title stays on one line, its buttons beside it: the type shrinks until it fits, never under
+ * 70% of its size nor 18px (owner, 2026-11-24: smaller read badly beside the buttons); one that long wraps, its ⓘ and
+ * buttons on its first line. */
 function fitTitles(root: HTMLElement) {
   root.querySelectorAll<HTMLElement>("section[id] > h2, section[id] > .panel-head > h2").forEach((h2) => {
     h2.style.fontSize = "";
@@ -299,7 +309,8 @@ function fitTitles(root: HTMLElement) {
     if (innerWidth >= 600) return;
     const over = () => h2.scrollWidth > h2.clientWidth || h2.offsetWidth > h2.parentElement!.clientWidth;
     let size = parseFloat(getComputedStyle(h2).fontSize);
-    while (over() && size > 18) h2.style.fontSize = `${--size}px`;
+    const floor = Math.max(18, Math.round(size * 0.7));
+    while (over() && size > floor) h2.style.fontSize = `${--size}px`;
     if (over()) { h2.style.fontSize = ""; h2.classList.remove("fit"); }
   });
 }
@@ -332,6 +343,22 @@ function fitTags(root: HTMLElement) {
     let n = tags.length;
     do { tags[--n].style.display = "none"; more.querySelector("summary")!.textContent = `+${tags.length - n}`; } while (n > 1 && over());
     more.querySelectorAll<HTMLElement>(".pop-panel .tag").forEach((c, i) => (c.style.display = i < n ? "none" : ""));
+  });
+}
+/** A list kept to one line (people.ts oneLineList): when the whole of it overflows its line, its first and "+N more". */
+function fitLists(root: HTMLElement) {
+  root.querySelectorAll<HTMLElement>(".fit-list").forEach((list) => {
+    list.classList.remove("cut");
+    const line = list.querySelector("summary")!;
+    list.classList.toggle("cut", line.scrollWidth > line.clientWidth); // a pixel over already clips the last letter
+  });
+}
+/** A filter's chosen option keeps to one line: its type shrinks until it fits, never under 12px ("…" past that). */
+function fitSelects(root: HTMLElement) {
+  root.querySelectorAll<HTMLElement>("form[data-filter] .select-val").forEach((v) => {
+    v.style.fontSize = "";
+    let size = parseFloat(getComputedStyle(v).fontSize);
+    while (v.scrollWidth > v.clientWidth && size > 12) v.style.fontSize = `${--size}px`; // a pixel over already shows "…"
   });
 }
 /** A chart's key keeps to its title's line or goes: when the title and the key don't fit one line, the key is hidden
@@ -396,7 +423,7 @@ function placeMarks(root: HTMLElement) {
   });
 }
 let zoomResize = 0;
-const onResize = () => { cancelAnimationFrame(zoomResize); zoomResize = requestAnimationFrame(() => { fitPreview(); if (main.value) { markZoom(main.value); placeMarks(main.value); fitAxes(main.value); fitTicks(main.value); fitTitles(main.value); fitCard(main.value); fitTags(main.value); fitKeys(main.value); evenRows(main.value); } }); };
+const onResize = () => { cancelAnimationFrame(zoomResize); zoomResize = requestAnimationFrame(() => { fitPreview(); if (main.value) { markZoom(main.value); placeMarks(main.value); fitAxes(main.value); fitTicks(main.value); fitTitles(main.value); fitCard(main.value); fitTags(main.value); fitKeys(main.value); fitLists(main.value); fitSelects(main.value); evenRows(main.value); } }); };
 window.addEventListener("resize", onResize);
 document.fonts?.ready.then(onResize); // the display type changes every width the fits measured before it came
 onBeforeUnmount(() => window.removeEventListener("resize", onResize));
@@ -445,6 +472,12 @@ function onClick(ev: MouseEvent) {
     const [page, id] = size.dataset.widgetSize!.split(":");
     refocus = "";
     return setWidget(page, id, { wide: !size.closest(".widget")!.classList.contains("wide") });
+  }
+  const fold = el.closest?.("[data-widget-fold]") as HTMLElement | null;
+  if (fold) {
+    const [page, id] = fold.dataset.widgetFold!.split(":");
+    refocus = "";
+    return setWidget(page, id, { folded: !fold.closest(".widget")!.classList.contains("folded") });
   }
   const move = el.closest?.("[data-widget-move]") as HTMLElement | null;
   if (move) {

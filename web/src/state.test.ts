@@ -4,7 +4,7 @@ import { api, hasPin, loadPins, moveWidget, pins, relabelStars, setWidget, toggl
 beforeEach(() => { localStorage.clear(); pins.login = ""; });
 
 /** A profile that has been through the first load: the tests below look at what they add themselves. */
-const fresh = (login: string) => { localStorage.setItem(`widgets:${login}:seeded`, "5"); localStorage.setItem(`stars:${login}`, "[]"); loadPins(login); };
+const fresh = (login: string) => { localStorage.setItem(`widgets:${login}:seeded`, "6"); localStorage.setItem(`stars:${login}`, "[]"); loadPins(login); };
 
 test("stars and widgets are kept per login, in the order they were added, and a second toggle takes one away", () => {
   fresh("peer01");
@@ -59,59 +59,76 @@ test("the next refresh falls on the next quarter of the hour", async () => {
   expect(untilQuarter(new Date(2026, 10, 1, 12, 59, 59, 500))).toBe(500);
 });
 
-test("a new profile starts with Contribution, Rhythm, the bonus, the evaluation log, Cancelled evaluations, Feedback and Where, once: taken away, they stay away", () => {
+test("a new profile starts with Pace (folded), Contribution, Rhythm, the bonus, the evaluation log, Cancelled evaluations, Feedback and Where, once: taken away, they stay away", () => {
   loadPins("peer05");
-  expect(pins.widgets.map((p) => `${p.page}:${p.id}`)).toEqual(["evaluations:community", "campus:rhythm", "coalition:bonus", "evaluations:log", "evaluations:cancelled", "evaluations:feedback", "campus:where"]);
+  expect(pins.widgets.map((p) => `${p.page}:${p.id}`)).toEqual(["projects:pace", "evaluations:community", "campus:rhythm", "coalition:bonus", "evaluations:log", "evaluations:cancelled", "evaluations:feedback", "campus:where"]);
+  expect(pins.widgets[0].folded).toBe(true);
   togglePin("widgets", { page: "campus", id: "rhythm", label: "" });
   pins.login = "";
   loadPins("peer05");
-  expect(pins.widgets.map((p) => p.id)).toEqual(["community", "bonus", "log", "cancelled", "feedback", "where"]);
+  expect(pins.widgets.map((p) => p.id)).toEqual(["pace", "community", "bonus", "log", "cancelled", "feedback", "where"]);
 });
 
-test("a list saved before keeps its own and gains the seven once", () => {
+test("a profile given the first seven gets Pace once, folded, over Contribution (last without it); folding or unfolding any widget is kept", () => {
+  localStorage.setItem("widgets:peer14", JSON.stringify([{ page: "campus", id: "rhythm", label: "" }, { page: "evaluations", id: "community", label: "" }]));
+  localStorage.setItem("widgets:peer14:seeded", "5");
+  loadPins("peer14");
+  expect(pins.widgets.map((p) => p.id)).toEqual(["rhythm", "pace", "community"]);
+  setWidget("projects", "pace", { folded: false });
+  setWidget("campus", "rhythm", { folded: true });
+  pins.login = "";
+  loadPins("peer14");
+  expect(pins.widgets.map((p) => [p.id, !!p.folded])).toEqual([["rhythm", true], ["pace", false], ["community", false]]);
+  localStorage.setItem("widgets:peer15", JSON.stringify([{ page: "projects", id: "exams", label: "" }]));
+  localStorage.setItem("widgets:peer15:seeded", "5");
+  loadPins("peer15");
+  expect(pins.widgets.map((p) => p.id)).toEqual(["exams", "pace"]);
+});
+
+test("a list saved before keeps its own and gains the eight once", () => {
   localStorage.setItem("widgets:peer06", JSON.stringify([{ page: "projects", id: "exams", label: "" }, { page: "campus", id: "rhythm", label: "" }]));
   loadPins("peer06");
-  expect(pins.widgets.map((p) => p.id)).toEqual(["community", "bonus", "log", "cancelled", "feedback", "where", "exams", "rhythm"]);
+  expect(pins.widgets.map((p) => p.id)).toEqual(["pace", "community", "bonus", "log", "cancelled", "feedback", "where", "exams", "rhythm"]);
 });
 
 test("a profile given the first three gets the evaluation log once, under the bonus", () => {
   localStorage.setItem("widgets:peer08", JSON.stringify([{ page: "evaluations", id: "community", label: "" }, { page: "coalition", id: "bonus", label: "" }, { page: "projects", id: "exams", label: "" }]));
   localStorage.setItem("widgets:peer08:seeded", "1");
   loadPins("peer08");
-  expect(pins.widgets.map((p) => p.id)).toEqual(["community", "bonus", "log", "cancelled", "feedback", "where", "exams"]);
+  expect(pins.widgets.map((p) => p.id)).toEqual(["pace", "community", "bonus", "log", "cancelled", "feedback", "where", "exams"]);
   togglePin("widgets", { page: "evaluations", id: "log", label: "" });
   pins.login = "";
   loadPins("peer08");
-  expect(pins.widgets.map((p) => p.id)).toEqual(["community", "bonus", "cancelled", "feedback", "where", "exams"]);
+  expect(pins.widgets.map((p) => p.id)).toEqual(["pace", "community", "bonus", "cancelled", "feedback", "where", "exams"]);
   localStorage.setItem("widgets:peer09", JSON.stringify([{ page: "projects", id: "exams", label: "" }]));
   localStorage.setItem("widgets:peer09:seeded", "1");
   loadPins("peer09"); // the bonus taken away: the log goes last
-  expect(pins.widgets.map((p) => p.id)).toEqual(["exams", "log", "cancelled", "feedback", "where"]);
+  expect(pins.widgets.map((p) => p.id)).toEqual(["exams", "log", "cancelled", "feedback", "where", "pace"]);
 });
 
 test("a profile given the first four gets Where once, under the evaluation log (last when the log was taken away)", () => {
   localStorage.setItem("widgets:peer10", JSON.stringify([{ page: "evaluations", id: "log", label: "" }, { page: "projects", id: "exams", label: "" }]));
   localStorage.setItem("widgets:peer10:seeded", "2");
   loadPins("peer10");
-  expect(pins.widgets.map((p) => p.id)).toEqual(["log", "cancelled", "feedback", "where", "exams"]);
+  expect(pins.widgets.map((p) => p.id)).toEqual(["log", "cancelled", "feedback", "where", "exams", "pace"]);
   localStorage.setItem("widgets:peer11", JSON.stringify([{ page: "projects", id: "exams", label: "" }]));
   localStorage.setItem("widgets:peer11:seeded", "2");
   loadPins("peer11");
-  expect(pins.widgets.map((p) => p.id)).toEqual(["exams", "where", "feedback", "cancelled"]); // the log taken away: it goes last
+  expect(pins.widgets.map((p) => p.id)).toEqual(["exams", "where", "feedback", "cancelled", "pace"]); // the log taken away: it goes last
 });
 
 test("a profile given the first six gets Cancelled evaluations once, under the evaluation log and over Feedback", () => {
   localStorage.setItem("widgets:peer13", JSON.stringify([{ page: "evaluations", id: "log", label: "" }, { page: "evaluations", id: "feedback", label: "" }, { page: "campus", id: "where", label: "" }]));
   localStorage.setItem("widgets:peer13:seeded", "4");
   loadPins("peer13");
-  expect(pins.widgets.map((p) => p.id)).toEqual(["log", "cancelled", "feedback", "where"]);
+  expect(pins.widgets.map((p) => p.id)).toEqual(["log", "cancelled", "feedback", "where", "pace"]);
 });
 
 test("a profile given the first five gets Feedback once, under the evaluation log", () => {
   localStorage.setItem("widgets:peer12", JSON.stringify([{ page: "evaluations", id: "community", label: "" }, { page: "evaluations", id: "log", label: "" }, { page: "campus", id: "where", label: "" }]));
   localStorage.setItem("widgets:peer12:seeded", "3");
   loadPins("peer12");
-  expect(pins.widgets.map((p) => p.id)).toEqual(["community", "log", "cancelled", "feedback", "where"]);
+  expect(pins.widgets.map((p) => p.id)).toEqual(["pace", "community", "log", "cancelled", "feedback", "where"]);
 });
 
 test("Activity starts taken away; a profile that showed it (open or folded) keeps it once as its last widget", () => {

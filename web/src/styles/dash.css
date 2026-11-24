@@ -34,6 +34,15 @@
 /* a phone title that fits on one line once its type shrinks (Dashboard fitTitles): the count back beside it */
 :where(body:not(.site)) h2.fit { flex-wrap: nowrap !important; white-space: nowrap; }
 :where(body:not(.site)) h2.fit > .count { display: inline !important; order: 0 !important; flex-basis: auto !important; margin-top: 0 !important; }
+/* phones: no "· N evaluations" by a title, it shrank the title out of line with its buttons and ⓘ (owner, 2026-11-24);
+   without it the title lines up as the others: its buttons centred, its ⓘ on the first line */
+@media (max-width: 599.98px) {
+  :where(body:not(.site)) main section[id] h2 > .count { display: none !important; }
+  :where(body:not(.site)) main section[id] h2:has(> .count) { align-items: center; }
+  :where(body:not(.site)) main section[id] h2:has(> .count) > .info { align-self: flex-start; }
+  /* a title's buttons on its first line, as its ⓘ, also when the title wraps (28px: a phone's button) */
+  :where(body:not(.site)) main section[id] h2 > .pin { align-self: flex-start; margin-top: calc((1lh - 28px) / 2); }
+}
 :where(body:not(.site)) h2.fit .sep { display: inline; }
 @media (min-width: 1360px) {
   :where(body:not(.site)) form:is([data-filter="log"], [data-filter="projects-table"]) { grid-template-columns: max-content repeat(5, minmax(0, 1fr)); }
@@ -116,8 +125,9 @@
   :where(body:not(.site)) .widgets h2 > .widget-move { display: inline-flex; }
 }
 @media (max-width: 599.98px) {
-  :where(body:not(.site)) .widgets .widget h2 > .widget-move:not(.widget-move + .widget-move) { margin-left: auto; }
-  :where(body:not(.site)) .widgets .widget h2 > :is(.widget-move + .widget-move, .widget-move ~ .widget-off) { margin-left: calc(var(--title-tools-between-phone, 4px) - 10px); } /* the title's 10px gap, less */
+  /* the first of the buttons (fold, else up) at the right edge; .pin: over the title tools' first gap */
+  :where(body:not(.site)) .widgets .widget h2 > :is(.pin.widget-fold, .widget-move:not(.widget-fold + .widget-move, .widget-move + .widget-move)) { margin-left: auto; }
+  :where(body:not(.site)) .widgets .widget h2 > :is(.widget-fold + .widget-move, .widget-move + .widget-move, .widget-move ~ .widget-off) { margin-left: calc(var(--title-tools-between-phone, 4px) - 10px); } /* the title's 10px gap, less */
   :where(body:not(.site)) main .widgets .widget > section > h2, :where(body:not(.site)) main .widgets .widget > section > .panel-head h2 { font-size: var(--widget-title-phone, 24px); align-items: baseline; column-gap: 10px; }
   /* the count on the title's first line; the buttons at the top when the title wraps */
   :where(body:not(.site)) main .widgets .widget > section > h2 > :not(.count, .info), :where(body:not(.site)) main .widgets .widget > section > .panel-head h2 > :not(.count, .info) { align-self: flex-start; }
@@ -125,6 +135,10 @@
   :where(body:not(.site)) main .widgets .widget > section > h2:not(.fit) > .count { margin-left: 0; }
   :where(body:not(.site)) .widgets .widget h2 > .widget-off { margin-left: auto; }
 }
+/* a folded widget (its title's chevron): its title and first row (figures, a description) only, the charts, tables, filters
+   and switches away (owner, 2026-11-24) */
+:where(body:not(.site)) .widget.folded > section > :not(h2, .panel-head, .lede, .facts),
+:where(body:not(.site)) .widget.folded > section > .panel-head > :not(h2) { display: none; }
 /* Profile's widgets: two columns from 960 px, a half widget in one of them (its own or the next free), a wide one across */
 :where(body:not(.site)) .widgets { display: grid; grid-template-columns: minmax(0, 1fr); column-gap: 48px; align-items: start; }
 :where(body:not(.site)) .widget { position: relative; min-width: 0; }
@@ -637,8 +651,8 @@ html body:not(.site) [data-panel="low-feedback"]:only-child { grid-column: span 
   body:not(.site) #tip b:only-child { font-weight: 500; margin: 0; } /* a sentence alone (an ⓘ) is not a heading */
   :where(body:not(.site)) section > .panel-head > .seg { display: flex; flex: 1 1 100%; } /* a switch under its title fills the row */
   :where(body:not(.site)) section > .panel-head > .seg > * { flex: 1 1 0; }
-  /* Skills' Radar | Bars and Over time's Received | Given: on the title's line at the right, text and room shrinking with
-     the screen (owner, 2026-11-23) */
+  /* Skills' Radar | Bars: on the title's line at the right, text and room shrinking with the screen (owner, 2026-11-23;
+     Over time's Received | Given went under the title's line, v2.css .under-title) */
   :where(body:not(.site)) section > .panel-head:has(> .seg.title-line) { flex-wrap: nowrap; }
   :where(body:not(.site)) section > .panel-head > .seg.title-line { flex: none; margin-left: auto; }  /* whole: the title shrinks instead (fitTitles) */
   :where(body:not(.site)) section > .panel-head:has(> .seg.title-line) > h2 { min-width: 0; }
@@ -654,6 +668,9 @@ html body:not(.site) [data-panel="low-feedback"]:only-child { grid-column: span 
 :where(body:not(.site)) .note, :where(body:not(.site)) details .txt { max-width: none; }
 :where(body:not(.site)) td.details .sub, :where(body:not(.site)) td.details > span:first-child { max-width: 420px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 :where(body:not(.site)) .marks { max-width: 420px; }
+/* phones: a project's attempts (and an exam's tries) on one line, "x → x → x", the table scrolling further sideways
+   rather than the chips breaking into two rows (owner, 2026-11-24) */
+@media (max-width: 599.98px) { :where(body:not(.site)) .marks { flex-wrap: nowrap; max-width: none; } }
 
 /* your circle: the key and the ring as one centred group */
 :where(body:not(.site)) .net-wrap { max-width: 1200px; margin: 0 auto; justify-content: center; }

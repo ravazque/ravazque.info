@@ -28,6 +28,8 @@ func TestLateMinutes(t *testing.T) {
 		{"the earliest login counts", []Raw{sess("2026-11-01T10:20:00Z", ""), sess("2026-11-01T10:08:00Z", "2026-11-01T10:15:00Z")}, 8},
 		{"only after the end", []Raw{sess("2026-11-01T10:31:00Z", "")}, nil},
 		{"under a minute", []Raw{sess("2026-11-01T10:00:30Z", "")}, nil},
+		{"three minutes: logging in takes that long", []Raw{sess("2026-11-01T10:03:50Z", "")}, nil},
+		{"four minutes", []Raw{sess("2026-11-01T10:04:00Z", "")}, 4},
 	} {
 		if got := LateMinutes(c.s, start, end, now); got != c.want {
 			t.Errorf("%s: %v, want %v", c.name, got, c.want)

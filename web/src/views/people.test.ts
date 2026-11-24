@@ -96,3 +96,35 @@ test("deleted accounts join Your circle as their own group, named Deleted, never
   expect(conn).not.toContain("net-node deleted");
   expect(conn).toContain(f.plural(1, "who.erased_note"));
 });
+
+test("Everyone you met: Evaluations | Teammates by the title on larger screens, under the title's line on phones, over the search", async () => {
+  const { readFileSync } = await import("node:fs");
+  const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8")), all = doc.periods.all;
+  const pg = new Page(new Fmt("en"), { period: "all", report: all, layout: doc.layout, connections: doc.connections.all, network: doc.network,
+    all_projects: all.projects, all_cursus: all.extras.cursus } as any, "people", {});
+  const html = people(pg).find((s) => s.id === "crossed")!.html;
+  expect(html).toMatch(/<\/h2><div class="seg wide-only"[^>]*>/); // by the title
+  expect(html).toMatch(/data-panel="table-people"><div class="seg under-title"[^>]*>.*?<\/div><form/); // phones: first in the panel, then the search
+});
+
+test("Everyone you met on phones: every column of Evaluations, the table scrolls sideways; Teammates' projects on one line, else the first and +N more that open them all", async () => {
+  const { readFileSync } = await import("node:fs");
+  const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8")), all = doc.periods.all;
+  all.insights.teammates[0].projects = { "Libft": 1, "push_swap": 2, "so_long": 1 };
+  const page = (q = {}) => people(new Page(new Fmt("en"), { period: "all", report: all, layout: doc.layout, connections: doc.connections.all, network: doc.network,
+    all_projects: all.projects, all_cursus: all.extras.cursus } as any, "people", q)).find((s) => s.id === "crossed")!.html;
+  expect(page()).not.toContain("narrow-hide");
+  const tm = page({ met: "teammates" });
+  expect(tm).toContain('<span class="fl-all">Libft, push_swap (x2), so_long</span><span class="fl-short">Libft +2 more</span>');
+  expect(tm).toMatch(/class="pop who-pop fit-list"[^>]*>.*?<li>push_swap \(x2\)<\/li>/); // the floating list has them all
+  expect(tm.match(/fit-list/g)?.length).toBe(1); // one project alone stays plain text
+});
+
+test("Connections: Corrected me | I corrected | Both by the title on larger screens, under the title's line on phones", async () => {
+  const { readFileSync } = await import("node:fs");
+  const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8")), all = doc.periods.all;
+  const html = people(new Page(new Fmt("en"), { period: "all", report: all, layout: doc.layout, connections: doc.connections.all, network: doc.network,
+    all_projects: all.projects, all_cursus: all.extras.cursus } as any, "people", {})).find((s) => s.id === "connections")!.html;
+  expect(html).toMatch(/<\/h2><div class="seg wide-only"[^>]*>/);
+  expect(html).toMatch(/data-panel="connections"><div class="seg under-title"/);
+});

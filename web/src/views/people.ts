@@ -51,6 +51,14 @@ export function whoDetails(f: Page["f"], projs: string[], tip: string): string {
     + `<ul>${rows.map((r) => `<li>${esc(r)}</li>`).join("")}</ul></div></details>`;
 }
 
+/** A list kept to one line: the whole of it while it fits, else its first and how many more (Dashboard fitLists marks
+ * it .cut), a click opening them all in a floating list; one item alone is plain text. */
+export function oneLineList(f: Page["f"], items: string[], head: string): string {
+  if (items.length < 2) return esc(items[0] || "–");
+  return `<details class="pop who-pop fit-list" data-float><summary><span class="fl-all">${esc(items.join(", "))}</span><span class="fl-short">${esc(firstMore(f, items))}</span></summary>`
+    + `<div class="pop-panel"><b>${esc(head)}</b><ul>${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></details>`;
+}
+
 /** Said in a title's ⓘ where erased accounts were left out: for privacy the panel is drawn with the people still there. */
 
 const staffLogins = (pg: Page) => new Set<string>(pg.D.people.filter((p: any) => p.staff).map((p: any) => p.login));
@@ -88,35 +96,36 @@ export function people(pg: Page): Section[] {
         extra: (i) => (top[i].outstanding_to_me ? `${top[i].outstanding_to_me} ${f.t("flag.outstanding")}` : "") }) + "</div>"), { lede }) });
 
   const rate = (v: any) => (v === null || v === undefined ? "–" : f.num(v, 2));
-  // everyone you met, or only your teammates: one switch, one search
+  // everyone you met, or only your teammates: one switch, one search; the switch by the title, on phones under its line
+  // over the search (owner, 2026-11-23)
   const met = pg.q("met", "all", ["all", "teammates"]);
-  const metSwitch = pg.seg("met", [["all", f.t("who.met_all")], ["teammates", f.t("teammates.title")]], met, f.t("who.met_label"), "crossed");
+  const metSwitch = (cls: string) => pg.seg("met", [["all", f.t("who.met_all")], ["teammates", f.t("teammates.title")]], met, f.t("who.met_label"), "crossed", cls);
   const tm = (D.insights?.teammates || []).filter((r: any) => !q || JSON.stringify([r.login, r.name, r.projects]).toLowerCase().includes(q.toLowerCase()));
   const teammates = `<div class="table-wrap">${table(f, [
     { k: "login", t: f.t("col.login"), nw: true, f: (r) => shownLogin(f, r.login) }, { k: "name", t: f.t("col.name"), nw: true, hide: true, f: (r) => (erased(r.login) ? deletedName(f) : esc(shortName(r.name))) },
     { k: "teams", t: f.t("col.teams"), num: true },
     { k: "projects", t: f.t("col.projects"), sv: (r) => Object.keys(r.projects || {}).length,
-      f: (r) => esc(Object.entries(r.projects || {}).map(([n, c]: [string, any]) => (c > 1 ? `${n} (x${c})` : n)).join(", ")) },
+      f: (r) => oneLineList(f, Object.entries(r.projects || {}).map(([n, c]: [string, any]) => (c > 1 ? `${n} (x${c})` : n)), f.t("col.projects")) },
   ], tm, { label: f.t("teammates.title"), sort: ["teams", -1], empty: f.t("teammates.none") })}</div>`;
   out.push({ id: "crossed", nav: f.t("nav.crossed"), html: section("crossed", "", cols(
-    `<div class="block" data-panel="table-people">`
+    `<div class="block" data-panel="table-people">${metSwitch("under-title")}`
     + filters("who", search("q", q, f.t("common.search"), f.t("who.search_placeholder")))
     + `<div id="who-results">${met === "teammates" ? teammates : `<div class="table-wrap">${table(f, [
       { k: "login", t: f.t("col.login"), nw: true, f: (p) => `${erased(p.login) ? "" : avatar(p)}${shownLogin(f, p.login)}` },
-      { k: "name", t: f.t("col.name"), nw: true, hide: true, f: (p) => (erased(p.login) ? deletedName(f) : esc(shortName(p.name))) },
-      { k: "group", t: f.t("col.group"), nw: true, hide: true, sv: (p) => order(groupOf.get(p.login)), f: (p) => (groupOf.has(p.login) ? esc(f.t(`groups.${groupOf.get(p.login)}`)) : "–") },
+      { k: "name", t: f.t("col.name"), nw: true, f: (p) => (erased(p.login) ? deletedName(f) : esc(shortName(p.name))) },
+      { k: "group", t: f.t("col.group"), nw: true, sv: (p) => order(groupOf.get(p.login)), f: (p) => (groupOf.has(p.login) ? esc(f.t(`groups.${groupOf.get(p.login)}`)) : "–") },
       { k: "evaluated_me", t: f.t("col.evaluated_you"), s: f.t("abbr.evaluated_you"), num: true, cls: "mid" },
       { k: "outstanding_to_me", t: f.t("col.outstanding"), s: f.t("abbr.outstanding"), num: true, cls: "mid" },
-      { k: "avg_mark_to_me", t: f.t("col.avg_mark"), s: f.t("abbr.avg_mark"), num: true, cls: "mid", hide: true, f: (p) => f.num(p.avg_mark_to_me, 1) },
+      { k: "avg_mark_to_me", t: f.t("col.avg_mark"), s: f.t("abbr.avg_mark"), num: true, cls: "mid", f: (p) => f.num(p.avg_mark_to_me, 1) },
       { k: "evaluated_by_me", t: f.t("col.you_evaluated"), s: f.t("abbr.you_evaluated"), num: true, cls: "mid" },
-      { k: "teammate", t: f.t("col.teammate"), s: f.t("abbr.teammate"), num: true, cls: "mid", hide: true },
-      { k: "my_rating_of_them", t: f.t("col.ratings"), s: f.t("abbr.ratings"), num: true, cls: "mid", nw: true, hide: true,
+      { k: "teammate", t: f.t("col.teammate"), s: f.t("abbr.teammate"), num: true, cls: "mid" },
+      { k: "my_rating_of_them", t: f.t("col.ratings"), s: f.t("abbr.ratings"), num: true, cls: "mid", nw: true,
         f: (p) => { const t = f.t("who.rating_tip", { mine: rate(p.my_rating_of_them), theirs: rate(p.their_rating_of_me) }); return `<span title="${esc(t)}" data-tip="${esc(t)}">${rate(p.my_rating_of_them)} / ${rate(p.their_rating_of_me)}</span>`; } },
-      { k: "projects_on_me", t: f.t("col.details"), cls: "details", hide: true, sv: (p) => Object.keys(p.projects_on_me || {}).length, f: details },
-      { k: "first", t: f.t("col.first"), nw: true, hide: true, f: (p) => esc(f.day(p.first)) },
-      { k: "last", t: f.t("col.last"), nw: true, hide: true, f: (p) => esc(f.day(p.last)) },
+      { k: "projects_on_me", t: f.t("col.details"), cls: "details", sv: (p) => Object.keys(p.projects_on_me || {}).length, f: details },
+      { k: "first", t: f.t("col.first"), nw: true, f: (p) => esc(f.day(p.first)) },
+      { k: "last", t: f.t("col.last"), nw: true, f: (p) => esc(f.day(p.last)) },
     ], rows, { label: f.t("who.people_title"), sort: ["evaluated_me", -1], sticky: true })}</div>`}</div></div>`),
-  { head: `<div class="panel-head"><h2>${esc(f.t("who.people_title"))} ${info(f.t("who.people_note"))}</h2>${metSwitch}</div>` }) });
+  { head: `<div class="panel-head"><h2>${esc(f.t("who.people_title"))} ${info(f.t("who.people_note"))}</h2>${metSwitch("wide-only")}</div>` }) });
 
   const mode = pg.q("mode", "received", ["received", "given", "mix"]);
   // deleted accounts stay out of Connections (a note says how many); Your circle keeps them, as a group of their own
@@ -125,12 +134,13 @@ export function people(pg: Page): Section[] {
   const href = (login: string, side: string) => pg.url("evaluations", { q: login, log: side === "given" ? "given" : "received" }) + "#log"; // the log on the bubble's side
   const label = (login: string) => (erased(login) ? null : login), ringLabel = (login: string) => (erased(login) ? f.t("who.erased_name") : login);
   const wide = bubbles(f, conn, mode, { width: 1200, href, label });
-  const sw = pg.seg("mode", [["received", f.t("connections.mode_received")], ["given", f.t("connections.mode_given")], ["mix", f.t("connections.mode_mix")]], mode, f.t("connections.mode_label"), "connections");
-  out.push({ id: "connections", nav: f.t("nav.connections"), html: section("connections", "", cols(`<div class="block" data-panel="connections">`
+  // by the title; on phones under its line, as Everyone you met (owner, 2026-11-24)
+  const sw = (cls: string) => pg.seg("mode", [["received", f.t("connections.mode_received")], ["given", f.t("connections.mode_given")], ["mix", f.t("connections.mode_mix")]], mode, f.t("connections.mode_label"), "connections", cls);
+  out.push({ id: "connections", nav: f.t("nav.connections"), html: section("connections", "", cols(`<div class="block" data-panel="connections">${sw("under-title")}`
     + (wide ? `<div class="graph-panel"><div class="graph-wide">${wide}</div><div class="graph-mid">${bubbles(f, conn, mode, { width: 840, href, label })}</div>`
       + `<div class="graph-narrow">${bubbles(f, conn, mode, { width: 420, href, label })}</div></div>`
       : `<p class="note">${esc(f.t("connections.empty"))}</p>`) + "</div>"),
-  { head: `<div class="panel-head"><h2>${esc(f.t("connections.title"))} ${info([f.t("stats.group_note"), connGone ? f.plural(connGone, "who.erased_note") : ""].filter(Boolean).join("\n"))}</h2>${sw}</div>` }) });
+  { head: `<div class="panel-head"><h2>${esc(f.t("connections.title"))} ${info([f.t("stats.group_note"), connGone ? f.plural(connGone, "who.erased_note") : ""].filter(Boolean).join("\n"))}</h2>${sw("wide-only")}</div>` }) });
 
   let net = pg.v.network || {};
   if (!net.nodes) net = net[pg.period] || {};

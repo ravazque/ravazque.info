@@ -423,6 +423,12 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
 :where(body:not(.site)) .login-link:hover, :where(body:not(.site)) .login-link:focus-visible { color: var(--ink); text-decoration-color: currentColor; }
 :where(body:not(.site)) .who-pop > summary { color: var(--ink); text-decoration: underline dotted; text-underline-offset: 4px; }
 :where(body:not(.site)) .who-pop > summary { white-space: nowrap; } /* one line: the rest is one click away */
+/* Teammates' projects (people.ts oneLineList): the whole list while it fits its line, plain text; when it doesn't
+   (Dashboard fitLists adds .cut) the first and "+N more", which opens them all */
+:where(body:not(.site)) .fit-list > summary { display: block; max-width: min(var(--list-width, 420px), 60vw); overflow: hidden; min-height: 0; padding: 0; } /* as tall as the other cells */
+:where(body:not(.site)) .fit-list .fl-short, :where(body:not(.site)) .fit-list.cut .fl-all { display: none; }
+:where(body:not(.site)) .fit-list.cut .fl-short { display: inline; }
+:where(body:not(.site)) .fit-list:not(.cut) > summary { color: inherit; text-decoration: none; cursor: default; pointer-events: none; }
 
 /* Profile's widgets, closer than the pages' sections (spacing.css, --widget-*): smaller titles, less room above each,
    tables at half width without their secondary columns */
@@ -489,30 +495,34 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
 :where(body:not(.site)) .gt-name:hover { color: var(--ink); }
 :where(body:not(.site)) .gt-axis .ch-months { margin-left: 0; }
 
-/* Technical domains (projects.ts domainsBody): Preview and the Skills | RNCP switch by the title (from 600px; phones: the
-   switch alone, on top of the rows as the log's filters, a line under it), then a row per skill or domain: its
-   name, a square per validated project (charts.ts seatbars, as ravazque.github.io's skill bars) and what they add up to.
-   Distances and sizes: spacing.css #domains */
-:where(body:not(.site)) .dom-actions { display: flex; align-items: center; gap: var(--domains-buttons-gap, 14px); }
-:where(body:not(.site)) .seg.dom-phone { display: none; }
+/* A switch under its title's line on phones (Technical domains, Everyone you met, Over time; owner 2026-11-23): the one
+   by the title (.wide-only) goes, a copy (.under-title) fills a row under the title's line, then a line keeps it apart
+   from what it switches. Distances: spacing.css --switch-top-phone, --switch-gap, --switch-line, --switch-pad */
+:where(body:not(.site)) .seg.under-title { display: none; }
 @media (max-width: 599.98px) {
-  :where(body:not(.site)) .dom-actions { display: none; }
-  :where(body:not(.site)) .seg.dom-phone { display: flex; margin: 0; }
-  /* the title's line → the switch: its own value on phones (laptops keep --charts-top to the first row) */
-  :where(body:not(.site)) #domains > .panel-head + .cols { margin-top: var(--domains-switch-top-phone, var(--charts-top, 36px)); }
-  :where(body:not(.site)) .seg.dom-phone > * { flex: 1 1 0; }
-  /* a line under the switch keeps it apart from the rows (owner, 2026-11-23) */
-  :where(body:not(.site)) .seg.dom-phone + .seatbars { margin-top: var(--domains-switch-gap, 16px); padding-top: var(--domains-switch-pad, 12px);
-    border-top: var(--domains-switch-line, 2px) solid var(--domains-switch-line-color, var(--rule-strong)); }
+  :where(body:not(.site)) .panel-head > .seg.wide-only { display: none; }
+  :where(body:not(.site)) .seg.under-title { display: flex; margin: 0; }
+  :where(body:not(.site)) .seg.under-title > * { flex: 1 1 0; }
+  /* the title's line → the switch: first in the charts (laptops keep --charts-top to them), or right under the title */
+  :where(body:not(.site)) section:has(> .cols > .block > .seg.under-title:first-child) > .panel-head + .cols { margin-top: var(--switch-top-phone, 16px); }
+  :where(body:not(.site)) section > .panel-head:has(+ .seg.under-title) { margin-bottom: var(--switch-top-phone, 16px); }
+  :where(body:not(.site)) .seg.under-title + * { margin-top: var(--switch-gap, 16px); padding-top: var(--switch-pad, 12px); border-top: var(--switch-line, 2px) solid var(--rule-strong); }
 }
+
+/* Technical domains (projects.ts domainsBody): Preview and the Skills | RNCP switch by the title (from 600px; phones: the
+   switch alone under the title's line), then a row per skill or domain across the whole width: its name, its squares
+   (charts.ts seatbars, as ravazque.github.io's skill bars: Skills lit by level, RNCP one per validated project) and what
+   they add up to. Distances and sizes: spacing.css #domains */
+:where(body:not(.site)) .dom-actions { display: flex; align-items: center; gap: var(--domains-buttons-gap, 14px); }
+@media (max-width: 599.98px) { :where(body:not(.site)) .dom-actions { display: none; } }
 :where(body:not(.site)) .seatbars { margin: 0; container: seatbars / inline-size; }
-:where(body:not(.site)) .seatbars ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, max-content) auto max-content 1fr; column-gap: var(--domains-cols-gap, 24px); }
+:where(body:not(.site)) .seatbars ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr) max-content; column-gap: var(--domains-cols-gap, 24px); }
 :where(body:not(.site)) .seatbars li { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center; padding: var(--domains-row-pad, 9px) 0;
   border-bottom: var(--domains-row-line, 0px) solid var(--rule); }
 :where(body:not(.site)) .seatbars li > * { grid-row: 1; }
 :where(body:not(.site)) .sb-label { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-2); font: 600 16px var(--type-font-text); }
 :where(body:not(.site)) .seatbars li > [data-tip] { cursor: default; }
-:where(body:not(.site)) .seatbars .seats { justify-self: start; display: grid; grid-template-columns: repeat(var(--of), minmax(4px, var(--domains-seat, 12px))); gap: var(--domains-seat-gap, 3px); }
+:where(body:not(.site)) .seatbars .seats { display: grid; grid-template-columns: repeat(var(--of), minmax(0, 1fr)); gap: var(--domains-seat-gap, 3px); }
 :where(body:not(.site)) .seatbars .seats i { height: var(--domains-seat, 12px); border-radius: 2px; background: var(--seat-empty); }
 :where(body:not(.site)) .seatbars .seats i.on { background: var(--accent-data); }
 :where(body:not(.site)) .seatbars b { justify-self: start; color: var(--text-2); font: 600 15px var(--type-font-display); white-space: nowrap; }
@@ -524,8 +534,8 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
 @container seatbars (max-width: 699.98px) {
   :where(body:not(.site)) .seatbars ul { display: block; }
   :where(body:not(.site)) .seatbars li { grid-template-columns: minmax(0, 1fr) max-content; column-gap: 12px; row-gap: 8px; }
-  :where(body:not(.site)) .seatbars .seats { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; grid-template-columns: repeat(var(--of), minmax(0, 1fr)); gap: 2px; }
+  :where(body:not(.site)) .seatbars .seats { grid-column: 1 / -1; grid-row: 2; gap: 2px; }
   :where(body:not(.site)) .seatbars .seats i { height: var(--domains-seat-phone, 10px); }
-  :where(body:not(.site)) .sb-label { max-width: none; font-size: 15px; }
+  :where(body:not(.site)) .sb-label { max-width: 100%; font-size: 15px; }  /* a long name ends in "…" before the figures (the tip has it whole) */
   :where(body:not(.site)) .seatbars b { font-size: 14px; }
 }

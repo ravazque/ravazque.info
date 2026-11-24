@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // The landing: who it is for, the policy to accept, sign in with 42, and the accent field behind the mark.
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { fmt, loadSession, state } from "../state";
 import { startLanding } from "../legacy/field.js";
@@ -11,7 +11,7 @@ import SiteLinks from "./SiteLinks.vue";
 const f = computed(() => fmt.value);
 const route = useRoute(), router = useRouter();
 const accept = ref(false), going = ref(false);
-const plan = ref<HTMLElement | null>(null), features = ref<HTMLDialogElement | null>(null);
+const plan = ref<HTMLElement | null>(null), text = ref<HTMLElement | null>(null), features = ref<HTMLDialogElement | null>(null);
 const error = computed(() => (["signin", "consent"].includes(String(route.query.error)) ? String(route.query.error) : ""));
 let stop: (() => void) | undefined;
 
@@ -26,15 +26,33 @@ function enterDev(ev: Event) {
   if (known) location.href = known.href;
 }
 
+// phones: About, Privacy, Report an issue and EN | ES keep to one line, all of it scaled down until it fits (owner,
+// 2026-11-23); a button never under 24 px high (fit .55): past that the row wraps as before
+function fitLinks() {
+  const row = text.value?.querySelector<HTMLElement>(".site-links");
+  if (!row) return;
+  row.style.removeProperty("--fit");
+  row.classList.remove("wrap");
+  if (innerWidth >= 600) return;
+  const over = () => row.scrollWidth > row.clientWidth + 1;
+  let fit = 100;
+  while (over() && fit > 55) row.style.setProperty("--fit", String((fit -= 1) / 100));
+  if (over()) { row.style.removeProperty("--fit"); row.classList.add("wrap"); }
+}
+watch(() => f.value.lang, () => nextTick(fitLinks));
+
 onMounted(async () => {
   document.title = f.value.t("site.name");
   if (plan.value) stop = startLanding(plan.value);
+  addEventListener("resize", fitLinks);
+  document.fonts?.ready.then(fitLinks);
   const s = await loadSession().catch(() => null);
   if (s?.user) router.replace("/app");
   await nextTick();
+  fitLinks(); // the issues link comes with the session
   devPick.value?.querySelectorAll("select").forEach((el) => enhanceSelect(el));
 });
-onBeforeUnmount(() => stop?.());
+onBeforeUnmount(() => { stop?.(); removeEventListener("resize", fitLinks); });
 
 function signIn() {
   if (!accept.value) return;
@@ -48,7 +66,7 @@ const acceptParts = computed(() => f.value.t("site.accept").split("{privacy}"));
 <template>
   <main class="landing">
     <section ref="plan" class="landing-plan" aria-hidden="true"><Mark /></section>
-    <section class="landing-text">
+    <section ref="text" class="landing-text">
       <h1>{{ f.t("site.name") }}</h1>
       <p class="tagline">{{ f.t("site.tagline") }}</p>
       <p class="pitch">{{ f.t("site.pitch") }}</p>

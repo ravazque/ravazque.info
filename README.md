@@ -22,26 +22,31 @@ Six pages. Every choice (period, filters, views) lives in the address, so any vi
   Madrid's students, OuterCore, frozen and alumni (read again every hour), your rank in your kickoff, your wallet and
   your correction points earned and spent. Then three summary modules (projects, evaluations and logged time), your
   path on a timeline (Piscine, 42cursus, campus moves, Transcender, alumni, today and the estimated alumni date) and the
-  sections of the other pages you keep there as widgets: Contribution, Rhythm, the logtime bonus, the evaluation log,
-  cancelled evaluations, feedback and where evaluations happen to begin with. Add more from the picker at the bottom
-  (Activity among them: achievements, events, titles and quests beside your campuses), remove, resize and drag them into
-  place; it is kept in your browser.
+  sections of the other pages you keep there as widgets: Pace (folded to its figures), Contribution, Rhythm, the logtime
+  bonus, the evaluation log, cancelled evaluations, feedback and where evaluations happen to begin with. Add more from
+  the picker at the bottom (Activity among them: achievements, events, titles and quests beside your campuses), remove,
+  resize and drag them into place, and fold the ones with figures over their charts down to those figures; it is kept
+  in your browser.
 - **Projects**: your pace (time in the 42cursus, XP per month, your promo by level), skills, every project and attempt
   in one register with its milestone (0 = Libft … 6, for the C and the Python Common Core; a project done in both
   tracks says which) and filters by status and milestone, projects of other cursus (Discovery, Reload…) apart, CSV
-  export, exams, technical domains (the intra's RNCP tags) and a timeline of every attempt, a row per milestone.
+  export, exams, technical domains (each skill by its level on the skills radar's scale, or the intra's RNCP tags with a
+  square per validated project and the XP they add up to, with a portfolio to preview or download) and your retries and
+  validated projects over time.
 - **Evaluations**: what you give back (hours, people, rating, how many ended below 50, Outstanding both ways, by the
   other person's milestone), received and given over time, when they happen (weekday × hour, duration, how far
   ahead they were booked), your feedback (as a student, only the 42cursus counts; Discovery
   piscines are set apart; 42's automatic feedback is named as such and left out of the averages), correction points, cancelled evaluations (the ones of your projects you cancelled, with the
-  project they probably were; the ones your corrector cancelled; the ones you were to give and cancelled; the times your
+  project they were when it can be told; the ones your corrector cancelled; the ones you were to give and cancelled; the times your
   corrector didn't come), the projects you corrected and the full evaluation log: search and filters by flag (absences
   too), the project's milestone, project and seat (not logged, logged in late, by cluster), who marked whom absent, how
-  late the evaluated side logged in, and a team's leader with the rest one click away.
+  late the evaluated side logged in (an estimate: 3 minutes or less don't count), and a team's leader with the rest one
+  click away.
 - **Coalition**: the coalitions of Madrid, refreshed every quarter of an hour, and every point you gave yours, the
   logtime bonus in detail with every bonus so far, your points by source (every source, at nothing too) and per month by
   source (hover a month for its parts). Deductions read as TIGs.
-- **People**: who evaluated you most, everyone you met (or only your teammates), your connections grouped by where
+- **People**: who evaluated you most, everyone you met (or only your teammates, their projects on one line with the rest
+  one click away), your connections grouped by where
   they are today and your circle. Accounts that 42 erased are a group of their own in your circle, named "Deleted" and
   never by their old id, are left out of the connections (a note says how many) and read "Deleted account" in tables; staff get a group of their own. A login in a table or list opens that student's page
   on acerezo.top, another independent site, in a new tab.
@@ -66,7 +71,8 @@ Some figures are inferences, and the app says so where they appear: the logtime 
 awards: the intra does not publish it, checked against 11 students over 12 days; sessions on two computers at once
 count twice there, while logged time merges them as the intra does), the alumni date, XP per domain, the
 seats and lateness worked out from login sessions, and which cancelled evaluations you cancelled yourself (with the
-project they probably were). 42 deletes a cancelled evaluation, so those are read from your correction points; when the
+project they were when it can be told: one handed in and waiting for its evaluations then, else the one you booked again
+within two hours; "–" otherwise). 42 deletes a cancelled evaluation, so those are read from your correction points; when the
 student you were to evaluate cancels, nothing is written on your side and it can't be counted.
 
 <details>

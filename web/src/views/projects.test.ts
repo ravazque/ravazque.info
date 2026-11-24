@@ -94,6 +94,9 @@ test("a widget starts at full width, and keeps the half width the student chose"
   const pg = new Page(new Fmt("en"), { report: { coalition_points: { sources: [], months: [], bonuses: [] }, given: [], projects: [] }, all_projects: [] } as any, "home", {});
   expect(widgets(pg, [{ page: "coalition", id: "bonus" }])[0].html).toContain('class="widget wide"');
   expect(widgets(pg, [{ page: "coalition", id: "bonus", wide: false }])[0].html).toContain('class="widget half"');
+  // only a section with figures or a description of them over its charts folds (owner, 2026-11-24): the rest stays open
+  expect(widgets(pg, [{ page: "coalition", id: "coal-points", folded: true }])[0].html).toMatch(/class="widget wide folded" data-fold /);
+  expect(widgets(pg, [{ page: "coalition", id: "bonus", folded: true }])[0].html).toMatch(/class="widget wide" data-widget=/); // a saved fold left over
 });
 
 test("the card names who you are beside your name, and lists coalition, milestone, grade, track and groups as tags", () => {
@@ -183,22 +186,31 @@ test("the portfolio's areas: the skills 42's transcript gives a project, else it
     "Group & interpersonal, Company experience", ""]); // exams have none
 });
 
-test("Technical domains: Skills or RNCP, RNCP first when there is any, each row a square per validated project and the XP", () => {
+test("Technical domains: Skills or RNCP, RNCP first when there is any; RNCP a square per validated project, Skills twenty lit by the radar's level; the XP", () => {
   const f = new Fmt("en");
   const libft = { name: "Libft", validated: true, exam: false, xp_earned: 462, attempts: [] }; // three skills in the transcript
-  const view = (domains: any[]) => ({ period: "student", report: { projects: [libft], extras: {}, insights: {} }, all_projects: [libft], derive: { domains } }) as any;
+  const skills42 = [{ name: "Rigor", level: 7.5 }, { name: "Imperative programming", level: 10 }, { name: "Algorithms & AI", level: 2.6 }, { name: "Unix", level: 0 }];
+  const view = (domains: any[]) => ({ period: "student", report: { projects: [libft], extras: { skills: skills42 }, insights: {} }, all_projects: [libft], derive: { domains } }) as any;
+  const lit = (h: string) => [...h.matchAll(/<span class="seats"[^>]*>(.*?)<\/span>/g)].map((m) => [m[1].match(/class="on"/g)?.length || 0, m[1].match(/<i/g)!.length]);
   const html = (domains: any[], q = {}) => projects(new Page(f, view(domains), "projects", q)).find((s) => s.id === "domains")!.html;
   const web = [{ key: "web", xp: 1234, projects: ["webserv", "ft_transcendence"] }];
   expect(html(web)).toContain(`${f.t("domains.tag.web")}</span>`); // RNCP shown first
   expect(html(web)).toContain("2 projects · ≈ 1,234 XP");
   expect(html(web)).toContain('style="--of:10"'); // ten squares at least, the same on every row
+  expect(lit(html(web))).toEqual([[2, 10]]);
   const skills = html(web, { domains: "skills" });
   expect(skills.match(/<li>/g)?.length).toBe(3); // Libft's three skills
   expect(skills).toContain("1 project · ≈ 462 XP");
+  // the radar's scale: its top is the highest level rounded up to a multiple of 5 (10 here), a lit square per 5 %
+  expect(skills).toContain('style="--of:20"');
+  expect(lit(skills)).toEqual([[20, 20], [15, 20], [5, 20]]); // the highest level first
+  expect(skills).toContain("Level 7.50 · 75% of 10"); // in the tip: the level and its share of the radar's top
+  expect(skills).toMatch(/aria-label="[^"]*Rigor Level 7\.50/); // the level is read out too
   expect(html([])).toMatch(/aria-pressed="true">Skills/); // no RNCP domain: the skills
   expect(html(web)).toContain('data-preview="portfolio"'); // the portfolio is previewed, not downloaded (owner, 2026-11-23)
   expect(html(web)).not.toContain('data-download="portfolio"');
   expect(html(web).match(/class="seg dom-switch/g)?.length).toBe(2); // by the title, and on top of the rows for phones
+  expect(html(web)).toMatch(/<\/figure><div class="table-foot csv-bottom"><span class="head-actions csv-bottom"><button [^>]*data-preview="portfolio"/); // phones: Preview under the rows
 });
 
 test("the attempts line shows in dev only; ravazque.info has the two cumulative charts alone", () => {
