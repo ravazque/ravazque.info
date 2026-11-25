@@ -254,7 +254,8 @@
 /* wide tables keep their first column in view while scrolling sideways */
 :where(body:not(.site)) table.sticky-first th:first-child, :where(body:not(.site)) table.sticky-first td:first-child { position: sticky; left: 0; background: var(--c-table-bg); box-shadow: inset -1px 0 0 var(--c-table-border); }
 :where(body:not(.site)) table.sticky-first td:first-child { z-index: 1; }
-:where(body:not(.site)) table.sticky-first th:first-child { z-index: 2; }
+:where(body:not(.site)) table.sticky-first th { z-index: 2; }  /* over the first column's fade (dash.css) as rows pass under the head */
+:where(body:not(.site)) table.sticky-first th:first-child { z-index: 3; }
 :where(body:not(.site)) table.sticky-first tbody tr:hover td:first-child, :where(body:not(.site)) table.sticky-first tbody.pair:hover td:first-child { background: var(--c-table-row-hover); }
 :where(body:not(.site)) table.sticky-first tr.detail td { position: static; box-shadow: none; }
 :where(body:not(.site)) td.empty { color: var(--muted); text-align: center; padding: 28px; }

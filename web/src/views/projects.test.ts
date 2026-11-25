@@ -169,6 +169,7 @@ test("projects of another cursus (a Discovery piscine, a Piscine Reload) are a m
   const secs = projects(new Page(f, { period: "student", report: D, all_projects: all, derive: {} } as any, "projects", {}, true));
   const table = secs.find((s) => s.id === "projects-table")!.html;
   expect(table).toContain(`<option value="outside">${f.t("projects.outside")}</option>`);
+  expect(table).not.toContain("csv-bottom"); // phones: no Preview nor Download (owner, 2026-11-25)
   const only = (m: string) => [...projects(new Page(f, { period: "student", report: D, all_projects: all, derive: {} } as any, "projects", { milestone: m }))
     .find((s) => s.id === "projects-table")!.html.matchAll(/<td class="proj" data-v="([^"]+)"/g)].map((x) => x[1]).sort();
   expect(only("outside")).toEqual(["Cellule0.0 - Shell"]);
@@ -210,7 +211,7 @@ test("Technical domains: Skills or RNCP, RNCP first when there is any; RNCP a sq
   expect(html(web)).toContain('data-preview="portfolio"'); // the portfolio is previewed, not downloaded (owner, 2026-11-23)
   expect(html(web)).not.toContain('data-download="portfolio"');
   expect(html(web).match(/class="seg dom-switch/g)?.length).toBe(2); // by the title, and on top of the rows for phones
-  expect(html(web)).toMatch(/<\/figure><div class="table-foot csv-bottom"><span class="head-actions csv-bottom"><button [^>]*data-preview="portfolio"/); // phones: Preview under the rows
+  expect(html(web)).not.toContain("csv-bottom"); // phones: no Preview (owner, 2026-11-25)
 });
 
 test("the attempts line shows in dev only; ravazque.info has the two cumulative charts alone", () => {

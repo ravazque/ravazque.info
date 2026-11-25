@@ -502,8 +502,8 @@
 :where(body:not(.site)) .focused .net-links path.hl { stroke-width: 2.5; }
 /* a scroll box (a table, a list, the calendar, the skills' bars) fades each of its four edges where more waits
    (behave.ts sets more-t, more, more-l, more-r and the scrollbars' thickness): two solid layers keep the scrollbars out
-   of the fade, a table's sticky head stays clear of the top one and its sticky first column of the left one, which
-   starts past it; a third keeps the line under the column names whole while the names fade with the rest */
+   of the fade, a table's sticky head stays clear of the top one; a third keeps the line under the column names whole
+   while the names fade with the rest */
 :where(body:not(.site)) :is(.list, .table-wrap, .cal-scroll, .radar-bars) { --fade-t: var(--mask); --fade-b: var(--mask); --fade-l: var(--mask); --fade-r: var(--mask); }
 :where(body:not(.site)) :is(.list, .table-wrap, .cal-scroll, .radar-bars).more-t { --fade-t: transparent; }
 :where(body:not(.site)) :is(.list, .table-wrap, .cal-scroll, .radar-bars).more { --fade-b: transparent; }
@@ -513,10 +513,10 @@
   --fade-area: calc(100% - var(--sb-w, 0px)) calc(100% - var(--sb-h, 0px));
   --head-line: var(--table-head-line, 0px); /* the line under a table's column names: a solid strip keeps it out of the fade */
   -webkit-mask-image: linear-gradient(var(--mask), var(--mask)), linear-gradient(var(--mask), var(--mask)), linear-gradient(var(--mask), var(--mask)),
-    linear-gradient(to right, var(--mask) var(--stick-w, 0px), var(--fade-l) var(--stick-w, 0px), var(--mask) calc(var(--stick-w, 0px) + 40px), var(--mask) calc(100% - 56px), var(--fade-r)),
+    linear-gradient(to right, var(--fade-l), var(--mask) 40px, var(--mask) calc(100% - 56px), var(--fade-r)),
     linear-gradient(to bottom, var(--mask) var(--head-h, 0px), var(--fade-t) var(--head-h, 0px), var(--mask) calc(var(--head-h, 0px) + 40px), var(--mask) calc(100% - 56px), var(--fade-b));
   mask-image: linear-gradient(var(--mask), var(--mask)), linear-gradient(var(--mask), var(--mask)), linear-gradient(var(--mask), var(--mask)),
-    linear-gradient(to right, var(--mask) var(--stick-w, 0px), var(--fade-l) var(--stick-w, 0px), var(--mask) calc(var(--stick-w, 0px) + 40px), var(--mask) calc(100% - 56px), var(--fade-r)),
+    linear-gradient(to right, var(--fade-l), var(--mask) 40px, var(--mask) calc(100% - 56px), var(--fade-r)),
     linear-gradient(to bottom, var(--mask) var(--head-h, 0px), var(--fade-t) var(--head-h, 0px), var(--mask) calc(var(--head-h, 0px) + 40px), var(--mask) calc(100% - 56px), var(--fade-b));
   -webkit-mask-size: 100% var(--head-line), var(--sb-w, 0px) 100%, 100% var(--sb-h, 0px), var(--fade-area), var(--fade-area);
   mask-size: 100% var(--head-line), var(--sb-w, 0px) 100%, 100% var(--sb-h, 0px), var(--fade-area), var(--fade-area);
@@ -524,6 +524,16 @@
   mask-position: left calc(var(--head-h, 0px) - var(--head-line)), right top, left bottom, left top, left top;
   -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
   -webkit-mask-composite: source-over, source-over, source-over, source-in; mask-composite: add, add, add, intersect; }
+/* a column that stays put while the rest scrolls sideways (a table's first, the calendar's years, the attempts line's
+   milestones) carries the left fade itself: a strip of its own background off its right edge, so the fade starts at its
+   line whatever its width, sub-pixel rounding or a phone's overscroll bounce does to it; the box's mask leaves that side */
+:where(body:not(.site)) :is(.table-wrap:has(> table.sticky-first), .cal-scroll) { --fade-l: var(--mask); }
+:where(body:not(.site)) table.sticky-first { --stick-bg: var(--c-table-bg); }
+:where(body:not(.site)) table.sticky-first :is(tbody tr:hover, tbody.pair:hover tr) > td:first-child { --stick-bg: var(--c-table-row-hover); }
+:where(body:not(.site)) :is(.table-wrap, .cal-scroll).more-l :is(table.sticky-first tr:not(.detail) > :first-child, .cal-year > b, .gt-group, .gt-axis > span:first-child)::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 100%; width: 40px; pointer-events: none;
+  background: linear-gradient(to right, var(--stick-bg, var(--ground)), transparent); }
+:where(body:not(.site)) .table-wrap.more-l table.sticky-first tbody tr:not(.detail) > td:first-child::after { bottom: calc(-1 * var(--table-row-line)); } /* the line under the row fades too */
 /* Everyone you met: a person's details open on click in a floating list (behave.ts places it) */
 :where(body:not(.site)) .who-pop > summary { text-decoration: underline dotted; text-underline-offset: 4px; }
 :where(body:not(.site)) .who-pop[open] > .pop-panel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -533,12 +543,7 @@
 :where(body:not(.site)) .float-panel ul { list-style: none; margin: 6px 0 0; padding: 0; }
 :where(body:not(.site)) .float-panel li { padding: 5px 0; border-bottom: var(--list-line) solid var(--rule); white-space: nowrap; }
 :where(body:not(.site)) .float-panel li:last-child { border-bottom: 0; }
-:where(body:not(.site)) .table-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; margin-top: 12px; }
-:where(body:not(.site)) .table-foot .note { margin: 0; }
-:where(body:not(.site)) .table-foot > .head-actions { margin-left: auto; }
-@media (max-width: 599.98px) { :where(body:not(.site)) .csv-top { display: none; } }  /* Preview / Download: under the table or chart on phones, */
-@media (min-width: 600px) { :where(body:not(.site)) .csv-bottom { display: none; } } /* by the section's title on larger screens */
-:where(body:not(.site)) .table-foot .note b { color: var(--ink); }
+@media (max-width: 599.98px) { :where(body:not(.site)) .csv-top { display: none; } }  /* Preview / Download: none on phones (owner, 2026-11-25) */
 
 /* your latest points beside the coalitions: as tall as them, the rest scrolls */
 :where(body:not(.site)) [data-panel="coal-recent"] .list li > span:first-child { min-width: 0; font-size: 17px; }

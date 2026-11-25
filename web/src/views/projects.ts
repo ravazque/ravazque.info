@@ -101,9 +101,9 @@ export function portfolioCsv(pg: Page): string {
     f.t("col.xp"), f.t("col.team"), f.t("col.days_to_validate")], ...(pg.v.derive?.portfolio || []).map((r: any[]) => [r[0], r[1], areas(r), ...r.slice(3)])]);
 }
 
-/** Preview and download: by the section's title on larger screens (csv-top), under its table or chart on phones (csv-bottom). */
-const csvButtons = (pg: Page, kind: string, title: string, button: string, cls: "csv-top" | "csv-bottom") =>
-  `<span class="head-actions ${cls}"><button class="btn secondary" type="button" data-preview="${kind}" data-title="${esc(title)}" aria-haspopup="dialog">${esc(pg.f.t("common.preview"))}</button>`
+/** Preview and download, by the section's title; phones have neither (csv-top, owner 2026-11-25). */
+const csvButtons = (pg: Page, kind: string, title: string, button: string) =>
+  `<span class="head-actions csv-top"><button class="btn secondary" type="button" data-preview="${kind}" data-title="${esc(title)}" aria-haspopup="dialog">${esc(pg.f.t("common.preview"))}</button>`
   + `<button class="btn secondary" type="button" data-download="${kind}">${esc(button)}</button></span>`;
 
 /** One exam try: its mark in green (passed) or red, or a grey "–" when it has none. */
@@ -202,10 +202,9 @@ export function projects(pg: Page): Section[] {
     + select("year", f.t("projects_table.year"), [["all", f.t("projects_table.year_all")], ...fl.years.map((y) => [y, y] as [string, string])], fl.year)
     + (filtering ? `<a class="btn secondary log-clear" href="${esc(pg.url(undefined, { q: "", milestone: "", status: "", marks: "", year: "" }))}" data-keep>${esc(f.t("log.clear"))}</a>` : ""));
   out.push({ id: "projects-table", nav: f.t("nav.projects_table"), html: section("projects-table", f.t("projects_table.title"),
-    form + `<div id="projects-table-results">` + cols(`<div class="block" data-panel="projects-table"><div class="table-wrap tall">${tbl}</div>`
-      + `<div class="table-foot csv-bottom">` + csvButtons(pg, "projects", f.t("projects_table.title"), f.t("projects_table.csv"), "csv-bottom") + "</div></div>") + "</div>",
+    form + `<div id="projects-table-results">` + cols(`<div class="block" data-panel="projects-table"><div class="table-wrap tall">${tbl}</div></div>`) + "</div>",
     { head: `<div class="panel-head"><h2>${esc(f.t("projects_table.title"))}<span class="count"><span class="sep"> · </span>${esc(f.plural(rows.length, "projects_table.count"))}</span></h2>`
-      + `${csvButtons(pg, "projects", f.t("projects_table.title"), f.t("projects_table.csv"), "csv-top")}</div>` }) });
+      + `${csvButtons(pg, "projects", f.t("projects_table.title"), f.t("projects_table.csv"))}</div>` }) });
 
   const exams = D.insights?.exams || [];
   out.push({ id: "exams", nav: f.t("nav.exams"), html: section("exams", f.t("exams.title"), cols(block("exams", `<div class="table-wrap">${table(f, [
@@ -329,8 +328,5 @@ function domainsBody(pg: Page): [string, (cls: string) => string] {
     });
   const sw = (cls: string) => pg.seg("domains", [["skills", f.t("domains.skills_title")], ["rncp", f.t("domains.rncp_title")]], show, f.t("domains.title"), "domains", `dom-switch ${cls}`);
   const chart = seatbars(rows, { label: f.t(`domains.${show}_title`), of, emptyText: f.t("domains.none") });
-  // phones: Preview under the rows, as Projects' buttons (owner, 2026-11-24)
-  const preview = `<div class="table-foot csv-bottom"><span class="head-actions csv-bottom"><button class="btn secondary" type="button" data-preview="portfolio" `
-    + `data-title="${esc(f.t("domains.portfolio_title"))}" aria-haspopup="dialog">${esc(f.t("common.preview"))}</button></span></div>`;
-  return [cols(`<div class="block" data-panel="domains">${sw("under-title")}${chart}${preview}</div>`), sw];
+  return [cols(`<div class="block" data-panel="domains">${sw("under-title")}${chart}</div>`), sw];
 }

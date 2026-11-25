@@ -477,8 +477,8 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
 
 /* The attempts line (charts.ts gantt): each project's row named, groups by milestone between rules, the rows sharing the
    screen's height (14–20px) so the whole history fits a laptop; under its min-width it scrolls like the calendar, the
-   milestones' column staying put (the left fade starts past it) */
-:where(body:not(.site)) .gantt-scroll { overflow-x: auto; margin-top: 12px; --stick-w: 112px !important; }
+   milestones' column staying put (it carries the left fade: dash.css) */
+:where(body:not(.site)) .gantt-scroll { overflow-x: auto; margin-top: 12px; }
 :where(body:not(.site)) :is(.gt-group, .gt-axis > span:first-child) { position: sticky; left: 0; z-index: 2; background: var(--ground); }
 :where(body:not(.site)) .gantt { --gt-row: clamp(14px, calc((100svh - 210px) / var(--rows, 30)), 20px);
   display: grid; grid-template-columns: max-content minmax(0, 1fr); min-width: var(--gt-min, 1000px); margin: 0;
