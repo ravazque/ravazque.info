@@ -552,9 +552,14 @@ func campus(out string) error {
 	tick := time.NewTicker(time.Second / time.Duration(len(apps)))
 	defer tick.Stop()
 	n := 0
+	// the requests per app and hour left for people signing in (CAMPUS_RESERVE, default 400; the server's own count keeps 400)
+	reserve := 400
+	if v, err := strconv.Atoi(os.Getenv("CAMPUS_RESERVE")); err == nil && v >= 0 {
+		reserve = v
+	}
 	gate := func(ctx context.Context) error {
-		for !lim.Spare(400) {
-			fmt.Fprintln(os.Stderr, "campus: every app under 400 requests left this hour, waiting")
+		for !lim.Spare(reserve) {
+			fmt.Fprintf(os.Stderr, "campus: every app under %d requests left this hour, waiting\n", reserve)
 			time.Sleep(time.Until(time.Now().Truncate(time.Hour).Add(time.Hour)))
 		}
 		<-tick.C
