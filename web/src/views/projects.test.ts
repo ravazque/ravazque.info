@@ -232,15 +232,15 @@ test("Pace for a transcender: how long the Common Core took, and how far the alu
     all_projects: [] }) as any;
   const pace = (o = {}) => projects(new Page(f, view(o), "projects", {})).find((s) => s.id === "pace")!.html;
   const html = pace({ due: "2027-03-23" });
-  expect(html).toContain(f.t("pace.transcended"));
+  expect(html).toContain(f.t("pr2.transcended"));
   expect(html).toContain("16 months"); // 2 Sep 2024 → 15 Jan 2026
-  expect(html).toContain(f.t("pace.alumni_in"));
+  expect(html).toContain(f.t("pr2.alumni_in"));
   expect(html).toContain("≈ 4 months"); // 23 Nov 2026 → 23 Mar 2027
   expect(pace({ due: "2026-12-10" })).toContain("17 days left");
   expect(pace({ due: "paused" })).toContain(f.t("profile.paused"));
-  expect(pace({ due: "2027-03-23", alumnized: "2026-11-01" })).not.toContain(f.t("pace.alumni_in")); // alumni already
-  expect(pace({ quests: [] })).not.toContain(f.t("pace.transcended")); // not a transcender
-  expect(pace({ period: "piscine" })).not.toContain(f.t("pace.transcended"));
+  expect(pace({ due: "2027-03-23", alumnized: "2026-11-01" })).not.toContain(f.t("pr2.alumni_in")); // alumni already
+  expect(pace({ quests: [] })).not.toContain(f.t("pr2.transcended")); // not a transcender
+  expect(pace({ period: "piscine" })).not.toContain(f.t("pr2.transcended"));
 });
 
 test("the grade tag takes its state's colour, as in Connections: Transcender orange, Alumni blue, a Cadet green", () => {
@@ -261,3 +261,17 @@ test("a passed exam's badge is the passed green, not the Outstanding one", async
   expect(html).not.toMatch(/<span class="badge out">[^<]*Passed/);
 });
 
+
+test("friendlier findings: pace with the expected finish, your promo in tenths, your best skill, exams passed", () => {
+  const f = new Fmt("en");
+  const report = { generated: "2026-11-23T10:00:00", projects: [], profile: {}, summary: {}, logtime: {},
+    extras: { quests: [], cursus: [], skills: [{ name: "Algorithms", level: 7.5 }, { name: "Rigor", level: 3 }] },
+    insights: { pace: { months_since_kickoff: 26, xp_per_month: 100.4, months: [] }, exams: [{ name: "Exam Rank 02", passed: true, attempts: 1, best: 100, tries: [] }, { name: "Exam Rank 03", passed: false, attempts: 1, best: 0, tries: [] }] } };
+  const view = { period: "student", report, all_projects: [], derive: { alumni_due: "2027-03-23" }, promo: { rank: 4, size: 11, percentile: 70, below: 7, mine: 5.2, histogram: [{ level: 4, count: 7 }, { level: 5, count: 1 }, { level: 6, count: 3 }] } } as any;
+  const html = projects(new Page(f, view, "projects", {})).map((s) => s.html).join("");
+  expect(html).toContain("You earn about <b>100 XP</b> a month");
+  expect(html).toContain("<b>Mar 2027</b>");
+  expect(html).toContain("ahead of <b>7 in 10</b>");
+  expect(html).toContain("<b>Algorithms</b>, at level");
+  expect(html).toContain("<b>1 of 2</b> exams");
+});

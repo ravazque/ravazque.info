@@ -141,8 +141,8 @@ export function projects(pg: Page, stats: any = null): Section[] {
   const pc = D.insights?.pace;
   const lvl: [string, string][] = [];
   if (pc) {
-    if (pc.months_since_kickoff !== null && pc.months_since_kickoff !== undefined) lvl.push([f.t("pace.since"), esc(f.plural(pc.months_since_kickoff, "pace.months"))]);
-    lvl.push([f.t("pace.xp_month"), f.num(pc.xp_per_month)]);
+    if (pc.months_since_kickoff !== null && pc.months_since_kickoff !== undefined) lvl.push([f.t("pr2.since"), esc(f.plural(pc.months_since_kickoff, "pace.months"))]);
+    lvl.push([f.t("pr2.xp_month"), f.num(pc.xp_per_month)]);
   }
   // transcenders (owner, 2026-11-23): how long the Common Core took (42cursus kickoff → the Rank 06 quest) and how far the
   // alumni estimate is (Profile's path has the dates); not in the Piscine's view
@@ -150,25 +150,30 @@ export function projects(pg: Page, stats: any = null): Section[] {
   const kick = (pg.v.all_cursus || X.cursus || []).find((c: any) => c.name === "42cursus")?.begin;
   if (q6 && pg.period !== "piscine") {
     const day = (s: string) => Date.parse(String(s).slice(0, 10)), month = 30.44 * 864e5;
-    if (kick) lvl.push([f.t("pace.transcended"), esc(f.plural(Math.round((day(q6.validated) - day(kick)) / month), "pace.months"))]);
+    if (kick) lvl.push([f.t("pr2.transcended"), esc(f.plural(Math.round((day(q6.validated) - day(kick)) / month), "pace.months"))]);
     const due = pg.v.derive?.alumni_due;
     if (due && !D.profile?.alumnized) {
       const left = due === "paused" ? NaN : day(due) - day(pg.asOf || new Date().toISOString());
-      lvl.push([f.t("pace.alumni_in"), esc(due === "paused" ? f.t("profile.paused") : left <= 0 ? f.t("pace.alumni_due")
+      lvl.push([f.t("pr2.alumni_in"), esc(due === "paused" ? f.t("profile.paused") : left <= 0 ? f.t("pace.alumni_due")
         : left < 31 * 864e5 ? f.plural(Math.round(left / 864e5), "pace.days_left") : `≈ ${f.plural(Math.round(left / month), "pace.months")}`)]);
     }
   }
+  let finish = "";
+  const dueDay = pg.v.derive?.alumni_due;
+  if (pg.period !== "piscine" && dueDay && dueDay !== "paused" && !D.profile?.alumnized && Date.parse(String(dueDay).slice(0, 10)) > Date.parse(String(pg.asOf || new Date().toISOString()).slice(0, 10)))
+    finish = " " + f.t("pr2.pace_finish", { when: esc(`${f.months[+String(dueDay).slice(5, 7) - 1]} ${String(dueDay).slice(0, 4)}`) });
+  const paceFinding = pc && pc.xp_per_month ? `<p class="finding">${f.t("pr2.pace_finding", { xp: f.num(Math.round(pc.xp_per_month)) })}${finish}</p>` : "";
   const months = pc?.months || [], promo = pg.v.promo;
   const xpLabels = months.map((m: any) => f.monthLabel(m.month));
   // the month's XP in bars, the running total in each tip (owner's pick 2026-11-23); four even steps, as Your promo beside it
-  const xpChart = vbars(f, xpLabels, [[f.t("pace.xp"), months.map((m: any) => m.xp), S1]], { label: f.t("pace.xp_title"), four: true, colTips: true, fmt: (v) => f.num(v),
+  const xpChart = vbars(f, xpLabels, [[f.t("pace.xp"), months.map((m: any) => m.xp), S1]], { label: f.t("pr2.xp_title"), four: true, colTips: true, fmt: (v) => f.num(v),
     tips: months.map((m: any, i: number) => `${xpLabels[i]}\n${f.t("pace.xp")}: ${f.num(m.xp)}\n${f.t("pace.cumulative")}: ${f.num(m.cumulative)}`), emptyText: f.t("empty.period") });
-  out.push({ id: "pace", nav: f.t("nav.pace"), html: section("pace", f.t("pace.title"), `<dl class="facts">${facts(lvl)}</dl>` + cols(headBlock("pace-xp", f.t("pace.xp_title"), "", xpChart),
+  out.push({ id: "pace", nav: f.t("nav.pace"), html: section("pace", f.t("pace.title"), paceFinding + `<dl class="facts">${facts(lvl)}</dl>` + cols(headBlock("pace-xp", f.t("pr2.xp_title"), "", xpChart),
     // the same shape as XP per month beside it: title and key on one line, then the plot (its sentence is the title's ⓘ)
-    promo ? `<div class="block" data-panel="promo"><div class="block-head"><h3>${esc(f.t("standing.promo"))} ${info(f.t("standing.promo_lede", { rank: f.num(promo.rank), size: f.num(promo.size), pct: f.num(aboveShare(promo, promo.percentile), 1) })
+    promo ? `<div class="block" data-panel="promo"><div class="block-head"><h3>${esc(f.t("pr2.promo_title"))} ${info(f.t("pr2.promo_info") + " " + f.t("standing.promo_lede", { rank: f.num(promo.rank), size: f.num(promo.size), pct: f.num(aboveShare(promo, promo.percentile), 1) })
       + (promo.tied ? " " + f.plural(promo.tied, "standing.promo_tied") : ""))}</h3>`
       + legend([[f.t("standing.below_you"), S2], [f.t("standing.your_level"), S1], [f.t("standing.above_you"), ABOVE]])
-      + "</div>" + promoChart(pg, promo) + "</div>" : "")) });
+      + "</div>" + promoFinding(pg, promo) + promoChart(pg, promo) + "</div>" : "")) });
 
   const show = pg.q("skills", "radar", ["radar", "bars"]); // phones show one of the two (the switch is theirs only)
   const items = radarSkills(pg);
@@ -177,11 +182,13 @@ export function projects(pg: Page, stats: any = null): Section[] {
     const graded = items.filter((s: any) => s.level > 0);
     const bars = hbars(f, graded.map((s: any) => s.name), [[f.t("extras.level"), graded.map((s: any) => s.level), S1]],
       { label: f.t("extras.skills_title"), end: (_i, v) => f.level(v), big: true });
-    skills = `<div class="radar-pair" data-show="${show}"><div class="radar-fig">${radar(f, items, f.t("extras.skills_title"))}</div><div class="radar-bars">${bars}</div></div>`;
+    const best = graded.reduce((a: any, b: any) => (b.level > a.level ? b : a), graded[0] || { level: 0 });
+    skills = (best.level > 0 ? `<p class="finding">${f.t("pr2.skills_finding", { name: esc(best.name), level: f.level(best.level) })}</p>` : "")
+      + `<div class="radar-pair" data-show="${show}"><div class="radar-fig">${radar(f, items, f.t("extras.skills_title"))}</div><div class="radar-bars">${bars}</div></div>`;
   }
   const sw = items.length ? pg.seg("skills", [["radar", f.t("skills.radar")], ["bars", f.t("skills.bars")]], show, f.t("skills.view"), "skills", "phone-only title-line") : "";
   out.push({ id: "skills", nav: f.t("extras.skills_title"), html: section("skills", "", cols(block("skills", skills)),
-    { head: `<div class="panel-head"><h2>${esc(f.t("extras.skills_title"))}</h2>${sw}</div>` }) });
+    { head: `<div class="panel-head"><h2>${esc(f.t("pr2.skills_title"))} ${info(f.t("pr2.skills_info"))}</h2>${sw}</div>` }) });
 
   // every project with each attempt
   const fl = projectFilters(pg);
@@ -229,7 +236,7 @@ export function projects(pg: Page, stats: any = null): Section[] {
       + `${csvButtons(pg, "projects", f.t("projects_table.title"), f.t("projects_table.csv"))}</div>` }) });
 
   const exams = D.insights?.exams || [];
-  out.push({ id: "exams", nav: f.t("nav.exams"), html: section("exams", f.t("exams.title"), cols(block("exams", `<div class="table-wrap">${table(f, [
+  out.push({ id: "exams", nav: f.t("nav.exams"), html: section("exams", f.t("exams.title"), (exams.length ? `<p class="finding">${f.t("pr2.exams_finding", { passed: f.num(exams.filter((e: any) => e.passed).length), total: f.num(exams.length) })}</p>` : "") + cols(block("exams", `<div class="table-wrap">${table(f, [
     { k: "name", t: f.t("col.exam"), nw: true },
     { k: "passed", t: f.t("col.status"), nw: true, sv: (e) => (e.passed ? 1 : 0), f: (e) => badge(f.t(e.passed ? "exams.passed" : "exams.pending"), e.passed ? "ok" : "") }, // passed: the passed green (deep green is Outstanding)
     { k: "attempts", t: f.t("col.attempts"), s: f.t("abbr.attempts"), num: true }, { k: "best", t: f.t("col.best"), num: true },
@@ -242,7 +249,7 @@ export function projects(pg: Page, stats: any = null): Section[] {
 
   const [domains, domainsSwitch] = domainsBody(pg);
   out.push({ id: "domains", nav: f.t("domains.title"), html: section("domains", "", domains,
-    { head: `<div class="panel-head"><h2>${esc(f.t("domains.title"))} ${info(`${f.t("domains.skills_note")} ${f.t("domains.xp_note")}`)}</h2>`
+    { head: `<div class="panel-head"><h2>${esc(f.t("pr2.domains_title"))} ${info(`${f.t("pr2.domains_info")} ${f.t("domains.skills_note")} ${f.t("domains.xp_note")}`)}</h2>`
       + `<div class="dom-actions"><button class="btn secondary" type="button" data-preview="portfolio" data-title="${esc(f.t("domains.portfolio_title"))}" aria-haspopup="dialog">`
       + `${esc(f.t("common.preview"))}</button>${domainsSwitch("dom-head")}</div></div>` }) });
 
@@ -258,8 +265,8 @@ export function projects(pg: Page, stats: any = null): Section[] {
   const retries = D.projects.flatMap((p: any) => p.attempts.slice(1).map((a: any) => a.start_ms)).sort((a: number, b: number) => a - b).map((x: number, i: number) => ({ x, y: i + 1 }));
   const validated = D.projects.map((p: any) => p.attempts.find((a: any) => a.validated && a.end_ms)?.end_ms).filter(Boolean)
     .sort((a: number, b: number) => a - b).map((x: number, i: number) => ({ x, y: i + 1 }));
-  const cumulative = [block("cum-retries", lines(f, [[f.t("col.retries"), retries, S1]], { label: f.t("projects.cum_title"), emptyText: f.t("empty.period") }), f.t("projects.cum_title"), f.t("projects.cum_note")),
-    block("cum-validated", lines(f, [[f.t("outcome.validated"), validated, GOOD]], { label: f.t("projects.validated_title"), emptyText: f.t("empty.period") }), f.t("projects.validated_title"), f.t("projects.validated_note"))];
+  const cumulative = [block("cum-retries", lines(f, [[f.t("col.retries"), retries, S1]], { label: f.t("pr2.retries_title"), emptyText: f.t("empty.period") }), f.t("pr2.retries_title"), f.t("pr2.retries_note")),
+    block("cum-validated", lines(f, [[f.t("outcome.validated"), validated, GOOD]], { label: f.t("pr2.validated_title"), emptyText: f.t("empty.period") }), f.t("pr2.validated_title"), f.t("pr2.validated_note"))];
   const key = legend([[f.t("outcome.validated"), GOOD], [f.t("outcome.failed"), BAD], [f.t("outcome.in_progress"), NEUTRAL]]);
   // each project's attempts on one row with its name, packed so the history fits the screen (owner, 2026-11-22); shown in
   // dev only until the owner says (2026-11-23): ravazque.info has the two cumulative charts alone
@@ -311,6 +318,12 @@ export function timelineLanes(projects: any[], label: (lane: string) => string):
     rows.forEach((r, i) => out.push([i ? "" : label(lane), r.spans]));
   }
   return out;
+}
+
+/** "You are ahead of 7 in 10 of your promo": the share of the others strictly below you, in tenths; nothing when no one is. */
+function promoFinding(pg: Page, promo: any): string {
+  const n = Math.round(aboveShare(promo, promo.percentile) / 10);
+  return n > 0 ? `<p class="finding">${pg.f.t("pr2.promo_finding", { n: pg.f.num(n) })}</p>` : "";
 }
 
 /** Your promo by level, your level's bar in the accent. */

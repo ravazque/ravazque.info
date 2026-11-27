@@ -80,7 +80,7 @@ function path(pg: Page): string {
   const today = pg.asOf ? ms(pg.asOf) : Date.now();
   const stops: { k: string; d: string; t: number; cls: string; tip?: string }[] = [];
   if (piscine?.begin) stops.push({ k: f.t("profile.piscine"), d: month(piscine.begin), t: ms(piscine.begin), cls: "" });
-  if (main?.begin) stops.push({ k: f.t("profile.kickoff"), d: f.day(main.begin), t: ms(main.begin), cls: "" });
+  if (main?.begin) stops.push({ k: f.t("pr2.p_kickoff"), d: f.day(main.begin), t: ms(main.begin), cls: "" });
   // campuses by the day you joined them: one you moved to (your main one now), one you joined for a while and, when
   // your main campus has sessions after your last one there, the day you were back
   const camps = [...(D.campuses || [])].filter((c: any) => c.joined).sort((a: any, b: any) => String(a.joined).localeCompare(String(b.joined)));
@@ -93,12 +93,12 @@ function path(pg: Page): string {
   });
   const q6 = (D.extras.quests || []).find((q: any) => /rank 06/i.test(q.name || "") && q.validated);
   const transcend = q6 ? ms(q6.validated) : NaN, alumnized = P.alumnized ? ms(P.alumnized) : NaN;
-  if (q6) stops.push({ k: f.t("profile.transcender"), d: f.day(q6.validated), t: transcend, cls: "key" });
-  if (P.alumnized) stops.push({ k: f.t("profile.alumnized"), d: f.day(P.alumnized), t: alumnized, cls: "key" });
+  if (q6) stops.push({ k: f.t("pr2.p_transcender"), d: f.day(q6.validated), t: transcend, cls: "key" });
+  if (P.alumnized) stops.push({ k: f.t("pr2.p_alumnized"), d: f.day(P.alumnized), t: alumnized, cls: "key" });
   const paused = dv.alumni_due === "paused";
   stops.push({ k: f.t("profile.today"), d: f.day(new Date(today).toISOString()) + (paused ? ` · ${f.t("profile.paused_short")}` : ""), t: today, cls: "now",
     tip: paused ? f.t("profile.paused") : undefined });
-  if (dv.alumni_due && !paused && !P.alumnized) stops.push({ k: f.t("profile.alumni"), d: f.day(dv.alumni_due), t: ms(dv.alumni_due), cls: ms(dv.alumni_due) > today ? "future" : "" });
+  if (dv.alumni_due && !paused && !P.alumnized) stops.push({ k: f.t("pr2.p_alumni"), d: f.day(dv.alumni_due), t: ms(dv.alumni_due), cls: ms(dv.alumni_due) > today ? "future" : "" });
   const shown = stops.filter((s) => Number.isFinite(s.t)).sort((a, b) => a.t - b.t);
   if (shown.length < 2) return "";
   const lo = shown[0].t, hi = shown[shown.length - 1].t;
@@ -120,11 +120,11 @@ function modules(pg: Page): string {
   const f = pg.f, D = pg.D, S = D.summary, L = D.logtime;
   const mods: { key: string; label: string; aside?: string; value: string; lines: string[] }[] = [
     { key: "projects", label: f.t("home.k_projects"), aside: f.t("home.validated"), value: num(f, S.validated, 0, ` / ${f.num(S.projects)}`),
-      lines: [f.t("home.attempts", { attempts: S.attempts, retries: S.retries })] },
+      lines: [f.t("pr2.m_projects"), f.t("home.attempts", { attempts: S.attempts, retries: S.retries })] },
     { key: "evals", label: f.t("home.k_evals"), aside: f.t("home.received_given"), value: num(f, S.received, 0, ` · ${f.num(S.given)}`),
-      lines: [f.t("home.out", { received: S.received_outstanding, given: S.given_outstanding })] },
+      lines: [f.t("pr2.m_evals"), f.t("home.out", { received: S.received_outstanding, given: S.given_outstanding })] },
     { key: "hours", label: f.t("home.k_hours"), aside: f.t(`period.${pg.period}`), value: hoursFigure(f, L.total_seconds / 3600),
-      lines: [f.t("home.days", { days: f.plural(L.days_present, "count.days") })] },
+      lines: [f.t("pr2.m_hours"), f.t("home.days", { days: f.plural(L.days_present, "count.days") })] },
   ];
   return `<section id="home-kpis" class="modules-wrap"><h2 class="visually-hidden">${esc(f.t("home.title"))}</h2><div class="modules">`
     + mods.map((x) => `<article class="module" data-module="${x.key}"><h3 class="tab">${esc(x.label)}${x.aside ? `<span>${esc(x.aside)}</span>` : ""}</h3>`
