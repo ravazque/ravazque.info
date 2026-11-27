@@ -698,6 +698,9 @@ const shownPeriod = computed(() => key.value === "coalition"
       </nav>
       <p v-else-if="key === 'home' && state.status?.last" class="periods only">{{ f.t("today.as_of", { time: f.stamp(new Date(state.status.last).getTime()) }) }}</p>
     </header>
+    <details v-if="key !== 'holygraph'" class="glossary"><summary>{{ f.t("gl.title") }}</summary>
+      <ul><li v-for="t in (f.raw('gl.terms') as string[])" :key="t"><b>{{ t.split(':')[0] }}</b>{{ t.slice(t.indexOf(':')) }}</li></ul>
+    </details>
     <nav v-if="onCampus(key)" class="campus-tabs" :aria-label="f.t('campus.tabs')">
       <RouterLink v-for="k in CAMPUS_TABS" :key="k" :to="PATHS[k]" :aria-current="k === key ? 'page' : undefined">{{ tabLabel(k) }}</RouterLink>
     </nav>

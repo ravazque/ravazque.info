@@ -48,7 +48,7 @@ test("each exam: who signed up, passed, how many sittings failed, passed the fir
   expect(rows[0][7]).toBe("21.5");
   expect(rows[0][8]).toBe("Passed, sitting 2");
   expect(rows[1][8]).toBe("1 sitting, not passed");
-  expect(c.html).toContain("Exam Rank 02 is the exam [[most often failed]]: <b>75%</b> of the times it is sat end in a fail");
+  expect(c.html).toContain("Exam Rank 02 is the exam [[most often failed]]: <b>75%</b> of the times someone sits it end in a fail");
   expect(c.html).toContain("Of every 100 who pass Exam Rank 02, on [[which try]]"); // the hardest exam's waffle
   expect(c.html.match(/class="wf-sq"/g)).toHaveLength(100);
   expect(c.html).toContain("Half pass by try 2"); // each row: the median try, plain

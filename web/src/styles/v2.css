@@ -60,7 +60,7 @@
 :where(body:not(.site)) .drop-day > summary::-webkit-details-marker { display: none; }
 :where(body:not(.site)) .drop-day > summary::before { content: ""; width: 7px; height: 10px; background: currentColor; clip-path: polygon(0 0, 100% 50%, 0 100%); transition: transform var(--motion-fast) ease-out; }
 :where(body:not(.site)) .drop-day[open] > summary::before { transform: rotate(90deg); }
-:where(body:not(.site)) .drop-day b { font: 700 15px var(--type-font-display); color: var(--critical); white-space: nowrap; }
+:where(body:not(.site)) .drop-day b { font: 700 15px var(--type-font-display); color: var(--ink); white-space: nowrap; } /* hours leaving the window: no loss, no red (user test) */
 :where(body:not(.site)) .drop-day .left { color: var(--text-2); text-align: right; white-space: nowrap; }
 :where(body:not(.site)) .drop-day ul { margin: 0; padding: 0 110px 8px 20px; list-style: none; }  /* each row's hours under its day's */
 :where(body:not(.site)) .drop-day li { display: grid; grid-template-columns: 6.4em minmax(0, 1fr) auto; gap: 2px 14px; padding: 3px 0; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--text-2); }
@@ -874,3 +874,18 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
 /* a title's key words in the accent (owner, 2026-11-27): the eye goes from one to the next down the page; accent-ink is
    the accent made readable on the ground, the coalition's too */
 :where(body:not(.site)) .kw { color: var(--accent-ink); }
+
+/* user test, round 2 (2026-11-27) */
+/* links in the page's text are underlined: the accent-coloured key words are not links */
+:where(body:not(.site)) #main .sec :is(p, li, td, dd) a:not(.btn) { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+/* a glossary under every page's title, closed until asked */
+:where(body:not(.site)) .glossary { margin: 14px 0 0; font-size: 15px; }
+:where(body:not(.site)) .glossary summary { cursor: pointer; font-weight: 700; color: var(--accent-ink); width: fit-content; }
+:where(body:not(.site)) .glossary ul { list-style: none; margin: 10px 0 4px; padding: 0; display: grid; gap: 6px 32px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
+:where(body:not(.site)) .glossary li { padding: 6px 0; border-bottom: 1px solid var(--rule); color: var(--text-2); }
+:where(body:not(.site)) .glossary li b { color: var(--ink); }
+/* long titles in a panel head wrap instead of running off a phone's edge */
+:where(body:not(.site)) .panel-head :is(h2, h3) { min-width: 0; overflow-wrap: anywhere; }
+/* passed with 3 Outstandings told apart without colour too: a dashed slice */
+:where(body:not(.site)) svg path.dn-out { stroke-dasharray: 5 2.5; }
+
