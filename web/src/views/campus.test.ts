@@ -40,7 +40,7 @@ test("Where · evaluations draws received and given apart, side by side (no swit
   expect(html.indexOf(f.t("pe2.where_given"))).toBeGreaterThan(html.indexOf(f.t("pe2.where_received")));
   expect(html).not.toContain('class="seg"');
   expect(html).not.toContain("col-tips");
-  expect(html).toContain(f.t("where.cov_me", { me: all.place.me_located_given, n: all.summary.given }));
+  expect(html).toContain(f.t("s3c.cover", { me: all.place.me_located_given, n: all.summary.given }));
   // each bar its own side, on its full-height lane: yours says your count, the corrector's theirs, never both in one tip
   const tips = [...html.matchAll(/<span class="lane"[^>]*data-tip="([^"]+)"/g)].map((m) => m[1]);
   expect(tips.length).toBeGreaterThan(0);

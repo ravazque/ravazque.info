@@ -43,20 +43,18 @@ test("each exam: who signed up, passed, how many sittings failed, passed the fir
   const [c, py] = examsPage(pageOf("exams", mine), stats);
   expect(c.id).toBe("exams-c");
   const rows = [...c.html.matchAll(/<tr>(.*?)<\/tr>/gs)].slice(1).map((m) => [...m[1].matchAll(/<td[^>]*>(.*?)<\/td>/gs)].map((d) => d[1]));
-  expect(rows.map((r) => r[0])).toEqual(["Exam Rank 02", "Exam Rank 03"]);
-  expect(rows[0].slice(1, 6)).toEqual(["1,222", "83% · 1,009", "4,121", "75%", "32%"]);
-  expect(rows[0][7]).toBe("21.5");
-  expect(rows[0][8]).toBe("Passed, sitting 2");
-  expect(rows[1][8]).toBe("1 sitting, not passed");
+  expect(rows.map((r) => r[0].replace(/<[^>]*>/g, ""))).toEqual(["Exam Rank 02", "Exam Rank 03"]);
+  expect(rows[0].slice(1, 5)).toEqual(["83%", "75%", "32%", "21.5"]);
+  expect(tips(c.html)).toContain("Exam Rank 02: 1,222 people signed up, 4,121 sittings in total.");
+  expect(rows[0][5]).toBe("Passed, sitting 2");
+  expect(rows[1][5]).toBe("1 sitting, not passed");
   expect(c.html).toContain("Exam Rank 02 is the exam [[most often failed]]: <b>75%</b> of the times someone sits it end in a fail");
   expect(c.html).toContain("Of every 100 who pass Exam Rank 02, on [[which try]]"); // the hardest exam's waffle
   expect(c.html.match(/class="wf-sq"/g)).toHaveLength(100);
-  expect(c.html).toContain("Half pass by try 2"); // each row: the median try, plain
   expect(c.html).not.toContain("tries-bar");
   expect(c.html).toContain("shows &lt; 5 instead of the number"); // under 5, said once per page
-  expect(tips(c.html).find((t) => t.startsWith("Exam Rank 02: the try on which students passed it\nTypical sitting: 2"))).toContain("Sitting 4 or later: 331 (33%)");
   expect(py.id).toBe("exams-python"); // 1 to 4 signed up: exact figures (policy v8)
-  expect(py.html).toContain("67% · 2");
+  expect(py.html).toContain("67%");
 });
 
 test("42 Madrid is one link of the band, its tabs have addresses of their own and none repeats a page of yours", async () => {

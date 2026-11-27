@@ -98,7 +98,7 @@ export function people(pg: Page): Section[] {
   const finding = top.length ? `<p class="finding">${f.plural(Math.max(...top.map((p: any) => p.evaluated_me)), "pe2.finding_top")}</p>` : "";
   out.push({ id: "who", nav: f.t("nav.who"), html: section("who", f.t("who.title"), finding + cols(
     `<div class="block" data-panel="correctors"><div class="block-head"><h3>${esc(f.t("pe2.top_title"))}</h3>${legend(bySeries.map(([t, , c]) => [t, c] as [string, string]))}</div>`
-    + `<p class="note">${esc(f.t("pe2.top_how"))}</p>`
+    + `<p class="note">${esc(f.t("s3c.top_how"))}</p>`
     + hbars(f, top.map((p: any) => (erased(p.login) ? f.t("who.erased") : p.login)), bySeries,
       { label: f.t("who.top_title"), tips: top.map(tip), emptyText: f.t("empty.period"), end: (_i, v) => String(v), min: 8,
         extra: (i) => (top[i].outstanding_to_me ? `${top[i].outstanding_to_me} ${f.t("flag.outstanding")}` : "") }) + "</div>"), { lede }) });
@@ -126,11 +126,11 @@ export function people(pg: Page): Section[] {
       { k: "name", t: f.t("col.name"), nw: true, f: (p) => (erased(p.login) ? deletedName(f) : esc(shortName(p.name))) },
       { k: "group", t: f.t("col.group"), nw: true, sv: (p) => order(groupOf.get(p.login)), f: (p) => (groupOf.has(p.login) ? groupDot(groupOf.get(p.login)!) + esc(f.t(`groups.${groupOf.get(p.login)}`)) : "–") },
       { k: "evaluated_me", t: f.t("col.evaluated_you"), s: f.t("abbr.evaluated_you"), num: true, cls: "mid" },
-      { k: "outstanding_to_me", t: f.t("col.outstanding"), s: f.t("abbr.outstanding"), num: true, cls: "mid" },
+      { k: "outstanding_to_me", t: f.t("col.outstanding"), num: true, cls: "mid" },
       { k: "avg_mark_to_me", t: f.t("col.avg_mark"), s: f.t("abbr.avg_mark"), num: true, cls: "mid", f: (p) => f.num(p.avg_mark_to_me, 1) },
       { k: "evaluated_by_me", t: f.t("col.you_evaluated"), s: f.t("abbr.you_evaluated"), num: true, cls: "mid" },
       { k: "teammate", t: f.t("col.teammate"), s: f.t("abbr.teammate"), num: true, cls: "mid" },
-      { k: "my_rating_of_them", t: f.t("col.ratings"), s: f.t("abbr.ratings"), num: true, cls: "mid", nw: true,
+      { k: "my_rating_of_them", t: f.t("col.ratings"), s: f.t("s3c.rating_short"), num: true, cls: "mid", nw: true,
         f: (p) => { const t = f.t("who.rating_tip", { mine: rate(p.my_rating_of_them), theirs: rate(p.their_rating_of_me) }); return `<span title="${esc(t)}" data-tip="${esc(t)}">${rate(p.my_rating_of_them)} / ${rate(p.their_rating_of_me)}</span>`; } },
       { k: "projects_on_me", t: f.t("col.details"), cls: "details", sv: (p) => Object.keys(p.projects_on_me || {}).length, f: details },
       { k: "first", t: f.t("col.first"), nw: true, f: (p) => esc(f.day(p.first)) },
@@ -147,8 +147,7 @@ export function people(pg: Page): Section[] {
   const wide = bubbles(f, conn, mode, { width: 1200, href, label });
   // by the title; on phones under its line, as Everyone you met (owner, 2026-11-24)
   const sw = (cls: string) => pg.seg("mode", [["received", f.t("connections.mode_received")], ["given", f.t("connections.mode_given")], ["mix", f.t("connections.mode_mix")]], mode, f.t("connections.mode_label"), "connections", cls);
-  out.push({ id: "connections", nav: f.t("nav.connections"), html: section("connections", "", cols(`<div class="block" data-panel="connections">${sw("under-title")}<p class="note">${esc(f.t("pe2.conn_how"))}</p>`
-    + (wide ? `<p class="conn-key"><svg viewBox="0 0 40 20" aria-hidden="true"><circle cx="8" cy="10" r="4"/><circle cx="28" cy="10" r="9"/></svg><span>${esc(f.t("fx.conn_key"))}</span></p>` : "")
+  out.push({ id: "connections", nav: f.t("nav.connections"), html: section("connections", "", cols(`<div class="block" data-panel="connections">${sw("under-title")}<h3>${esc(f.t("s3c.bubbles_title"))} ${info(f.t("fx.conn_key"))}</h3><p class="note">${esc(f.t("s3c.bubbles_how"))}</p>`
     + (wide ? `<div class="graph-panel"><div class="graph-wide">${wide}</div><div class="graph-mid">${bubbles(f, conn, mode, { width: 840, href, label })}</div>`
       + `<div class="graph-narrow">${bubbles(f, conn, mode, { width: 420, href, label })}</div></div>`
       : `<p class="note">${esc(f.t("connections.empty"))}</p>`) + "</div>"),
@@ -183,9 +182,9 @@ export function people(pg: Page): Section[] {
     + `</ul><h3>${esc(f.t("network.dir_title"))}</h3><ul>`
     + ["in", "out", "both"].map((d) => row(`<svg class="dir-key ${d}" viewBox="0 0 30 10" aria-hidden="true"><line x1="1" y1="5" x2="29" y2="5"/>`
       + (d === "both" ? '<line class="gap" x1="1" y1="5" x2="29" y2="5"/>' : "") + "</svg>", f.t(`network.dir_${d}`))).join("") + "</ul>";
-  out.push({ id: "circle", nav: f.t("nav.network"), html: section("circle", "", cols(`<div class="block" data-panel="network"><p class="note">${esc(f.t("pe2.circle_how"))}</p>`
+  out.push({ id: "circle", nav: f.t("nav.network"), html: section("circle", "", cols(`<div class="block" data-panel="network"><h3>${esc(f.t("s3c.circle_title"))}</h3><p class="note">${esc(f.t("s3c.circle_how"))}</p>`
     + (has ? `<div class="net-wrap"><aside class="net-side" aria-label="${esc(f.t("network.key_who"))}">${side}</aside><div class="net-plot graph-panel">`
       + `<div class="graph-wide">${ring(f, net, { width: 640, height: 640, compact: false, uid: "w", label: ringLabel })}</div><div class="graph-narrow">${ring(f, net, { width: 400, height: 400, compact: true, uid: "n", label: ringLabel })}</div></div></div>`
-      : `<p class="note">${esc(f.t("network.empty"))}</p>`) + "</div>"), { head: `<h2>${esc(f.t("pe2.circle_title"))}</h2>`, lede: esc(f.t("network.lede")) }) });
+      : `<p class="note">${esc(f.t("network.empty"))}</p>`) + "</div>"), { head: `<h2>${esc(f.t("pe2.circle_title"))}</h2>` }) });
   return out;
 }

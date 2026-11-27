@@ -73,14 +73,6 @@ type Exam = { slug: string; name: string; registered?: Count; passed?: Count; at
 
 const RANK = /^(?:42next-)?exam-rank-0(\d)$/;
 
-/** The sitting half of those who passed needed at most: 1, 2, 3 or "4+" (from how many passed at each). */
-function medianTries(tries: Count[]): string {
-  const t = tries.map(num), total = t.reduce((a, b) => a + b, 0);
-  let run = 0;
-  for (let i = 0; i < t.length; i++) if ((run += t[i]) >= total / 2) return i === 3 ? "4+" : `${i + 1}`;
-  return "–";
-}
-
 /** Campus · Exams: each exam of the C and Python Common Core (how many fail, pass the first time, how long it takes, you),
  * then the Piscine's. */
 export function examsPage(pg: Page, S: any): Section[] {
@@ -97,28 +89,19 @@ export function examsPage(pg: Page, S: any): Section[] {
     const at = p.attempts.findIndex((a: any) => a.validated === true);
     return at >= 0 ? f.t("campus.you_passed", { n: at + 1 }) : f.plural(p.attempts.length, "campus.you_sat");
   };
-  // the sitting half of those who passed needed at most, with the shares of every sitting in the tip
-  const triesText = (e: Exam) => {
-    const t = (e.tries || []).map(num), total = t.reduce((a, b) => a + b, 0);
-    if (!total || (e.tries || []).some((x) => x === null)) return `<span class="note">${esc(total ? f.t("holy.under5") : "–")}</span>`;
-    const lines = [f.t("md2.tries_tip", { exam: e.name }), f.t("campus.t_tries", { median: medianTries(e.tries!) }), "---",
-      ...t.map((v, i) => f.t(i === 3 ? "campus.t_try_more" : "campus.t_try", { n: i + 1, count: f.num(v), share: f.pct(v, total) })), "---", `# ${f.t("campus.how")}`, f.t("campus.how_tries")];
-    return `<span${tipAttr(lines.join("\n"))}>${esc(f.t("md2.tries_median", { n: medianTries(e.tries!) }))}</span>`;
-  };
   const triesWaffle = (e: Exam) => {
     const t = (e.tries || []).map(num);
     if (!t.some((v) => v) || (e.tries || []).some((x) => x === null)) return "";
     return `<h3 class="wf-title">${esc(f.t("md2.waffle_title", { exam: e.name }))}</h3>`
       + waffle(t.map((v, i) => ({ label: f.t(i === 3 ? "campus.k_try_more" : "campus.k_try", { n: i + 1 }), value: v, color: `var(--cat-${i + 1})` })), { label: f.t("md2.waffle_title", { exam: e.name }), num: (v) => f.num(v), note: f.t("wf.note") });
   };
+  // the five columns that answer "is it hard?"; who signed up and how many sittings go in the exam's tip
+  const rowTip = (e: Exam) => tipAttr(f.t("s3m.row_tip", { exam: e.name, registered: n(e.registered), sittings: n(e.attempts) }));
   const colsOf = (withYou: boolean): Col<Exam>[] => [
-    { k: "name", t: f.t("col.exam"), nw: true },
-    { k: "registered", t: f.t("campus.c_registered"), num: true, f: (e) => esc(n(e.registered)) },
-    { k: "passed", t: f.t("campus.c_passed"), num: true, nw: true, sv: (e) => ratio(e.passed, e.registered), f: (e) => esc(e.passed === null ? n(null) : `${share(e.passed, e.registered)} · ${n(e.passed)}`) },
-    { k: "attempts", t: f.t("campus.c_sittings"), num: true, f: (e) => esc(n(e.attempts)) },
+    { k: "name", t: f.t("col.exam"), nw: true, f: (e) => `<span${rowTip(e)}>${esc(e.name)}</span>` },
+    { k: "passed", t: f.t("campus.c_passed"), num: true, nw: true, sv: (e) => ratio(e.passed, e.registered), f: (e) => esc(share(e.passed, e.registered)) },
     { k: "failed_attempts", t: f.t("campus.c_failed"), num: true, sv: (e) => ratio(e.failed_attempts, e.attempts), f: (e) => esc(share(e.failed_attempts, e.attempts)) },
     { k: "first_try", t: f.t("campus.c_first"), num: true, sv: (e) => ratio(e.first_try, e.passed), f: (e) => esc(share(e.first_try, e.passed)) },
-    { k: "tries", t: f.t("campus.c_tries"), ph: true, sv: (e) => medianTries(e.tries || []), f: triesText },
     { k: "median_days", t: f.t("campus.c_days"), num: true, f: (e) => esc(e.median_days == null ? "–" : f.num(e.median_days, Number.isInteger(e.median_days) ? 0 : 1)) },
     ...(withYou ? [{ k: "you", t: f.t("campus.c_you"), nw: true, sv: (e: Exam) => you(e), f: (e: Exam) => esc(you(e) || "–") }] : []),
   ];
@@ -141,9 +124,8 @@ export function examsPage(pg: Page, S: any): Section[] {
   if (pis.length) {
     const tbl = table(f, [
       { k: "name", t: f.t("col.exam"), nw: true, f: (e: any) => esc(String(e.name).replace(/^C Piscine /, "")) },
-      { k: "registered", t: f.t("campus.c_registered"), num: true, f: (e: any) => esc(n(e.registered)) },
-      { k: "passed", t: f.t("campus.c_passed"), num: true, sv: (e: any) => ratio(e.passed, e.registered), f: (e: any) => esc(e.passed === null ? n(null) : `${share(e.passed, e.registered)} · ${n(e.passed)}`) },
-      { k: "median_mark", t: f.t("campus.c_mark"), num: true, f: (e: any) => esc(e.median_mark == null ? "–" : f.num(e.median_mark)) },
+      { k: "passed", t: f.t("campus.c_passed"), num: true, sv: (e: any) => ratio(e.passed, e.registered), f: (e: any) => esc(share(e.passed, e.registered)) },
+      { k: "median_mark", t: f.t("s3m.c_mark"), num: true, f: (e: any) => (e.median_mark == null ? "–" : `<span${tipAttr(f.t("s3m.mark_tip"))}>${esc(f.num(e.median_mark))}</span>`) },
     ], pis, { label: f.t("campus.exams_piscine"), sort: ["name", 1] });
     out.push({ id: "exams-piscine", nav: f.t("campus.exams_piscine"), html: section("exams-piscine", "", `<div class="table-wrap">${tbl}</div>${when(pg, S)}`,
       { head: head(f.t("campus.exams_piscine"), f.t("campus.exams_piscine_note")) }) });
