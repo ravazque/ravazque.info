@@ -1,1 +1,5 @@
 /* friendlier evaluations (2026-11-27): this page's own rules for the new forms */
+/* the fail rates and the returned Outstanding flags: the waffle sits under the figure, narrow, its key under it */
+:where(body:not(.site)) .rates .waffle { grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 14px; }
+:where(body:not(.site)) .rates .wf-grid { max-width: 220px; }
+:where(body:not(.site)) .rates .recip-row .s { margin-top: 8px; }

@@ -1,7 +1,7 @@
 // Evaluations: what you give back and by milestone, the full log, cancelled evaluations, correction points, feedback,
 // and received and given over time, when and how long.
 import type { Fmt } from "../fmt";
-import { GOOD, BAD, OUTSTANDING, S1, S2, type Series, legend, lines, qline, vbars } from "../lib/charts";
+import { GOOD, BAD, NEUTRAL, OUTSTANDING, S1, S2, type Series, legend, lines, qline, vbars, waffle } from "../lib/charts";
 import { ACCENT, GROUPS, SLATE, groupDot, heat } from "../lib/graphs";
 import { ARROW, avatar, badge, esc, tipAttr } from "../lib/h";
 import { facts, table } from "../lib/table";
@@ -27,6 +27,10 @@ export function tookPart(pg: Page, k: "received" | "given"): any[] {
 
 /** A histogram's bins from its edges, each with its unit: "0–1h", "1–3h", "3+h". */
 export const binLabels = (edges: number[], unit: string) => edges.map((x, i) => `${i < edges.length - 1 ? `${x}–${edges[i + 1]}` : `${x}+`}${unit}`);
+
+/** A section's finding, said first: the text of `key` with every value in `vars` in bold, all else escaped. */
+export const say = (f: Fmt, key: string, vars: Record<string, string | number>) =>
+  `<p class="finding">${esc(f.t(key, Object.fromEntries(Object.entries(vars).map(([k, v]) => [k, `\u0001${v}\u0002`])))).replace(/\u0001/g, "<b>").replace(/\u0002/g, "</b>")}</p>`;
 
 /** The evaluations behind a histogram's long bars (bins from `from` on), for their tips: "project · the other side · value",
  * longest first, at most eight and "+N more". Durations count finished evaluations only, as the server's histogram does. */
@@ -104,13 +108,12 @@ export function evaluations(pg: Page): Section[] {
   const cm = pg.v.derive?.community || { hours: 0, people: 0, correctors: 0 };
 
   // correction statistics live in Contribution
-  let statBlocks: string[] = [], byGroup = "";
+  let statBlocks: string[] = [], byGroup = "", groupFinding = "", fails = "";
   const st = D.stats;
   if (st) {
-    const bar = (n: number, total: number, cls = "") => `<span class="rate-bar${cls}" aria-hidden="true"><i style="width:${total ? ((100 * n) / total).toFixed(1) : 0}%"></i></span>`;
     const rate = (r: any, key: string) => `<div class="rate"><p class="v">${r.pct === null || r.pct === undefined ? "–" : `${f.num(r.pct, 1)}<small>%</small>`}`
-      + `<span class="frac">${esc(f.t("stats.of", { n: r.n, total: r.total }))}</span></p>${bar(r.n, r.total, " bad")}<p class="k">${esc(f.t(key))}</p></div>`;
-    const recip = (n: number, total: number, text: string) => `<div class="recip-row">${bar(n, total, " good")}<p class="s">${esc(text)}</p></div>`;
+      + `<span class="frac">${esc(f.t("stats.of", { n: r.n, total: r.total }))}</span></p>${waffle([{ label: f.t("ev2.failed"), value: r.n, color: BAD }, { label: f.t("ev2.rest"), value: r.total - r.n, color: NEUTRAL }], { label: f.t(key) })}<p class="k">${esc(f.t(key))}</p></div>`;
+    const recip = (n: number, total: number, text: string) => `<div class="recip-row">${waffle([{ label: f.t("ev2.back"), value: n, color: OUTSTANDING }, { label: f.t("ev2.not_back"), value: total - n, color: NEUTRAL }], { label: text })}<p class="s">${esc(text)}</p></div>`;
     const R = st.outstanding_reciprocity;
     // every group, always, in order (as Points by source has every source): the ones with nothing greyed
     const groupOf = new Map<string, string>((pg.v.connections || []).map((c: any) => [c.login, c.group]));
@@ -118,6 +121,10 @@ export function evaluations(pg: Page): Section[] {
     // staff, deleted accounts and pisciners only when you met any (owner, 2026-11-12 and 13)
     const groups = [...new Set([...GROUPS, ...Object.keys(by)])].filter((g) => !["staff", "deleted", "no-cursus"].includes(g) || by[g]).map((g) => ({ g, ...none, ...by[g] })).map((v: any) => ({ ...v, i: GROUPS.includes(v.g) ? GROUPS.indexOf(v.g) : 99,
       in_pct: v.received ? (100 * v.received_out) / v.received : null, out_pct: v.given ? (100 * v.given_out) / v.given : null }));
+    const top = [...groups].sort((a: any, b: any) => b.received - a.received)[0], totalIn = groups.reduce((s: number, g: any) => s + g.received, 0);
+    if (top && top.received) groupFinding = say(f, "ev2.find_group", { n: top.received, total: totalIn, group: f.t(`groups.${top.g}`) });
+    const sentence = (r: any, key: string) => (r.total ? say(f, key, { b: f.t("ev2.of_the", { n: r.n, total: r.total }) }) : "");
+    fails = sentence(st.failed_given, "ev2.find_given") + sentence(st.failed_received, "ev2.find_received");
     const pctCell = (v: number | null) => (v === null ? "–" : `${f.num(v)}%`);
     statBlocks = [
       block("fail-rates", `<div class="rates">${rate(st.failed_given, "stats.failed_given")}${rate(st.failed_received, "stats.failed_received")}`
@@ -132,7 +139,7 @@ export function evaluations(pg: Page): Section[] {
       ], groups, { label: f.t("stats.group_title"), sort: ["i", 1], rowCls: (r) => (r.received || r.given ? "" : "zero") })}</div></div>`;
   }
 
-  out.push({ id: "community", nav: f.t("community.title"), html: section("community", f.t("community.title"), cols(block("kpis", kpis([
+  out.push({ id: "community", nav: f.t("community.title"), html: section("community", f.t("community.title"), fails + cols(block("kpis", kpis([
     [f.t("community.k_hours"), `${esc(f.hmm(cm.hours))}&nbsp;h`, [esc(f.t("community.s_hours", { n: f.num(D.given.length) }))]],
     [f.t("community.k_people"), f.num(cm.people), [esc(f.t("community.s_people"))]],
     [f.t("community.k_correctors"), f.num(cm.correctors), [esc(f.t("community.s_correctors"))]],
@@ -141,7 +148,7 @@ export function evaluations(pg: Page): Section[] {
   // by the other person's milestone, and beside it, small, the projects you corrected
   const corrected = `<div class="block" data-panel="depth-projects" id="in-depth"><h3>${esc(f.t("depth.given_title"))}</h3>`
     + `<div class="table-wrap fit">${correctedTable(pg)}${fillTable()}</div></div>`; // as tall as the table by milestone
-  out.push({ id: "by-group", nav: f.t("stats.group_section"), html: section("by-group", "", cols(byGroup, corrected),
+  out.push({ id: "by-group", nav: f.t("stats.group_section"), html: section("by-group", "", groupFinding + cols(byGroup, corrected),
     { head: `<h2>${esc(f.t("stats.group_section"))} ${info(f.t("stats.group_note"))}</h2>` }) });
 
   // by the title; on phones under its line, over the description (owner, 2026-11-23)
@@ -154,7 +161,10 @@ export function evaluations(pg: Page): Section[] {
   const flagSeries: [string, number[], string][] = [[f.t("flag.ok"), at(m.ok), GOOD], [f.t("flag.outstanding"), at(m.outstanding), OUTSTANDING], [f.t("flag.negative"), at(m.negative), BAD]];
   const negs = negativeFlags(D[role]);
   const flagTips = months.map((x, i) => [f.monthLabel(x), ...flagSeries.map(([n, v], s) => `${n} ${f.num(v[i])}` + (s === 2 && negs.get(x) ? `: ${negs.get(x)}` : ""))].join("\n"));
-  out.push({ id: "over-time", nav: f.t("over_time.title"), html: section("over-time", "", cols(
+  const perMonth = W.months.map((_: string, i: number) => (m.ok[i] || 0) + (m.outstanding[i] || 0) + (m.negative[i] || 0));
+  const peak = Math.max(0, ...perMonth);
+  const monthFinding = peak ? say(f, `ev2.find_month_${role}`, { month: f.monthLabel(W.months[perMonth.indexOf(peak)]), n: peak }) : "";
+  out.push({ id: "over-time", nav: f.t("over_time.title"), html: section("over-time", "", monthFinding + cols(
     headBlock("recv-monthly", f.t(role === "received" ? "received.monthly_title" : "given.monthly_title"),
       legend([[f.t("flag.ok"), GOOD], [f.t("flag.outstanding"), OUTSTANDING], [f.t("flag.negative"), BAD]]),
       vbars(f, months.map((x: string) => f.monthLabel(x)), flagSeries,
@@ -180,7 +190,10 @@ export function evaluations(pg: Page): Section[] {
   const durLabels = binLabels(W.duration_edges, "m"), leadLabels = binLabels(W.lead_edges, "h");
   const durSeries: Series[] = [[f.t("role.received"), W.duration_received, S1], [f.t("role.given"), W.duration_given, S2]];
   const leadSeries: Series[] = [[f.t("role.received"), W.lead_received, S1], [f.t("role.given"), W.lead_given, S2]];
-  out.push({ id: "when", nav: f.t("nav.when"), html: section("when", f.t("when.title"), factsHtml + cols(
+  const both = W.heat_received.map((row: number[], d: number) => row.map((v, h) => v + (W.heat_given[d]?.[h] || 0)));
+  const top = Math.max(0, ...both.flat()), td = both.findIndex((row: number[]) => row.includes(top)), th = td < 0 ? 0 : both[td].indexOf(top);
+  const whenFinding = top ? say(f, "ev2.find_when", { slot: `${f.weekdays[td]} ${String(th).padStart(2, "0")}:00`, n: top }) : "";
+  out.push({ id: "when", nav: f.t("nav.when"), html: section("when", f.t("when.title"), whenFinding + factsHtml + cols(
     block("heat-recv", heat(f, W.heat_received, ACCENT, f.t("unit.evaluations")), f.t("when.heat_recv_title")),
     block("heat-given", heat(f, W.heat_given, SLATE, f.t("unit.evaluations")), f.t("when.heat_given_title")),
     `<div class="block" data-panel="duration"><div class="block-head"><h3>${esc(f.t("when.duration_title"))} ${info(f.t("when.duration_note"))}</h3>${legend(roles)}</div>` + vbars(f, durLabels, durSeries,
@@ -242,7 +255,8 @@ export function evaluations(pg: Page): Section[] {
       const who = (e.correcteds || []).length > 1 && e.team ? e.team : f.t("role.given"), lows = ratings(e, autoFeedback).filter(isLow);
       return lows.length ? lows.map((x: any) => fbItem(x, esc(`${e.project} · ${who}`))).join("") : plain(e, esc(who));
     }).join("")}</ul></details>` : "";
-  out.push({ id: "feedback", nav: f.t("nav.feedback"), html: section("feedback", f.t("feedback.title"), cols(
+  const fbFinding = rated.length ? say(f, "ev2.find_fb", { b: f.t("ev2.of_the", { n: low.length, total: rated.length }) }) : "";
+  out.push({ id: "feedback", nav: f.t("nav.feedback"), html: section("feedback", f.t("feedback.title"), fbFinding + cols(
     crit ? block("table-feedback", `<div class="table-wrap">${crit}</div>`, f.t("feedback.criteria_title"), f.t("feedback.criteria_note")) : "",
     block("low-feedback", `<ul class="list">${lowItems}</ul>${apart}${autoApart}`, f.t("feedback.low_title"),
       rated.length ? f.t("feedback.low_note", { low: low.length, ratings: f.plural(rated.length, "count.ratings") }) : "")),
@@ -387,7 +401,7 @@ export function pointsSection(pg: Page): Section {
     chart = `<div class="block" data-panel="points"><h3>${days ? `<span class="zoom-hide">${esc(f.t("points.wline_title"))}</span><span class="zoom-only">${esc(f.t("points.dline_title"))}</span>` : esc(f.t("points.wline_title"))} ${info(f.t(days ? "points.wline_note" : "points.refresh_note"))}</h3>`
       + (days ? `<div class="zoom-hide">${weekly}</div><div class="zoom-only">${series(days, shortDay, (k) => f.day(k), "points.dline_title")}</div>` : weekly) + "</div>";
   }
-  return { id: "points", nav: f.t("nav.points"), html: section("points", f.t("points.title"), cols(chart,
+  return { id: "points", nav: f.t("nav.points"), html: section("points", f.t("points.title"), (CP.series.length ? say(f, "ev2.find_points", { earned: f.num(CP.earned), spent: f.num(CP.spent) }) : "") + cols(chart,
     block("table-reasons", `<div class="table-wrap fit">${table(f, [{ k: "reason", t: f.t("col.reason") }, { k: "count", t: f.t("col.times"), num: true }, { k: "sum", t: f.t("col.net"), num: true }],
       Object.entries(CP.reasons || {}).map(([reason, v]: [string, any]) => ({ reason, ...v })), { label: f.t("points.reasons_title"), sort: ["count", -1] })}${fillTable()}</div>`, f.t("points.reasons_title"))),
   { lede: esc(CP.series.length ? f.t("points.lede", { earned: CP.earned, spent: CP.spent, max: CP.max }) : f.t("empty.points")) }) };
@@ -439,8 +453,10 @@ export function cancelledSection(pg: Page): Section | null {
     + card("", f.t("cancel.theirs"), theirs, f.t("cancel.theirs_sub"), lines("you", f.t("cancel.theirs_tip", { n: theirs })))
     + card("", f.t("cancel.absent"), absent, f.t("cancel.absent_sub"), lines("absent", f.t("cancel.absent_tip", { n: absent }), absentProject))
     + "</div>";
+  const all = (self ?? 0) + corrector + theirs + absent;
+  const finding = all ? say(f, "ev2.find_cancel", { n: f.num(all), corrector: f.num(corrector + absent) }) : "";
   // in cols, so that --charts-top sets the title's line → the cards
-  return { id: "cancelled", nav: f.t("nav.cancelled"), html: section("cancelled", "", cols(block("cancel-kpis", cards)), { head: `<h2>${esc(f.t("cancel.title"))} ${info(f.t("cancel.how"))}</h2>` }) };
+  return { id: "cancelled", nav: f.t("nav.cancelled"), html: section("cancelled", "", finding + cols(block("cancel-kpis", cards)), { head: `<h2>${esc(f.t("cancel.title"))} ${info(f.t("cancel.how"))}</h2>` }) };
 }
 
 /** Who marked whom absent, as [label, tip]. The API's `truant` is the one who reported the absence, the side that was

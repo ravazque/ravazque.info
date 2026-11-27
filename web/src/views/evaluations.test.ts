@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { Fmt } from "../fmt";
-import { absence, autoFeedback, binLabels, longOnes, staffApart, cancelledSection, pointsSection, deletedApart, evaluations, lateText, logSection, milestoneOf, seatMatch, seatOptions, teamCell, shownLate, workExperience } from "./evaluations";
+import { say, absence, autoFeedback, binLabels, longOnes, staffApart, cancelledSection, pointsSection, deletedApart, evaluations, lateText, logSection, milestoneOf, seatMatch, seatOptions, teamCell, shownLate, workExperience } from "./evaluations";
 import { Page, shownLogin } from "./page";
 
 test("the log's seat filter: the evaluated side only, you received with no session open, or the students you evaluated not logged where it was looked up", () => {
@@ -470,4 +470,16 @@ test("a flag's badge: OK in green, Outstanding in deep green, a negative one in 
   expect(flagBadge(f, { flag: "Ok" })).toBe('<span class="badge ok">Ok</span>');
   expect(flagBadge(f, { flag: "Outstanding project", outstanding: true })).toContain('class="badge out"');
   expect(flagBadge(f, { flag: "Norme", negative_flag: true })).toBe('<span class="badge bad">Norme</span>');
+});
+
+test("fail rates are waffles with a finding said first; reciprocity too; no thin bars", async () => {
+  const { readFileSync } = await import("node:fs");
+  const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8")), all = doc.periods.all;
+  const f = new Fmt("en");
+  const pg = new Page(f, { period: "all", report: all, layout: doc.layout, all_projects: all.projects, all_cursus: all.extras.cursus } as any, "evaluations", {});
+  const html = evaluations(pg).find((s) => s.id === "community")!.html;
+  expect(html).not.toContain("rate-bar");
+  expect(html.match(/class="waffle"/g)!.length).toBe(4);
+  expect(html).toContain('<p class="finding">');
+  expect(say(f, "ev2.find_points", { earned: "5", spent: "<i>" })).toBe('<p class="finding">In this period you earned <b>5</b> correction points and spent <b>&lt;i&gt;</b>.</p>');
 });
