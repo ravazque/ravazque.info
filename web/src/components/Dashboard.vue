@@ -6,24 +6,27 @@ import { useRoute, useRouter } from "vue-router";
 import { HttpError, api, fmt, hasPin, loadPins, loadSession, moveWidget, pins, relabelStars, setWidget, settings, state, togglePin, untilQuarter, type Status } from "../state";
 import { VIEW_TTL, viewCache } from "../viewcache";
 import { closePops, dragScroll, hideTip, settle } from "../lib/behave";
-import { idbShelf, keepCopy, restore, stale } from "../lib/copy";
 import { esc, initials } from "../lib/h";
 import { parseCsv } from "../lib/table";
-import { Page, keptParams, pagePeriod, type PageKey, type Section, type View } from "../views/page";
+import { CAMPUS_TABS, PATHS, Page, keptParams, onCampus, pagePeriod, type PageKey, type Section, type View } from "../views/page";
 import { WIDGETS, profile as profileSections } from "../views/profile";
 import { portfolioCsv, projects, projectsCsv } from "../views/projects";
 import { evaluations } from "../views/evaluations";
 import { people } from "../views/people";
 import { campus } from "../views/campus";
-import { coalition } from "../views/coalition";
+import { campusPiscinePage, campusProjectsPage, holyPage } from "../views/holygraph";
+import { examsPage, summaryPage } from "../views/madrid";
+import { installHoly } from "../lib/holy";
+import { coalition, coalitionMode } from "../views/coalition";
 import AppHeader from "./AppHeader.vue";
 import SiteCredit from "./SiteCredit.vue";
 
 const route = useRoute(), router = useRouter();
 const f = computed(() => fmt.value);
-const key = computed<PageKey>(() => ((route.params.page as string) || "home") as PageKey);
+const SUBS: Record<string, PageKey> = { exams: "exams", "42cursus": "cc", piscine: "piscine" };
+const key = computed<PageKey>(() => (route.path.startsWith("/app/madrid") ? SUBS[route.params.sub as string] || "madrid" : ((route.params.page as string) || "home") as PageKey));
 const view = shallowRef<View | null>(null);
-const screen = ref<"loading" | "consent" | "boot" | "restore" | "page">("loading");
+const screen = ref<"loading" | "consent" | "boot" | "page">("loading");
 const consentOk = ref(false);
 const main = ref<HTMLElement | null>(null);
 let poll = 0;
@@ -32,12 +35,27 @@ let poll = 0;
 const params = computed(() => keptParams(Object.fromEntries(Object.entries(route.query).map(([k, v]) => [k, String(Array.isArray(v) ? v[0] : v ?? "")])), settings));
 const pg = computed(() => (view.value ? new Page(f.value, view.value, key.value, params.value, !!state.session?.dev) : null));
 
+// the weekly campus count, asked for once a Campus page or the Holy graph is opened
+const campusStats = shallowRef<any>(null);
+// and the holy graph the owner drew in the editor, if any (none: the one built into the app)
+const holyDrawn = shallowRef<any>(null);
+// your exams beside 42 Madrid's: on Projects, and on Profile while its exams widget is there
+const examsPinned = computed(() => pins.widgets.some((w) => w.page === "projects" && w.id === "exams"));
+watch([key, examsPinned], ([k, pinned]) => {
+  const graph = onCampus(k) || k === "holygraph";
+  if (!graph && k !== "projects" && !(k === "home" && pinned)) return;
+  if (!campusStats.value) api<{ stats: any }>("/api/campus-stats").then((r) => { campusStats.value = r.stats; }).catch(() => {});
+  if (graph) api<any>("/api/holygraph").then((g) => { holyDrawn.value = g || null; }).catch(() => {});
+}, { immediate: true });
 const sections = computed<Section[]>(() => {
   if (!pg.value) return [];
   const pv = pg.value;
-  if (key.value === "home") return profileSections(pv, pins.widgets);
-  return key.value === "projects" ? projects(pv) : key.value === "evaluations" ? evaluations(pv)
-    : key.value === "people" ? people(pv) : key.value === "campus" ? campus(pv) : key.value === "coalition" ? coalition(pv) : [];
+  if (key.value === "home") return profileSections(pv, pins.widgets, campusStats.value);
+  return key.value === "projects" ? projects(pv, campusStats.value) : key.value === "evaluations" ? evaluations(pv)
+    : key.value === "people" ? people(pv) : key.value === "campus" ? campus(pv) : key.value === "coalition" ? coalition(pv)
+    : key.value === "holygraph" ? holyPage(pv, campusStats.value, holyDrawn.value) : key.value === "madrid" ? summaryPage(pv, campusStats.value)
+    : key.value === "exams" ? examsPage(pv, campusStats.value) : key.value === "cc" ? campusProjectsPage(pv, campusStats.value, holyDrawn.value)
+    : key.value === "piscine" ? campusPiscinePage(pv, campusStats.value, holyDrawn.value) : [];
 });
 
 // the section index; on Profile: your card and every widget you keep (in their order: it follows as you add, move or
@@ -48,10 +66,14 @@ const toc = computed(() => key.value !== "home" ? sections.value.filter((s) => s
 const me = computed(() => state.session?.user);
 
 const title = computed(() => {
+  if (onCampus(key.value)) return f.value.t("pages.madrid"); // 42 Madrid: one title, its parts as tabs under it
   if (key.value !== "home") return f.value.t(`pages.${key.value}`);
   return f.value.t("profile.title");
 });
-watch([title, () => f.value], () => { document.title = `${title.value} · ${f.value.t("site.name")}`; }, { immediate: true });
+const tabLabel = (k: PageKey) => f.value.t(k === "madrid" ? "campus.tab_madrid" : `pages.${k}`);
+watch([title, key, () => f.value], () => {
+  document.title = `${onCampus(key.value) && key.value !== "madrid" ? `${tabLabel(key.value)} · ` : ""}${title.value} · ${f.value.t("site.name")}`;
+}, { immediate: true });
 
 async function status(kick = false): Promise<Status> {
   const s = await api<Status>(`/api/me/status${kick ? "?kick=1" : ""}`);
@@ -68,16 +90,7 @@ async function load() {
     let s = await status();
     if (s.state === "refused") return router.replace(`/refused?reason=${encodeURIComponent(s.message || "campus")}`);
     if (!s.consent) { screen.value = "consent"; return; }
-    if (!s.has_report && ["none", "done"].includes(s.state)) {
-      // the server's copy is gone (an hour unused, a restart): this browser hands its own back before anything is extracted
-      const login = state.session.user.login;
-      if (screen.value !== "page") screen.value = "restore";
-      if (await restore(idbShelf, login, state.session.user.csrf, (p, i) => fetch(p, { credentials: "same-origin", ...i }))) {
-        await fetchView(true);
-        return freshen(login);
-      }
-      s = await status(true);
-    }
+    if (!s.has_report && ["none", "done"].includes(s.state)) s = await status(true); // nothing kept on the server: the first extraction
     if (!s.has_report) {
       screen.value = "boot";
       if (s.state !== "failed") poll = window.setTimeout(load, 2000);
@@ -85,6 +98,7 @@ async function load() {
     }
     await fetchView();
     if (["queued", "running"].includes(s.state)) poll = window.setTimeout(watchSync, 2000);
+    else freshen(s);
   } catch (e) {
     if (e instanceof HttpError && e.status === 401) { state.session = null; return router.replace("/"); }
     throw e;
@@ -112,15 +126,12 @@ async function fetchView(fresh = false) {
   viewCache.set(k, { v: view.value, at: Date.now() });
   screen.value = "page";
   followCoalitions();
-  const u = state.session?.user, last = state.status?.last || "";
-  if (u && last && localStorage.getItem(`copy:${u.login}`) !== last) {
-    keepCopy(idbShelf, u.login, (p, i) => fetch(p, { credentials: "same-origin", ...i })).then(() => localStorage.setItem(`copy:${u.login}`, last)).catch(() => {});
-  }
 }
 
-/** A copy handed back shows at once; extracted over an hour ago, a fresh extraction follows in the band. */
-async function freshen(login: string) {
-  if (!stale(localStorage.getItem(`copy:${login}`))) return;
+/** The kept report shows at once and is left as it is (owner, 2026-11-25): only one extracted over a day ago (or at an
+ * unknown time) brings a fresh extraction in the band; anything sooner waits for the refresh button. */
+async function freshen(st: Status) {
+  if (st.state !== "done" || Date.now() - Date.parse(st.last || "") < 86400e3) return;
   const s = await api<Status>("/api/me/refresh", { method: "POST" }).catch((e) => e?.body);
   if (!s?.state) return;
   state.status = { ...state.status!, ...s };
@@ -163,6 +174,7 @@ watch(sections, async () => {
   await nextTick();
   if (!main.value) return;
   settle(main.value);
+  installHoly(main.value);
   markSections(main.value);
   markZoom(main.value);
   placeMarks(main.value);
@@ -659,27 +671,38 @@ function fitPreview() {
   if (z < 1) table.style.zoom = String(Math.floor(z * 1000) / 1000);
 }
 
-const periods = computed(() => (view.value && view.value.periods.length > 1 ? view.value.periods : []));
+const periods = computed(() => (view.value && view.value.periods.length > 1 && !onCampus(key.value) ? view.value.periods : [])); // the campus has no period of yours
 const periodHref = (p: string) => router.resolve({ query: { ...params.value, period: p } }).fullPath;
-// Coalition keeps to the student period: its switch shows it and changes nothing, the chosen period waits in the address
-const locked = computed(() => pagePeriod(key.value, "") !== "");
+// Coalition keeps to the student period: its switch shows it and changes nothing, the chosen period waits in the address;
+// whoever had a Piscine coalition picks it there (coalitionMode)
+const locked = computed(() => pagePeriod(key.value, "") !== "" && !view.value?.report?.piscine_coalition);
+const pressedPeriod = computed(() => (key.value === "coalition" && !locked.value ? params.value.period || view.value?.default_period : view.value?.period));
+// the period the settings' dot shows is the one this page is drawn for (Coalition: the student one); the chosen one waits in
+// the address and comes back on the next page
+const shownPeriod = computed(() => key.value === "coalition"
+  ? coalitionMode(params.value.period || view.value?.default_period || "all", !!view.value?.report?.piscine_coalition, params.value.coal || "student")
+  : pagePeriod(key.value, params.value.period || view.value?.period || ""));
 </script>
 
 <template>
-  <AppHeader :page="key" :period="params.period || view?.period" :periods="periods" @refreshed="watchSync" />
-  <main v-if="screen === 'page'" id="main" ref="main" :data-page="`web-${key}`" @click="onClick" @input="onInput" @change="onInput" @submit.prevent
+  <AppHeader :page="key" :period="shownPeriod" :periods="periods" @refreshed="watchSync" />
+  <main v-if="screen === 'page'" id="main" ref="main" :data-page="`web-${key}`" :class="{ 'holy-full': key === 'holygraph' }" @click="onClick" @input="onInput" @change="onInput" @submit.prevent
     @keydown="onKey" @dragstart="onDragStart" @dragover="onDragOver" @drop="onDrop" @dragend="onDragEnd">
-    <header class="page-head">
+    <h1 v-if="key === 'holygraph'" class="visually-hidden">{{ title }}</h1>
+    <header v-else class="page-head">
       <h1>{{ title }}</h1>
       <nav v-if="periods.length" class="seg periods" :aria-label="f.t('rail.period')">
-        <a v-for="p in periods" :key="p" :href="locked ? undefined : periodHref(p)" data-keep role="button" :aria-pressed="p === view?.period"
+        <a v-for="p in periods" :key="p" :href="locked ? undefined : periodHref(p)" data-keep role="button" :aria-pressed="p === pressedPeriod"
           :aria-disabled="locked && p !== view?.period ? 'true' : undefined" :title="locked ? f.t('period.student_only') : undefined">{{ f.t(`period.${p}`) }}</a>
       </nav>
       <p v-else-if="key === 'home' && state.status?.last" class="periods only">{{ f.t("today.as_of", { time: f.stamp(new Date(state.status.last).getTime()) }) }}</p>
     </header>
-    <nav v-if="toc.length > 1" class="toc" :aria-label="f.t('rail.sections')"><a v-for="s in toc" :key="s.id" :href="`#${s.id}`">{{ s.nav }}</a></nav>
+    <nav v-if="onCampus(key)" class="campus-tabs" :aria-label="f.t('campus.tabs')">
+      <RouterLink v-for="k in CAMPUS_TABS" :key="k" :to="PATHS[k]" :aria-current="k === key ? 'page' : undefined">{{ tabLabel(k) }}</RouterLink>
+    </nav>
+    <nav v-if="toc.length > 1 && key !== 'holygraph'" class="toc" :aria-label="f.t('rail.sections')"><a v-for="s in toc" :key="s.id" :href="`#${s.id}`">{{ s.nav }}</a></nav>
     <div v-for="s in sections" :key="s.id + key" class="sec" v-html="s.html"></div>
-    <footer class="site-foot">
+    <footer v-if="key !== 'holygraph'" class="site-foot">
       <SiteCredit />
       <nav class="foot-links"><RouterLink to="/about">{{ f.t("site.about") }}</RouterLink><RouterLink to="/privacy">{{ f.t("site.privacy") }}</RouterLink>
         <a v-if="state.session?.issues_url" :href="state.session.issues_url" rel="noopener" target="_blank">{{ f.t("site.issues") }}</a></nav>
@@ -700,7 +723,7 @@ const locked = computed(() => pagePeriod(key.value, "") !== "");
   <!-- loading, a copy coming back from this browser or the first extraction: on Profile your card, the rest in grey -->
   <main v-else id="main" class="skel" :data-page="`web-${key}`" :aria-busy="screen !== 'boot' || state.status?.state !== 'failed'">
     <header class="page-head"><h1>{{ title }}</h1>
-      <p v-if="screen !== 'boot'" :class="screen === 'restore' ? 'periods only' : 'visually-hidden'" role="status">{{ f.t(screen === "restore" ? "restore.lede" : "boot.title") }}</p>
+      <p v-if="screen !== 'boot'" class="visually-hidden" role="status">{{ f.t("boot.title") }}</p>
       <p v-else-if="state.status?.state === 'failed'" class="periods only" role="status"><b>{{ f.t("boot.failed") }}</b><br />
         <button class="btn primary" type="button" @click="retry">{{ f.t("boot.retry") }}</button></p>
       <p v-else-if="state.status && state.status.next_refresh_in > 0 && ['none', 'done'].includes(state.status.state)" class="periods only" role="status">

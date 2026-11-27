@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"regexp"
 	"slices"
@@ -30,12 +31,52 @@ var (
 	freeText = []string{"shadow", "font"} // keys whose values are CSS shorthands or font stacks
 )
 
+// LoadUI reads ui.json with the colours of colors.json (the owner's to edit: "main" by plain names, then the rest) added to
+// its tokens, theme by theme.
 func LoadUI() (*OMap, error) {
+	colors, err := Data.ReadFile("data/colors.json")
+	if err != nil {
+		return nil, err
+	}
+	return LoadUIWith(colors)
+}
+
+// LoadUIWith reads ui.json with the given colours (colors.json's shape) added to its tokens: the golden test's frozen ones,
+// or another file through uicss -colors.
+func LoadUIWith(colorsRaw []byte) (*OMap, error) {
 	raw, err := Data.ReadFile("data/ui.json")
 	if err != nil {
 		return nil, err
 	}
-	return ParseOrdered(raw)
+	cfg, err := ParseOrdered(raw)
+	if err != nil {
+		return nil, err
+	}
+	colors, err := ParseOrdered(colorsRaw)
+	if err != nil {
+		return nil, err
+	}
+	main := colors.Obj("main")
+	if main == nil {
+		return nil, errors.New("colors.json without main")
+	}
+	for _, theme := range []string{"light", "dark"} {
+		tokens, own := cfg.Obj("tokens").Obj(theme), colors.Obj(theme)
+		if tokens == nil || own == nil {
+			return nil, errors.New("colors.json or ui.json without the " + theme + " theme")
+		}
+		for _, name := range main.Keys() { // by a plain name, each with its token
+			e := main.Obj(name)
+			if e == nil || e.S("token") == "" {
+				return nil, errors.New("colors.json: " + name + " without its token")
+			}
+			tokens.Set(e.S("token"), e.V(theme))
+		}
+		for _, k := range own.Keys() {
+			tokens.Set(k, own.V(k))
+		}
+	}
+	return cfg, nil
 }
 
 type leaf struct {

@@ -15,7 +15,8 @@ The owner's public CV page (https://ravazque.github.io) and a page with a small 
 
 ## What you see
 
-Six pages. Every choice (period, filters, views) lives in the address, so any view can be bookmarked or shared.
+Seven pages in the band, and your holy graph on a page of its own. Every choice (period, filters, views) lives in the
+address, so any view can be bookmarked or shared.
 
 - **Profile**, the home page. Your card (photo, name and login, the title you chose on the intra, coalition, milestone,
   C or Python track, grade, groups such as mentor) with four figures, each with a line: your level and your place among
@@ -26,13 +27,27 @@ Six pages. Every choice (period, filters, views) lives in the address, so any vi
   bonus, the evaluation log, cancelled evaluations, feedback and where evaluations happen to begin with. Add more from
   the picker at the bottom (Activity among them: achievements, events, titles and quests beside your campuses), remove,
   resize and drag them into place, and fold the ones with figures over their charts down to those figures; it is kept
-  in your browser.
+  in your browser. **Your holy graph** opens from the card.
+- **Your holy graph** (from Profile): the C or Python Common Core and the Outer Core as the intra draws them, over the
+  whole window, to drag and zoom: every project in its state (passed in the intra's blue, with a ring when over 100, in
+  progress, failed, open, not yet open, or the other option taken), and a panel per project with your mark, each attempt
+  and the negative flag that failed it, the XP and how the campus did on it. The switch shows the Piscine's graph or the
+  other track's, only to look at.
 - **Projects**: your pace (time in the 42cursus, XP per month, your promo by level), skills, every project and attempt
   in one register with its milestone (0 = Libft … 6, for the C and the Python Common Core; a project done in both
   tracks says which) and filters by status and milestone, projects of other cursus (Discovery, Reload…) apart, CSV
   export, exams, technical domains (each skill by its level on the skills radar's scale, or the intra's RNCP tags with a
   square per validated project and the XP they add up to, with a portfolio to preview or download) and your retries and
   validated projects over time.
+- **42 Madrid**: one page with four tabs, 42 Madrid from a weekly count. *Summary*: last week in six
+  figures (evaluations and per student, projects passed and failed, exams, Outstandings and negative flags, black holes),
+  the twelve weeks before, who is here and where each start year stands today. *Exams*: every exam of the C and Python
+  tracks (signed up, passed, sittings failed, passed the first time, in which sitting, median days, and you) and the
+  Piscine's (your Projects page shows each exam of yours beside 42 Madrid's too). *42cursus*: how far each track gets, every project as a donut (passed, passed with three Outstandings,
+  failed, out of days, unfinished; its tip gives the shares first, then the failed attempts by flag, then how they
+  passed), the Outer Core by groups with a search, why attempts fail (negative flags left of one axis, the rest right
+  of it). *Piscine*: who got in and every day, rush and exam. Every tip says how its figure counts. A figure that
+  covers fewer than 5 people reads "< 5", but a project only 1 to 4 people did shows its figures and who did it.
 - **Evaluations**: what you give back (hours, people, rating, how many ended below 50, Outstanding both ways, by the
   other person's milestone), received and given over time, when they happen (weekday × hour, duration, how far
   ahead they were booked), your feedback (as a student, only the 42cursus counts; Discovery
@@ -60,8 +75,8 @@ Things worth trying:
 - The **period switch**: everything, the 42cursus only, or the C Piscine only.
 - The **star** by every section's title: starred sections gather in the star menu of the band, one click away (a new
   profile starts with five).
-- **Refresh** your data once an hour; the extraction runs in the background with the progress in the band, and when
-  you come back after an hour your browser's copy draws the page at once while a fresh one is fetched.
+- **Refresh** your data once an hour; the extraction runs in the background with the progress in the band. The copy
+  the server keeps draws the page at once when you come back, and one over a day old is refreshed by itself.
 - The **enlarge** button by a chart that shares its row opens it large.
 - **Settings** (the gear): accent (the default 42 blue or your coalition's colour, adjusted for contrast in both
   themes), theme (system, light or dark), period and language.
@@ -103,16 +118,25 @@ a page with the reason. Access is checked again on every refresh.
 
 ## Your data
 
-- **No database.** Your report lives in your browser (IndexedDB). The server keeps a signed copy in memory for one hour
-  after its last use, and accepts the browser's copy back only with its own signature for your account.
+- **No database.** Your report is kept on the server's disk, encrypted (AES-GCM, a key derived from `SESSION_SECRET`,
+  in a file named by a keyed hash), for 7 days after its last use, and in memory for the hour; nothing stays in your
+  browser.
 - Your 42 token is used once to know who you are and then dropped; tokens never reach the browser.
 - About other students the app keeps only login, name, group (milestone, alumni, blackholed…) and whether they are
   staff and, for your evaluations of the last 60 days, the seat the other side used (and how late the students you
   evaluated logged in). Of the feedback you received, only yours.
-- The server writes two files: the consent record (a keyed hash of your 42 id, the policy version and the date, kept for
-  two years) and the visits record for the owner's operations page (your login with your first and last sign-in, gone with
-  *Delete my data* or two years after your last sign-in).
-- *Delete my data* clears the server's copy, cancels a pending refresh and tells your browser to clear its storage.
+- Besides the reports, the server writes the consent record (a keyed hash of your 42 id, the policy version and the
+  date, kept for two years), the visits record for the owner's operations page (your login with your first and last
+  sign-in, gone with *Delete my data* or two years after your last sign-in), the campus count and the holy graph the
+  owner drew.
+- *Delete my data* removes your report (memory and disk), cancels a pending refresh and clears what this browser keeps.
+- **Campus statistics** (42 Madrid, signed-in users only): once a week (Monday, 04:00 Madrid) the server reads the 42cursus
+  students and the C Piscine candidates of 42 Madrid and keeps totals per project, cohort, Piscine and week (the
+  Piscine is read again only when one ends, six weeks later for its admissions, when someone new is left out, and at
+  least every eight weeks); a figure under 5
+  people reads "< 5". For a project only 1 to 4 people signed up for, its exact figures and their logins are kept and
+  shown, so how each did can often be told, as the intra shows it. The site is closed to everyone but the owner while it
+  counts. Students in `OPTOUT_LOGINS` are left out of it.
 - Students who ask to be left out appear as "Hidden N", with no name, photo or seat, in everyone's reports (`OPTOUT_LOGINS`):
   the number only tells people apart within that report, and their login goes from team names and comments too.
 - For your place in Madrid, the server reads every Madrid 42cursus student's level once an hour (only in hours someone
@@ -147,6 +171,7 @@ make dev-logs        # follow dev's logs
                      # every dev level attaches to a dev already up, unless the code, settings or level changed; make dev-down lowers a level
 make dev-down        # stop dev (browsers keep their reports)
 make test            # Go tests, type check and Vitest, the evaluation report's and tools/update.sh's tests
+make holygraph       # rebuild the holy graph's data from the API's project catalog (14 requests)
 make update          # update base images, npm packages and Actions (patch and minor), then make test; every dev level lists what is out of date
 make production      # build and start https://ravazque.info through the Cloudflare tunnel
 make production-down # stop production (the consent log stays in its volume)
@@ -204,7 +229,10 @@ GITHUB_REPO, GITHUB_BRANCH   #   GITHUB_TOKEN and GITHUB_REPO are set)
   hundred recent evaluations): synthetic data moved to
   today's date, never real people, never able to publish or refresh. `make dev-real` adds **Real · login** for the
   logins in `DEV_REAL_LOGINS`, saved in `web/preview/` (local only). A code change needs `make dev-build` again; `make dev-live` shows the
-  browser app's changes at once (`ui.json` and the server still need the rebuild).
+  browser app's changes at once, `ui.json` and `colors.json` too (the server's code still needs the rebuild). Dev also
+  has the owner's holy graph editor (`/app/holygraph/edit`): move, size and shape every project, draw its lines, group the
+  Outer Core; it saves on the server and production takes it from Server stats' import, as it takes a campus count made
+  in dev.
 - **Production** (`make production`, https://ravazque.info) is served through a named
   Cloudflare tunnel (Zero Trust → Networks → Tunnels: a Docker connector whose public hostname points to
   `http://caddy:8080`; its token goes in `TUNNEL_TOKEN`). Dev and production are separate Compose projects and can run
@@ -236,7 +264,9 @@ Each 42 app may make 2 requests per second and 1200 per hour, shared by every us
 
 A full refresh takes about 120 requests and 40 seconds with three apps, and every refresh logs its request count.
 When the hourly budget runs low, the job waits for the next hour. Madrid's levels (your place on Profile) cost about 26
-requests, at most once per hour, shared by everyone, and only in an hour in which someone opens a page.
+requests, at most once per hour, shared by everyone, and only in an hour in which someone opens a page. The weekly campus
+count takes about 1,800 requests for the 42cursus, plus 2 to ask whether a Piscine changed and, only then, about 2,700
+for the Piscine (one and a half to two hours in all), at one request per second per app, leaving 400 an hour for people signing in (60 while the site is closed for it).
 
 ## The public site and its workflow
 
@@ -296,7 +326,11 @@ Fixtures are anonymised or synthetic.
 
 ## Customising
 
-- `server/core/data/ui.json`: colours for both themes, type, spacing, breakpoints and panel layout, served as `/ui.css`.
+- `server/core/data/colors.json`: the site's colours, light and dark. First the ones changed one at a time by a plain
+  name (piscine, common-core, outer-core, alumni, frozen, black-hole, ok, outstanding, fail), each saying who or what it
+  marks, then the rest; VS Code shows a colour picker beside each value (`colors.schema.json`).
+- `server/core/data/ui.json`: the neutral colours, type, spacing, breakpoints and panel layout; with `colors.json`,
+  served as `/ui.css`.
 - `web/src/styles/spacing.css`: every distance and line of each page, section by section, to tune by hand (negative
   values bring things closer).
 - `web/src/styles/zoom.css`: the panel that opens a chart large (width, height, position, padding, the chart's
@@ -305,6 +339,8 @@ Fixtures are anonymised or synthetic.
 - `server/core/data/tracks.json`: which Common Core milestone each project belongs to, for the C and the Python
   tracks. Any other 42cursus project counts as Outer Core.
 - `server/core/data/skills.json` (skill order) and `rncp.json` (the projects behind each RNCP tag).
+- `server/core/data/holygraph.json`: the holy graph's structure, built by `tools/holygraph/build.py` (`make holygraph`);
+  the owner's editor in dev draws over it.
 
 ## License
 

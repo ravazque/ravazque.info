@@ -1487,5 +1487,8 @@ func Analyze(d Raw, period string, now time.Time) *OMap {
 		out.Set("coalition_points", CoalitionPoints(Objs(data, "coalition_scores")))
 		out.Set("logtime_bonus", BonusWindow(Objs(d, "locations"), Objs(d, "coalition_scores"), now)) // about now: never split
 	}
+	if d["piscine_coalition"] != nil { // the Piscine coalition's own points (not split: the Piscine is one period)
+		out.Set("piscine_coalition", M("coalition", d["piscine_coalition"], "points", CoalitionPoints(Objs(d, "piscine_coalition_scores"))))
+	}
 	return out
 }

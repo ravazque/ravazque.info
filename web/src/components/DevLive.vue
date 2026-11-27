@@ -8,6 +8,7 @@ import { computed, ref } from "vue";
 import { api, fmt, state } from "../state";
 import { HOLD } from "../devsim";
 import { replayDrawIn } from "../lib/behave";
+import { MAINT_SIM } from "../maintenance";
 
 const es = computed(() => fmt.value.lang === "es");
 const busy = computed(() => ["queued", "running"].includes(state.status?.state || ""));
@@ -20,9 +21,11 @@ function toggleHold() {
   location.replace(u.href);
 }
 
+// Monday's maintenance notice, as everyone but the owner would see it (until "Leave the simulation" on it)
+function showMaintenance() { sessionStorage.setItem(MAINT_SIM, "1"); location.reload(); }
+
 async function goLive() {
   await api("/dev/live", { method: "POST" });
-  localStorage.removeItem(`copy:${state.session!.user!.login}`); // the copy's age unknown: it counts as old, so the refresh follows
   location.reload();
 }
 </script>
@@ -32,5 +35,9 @@ async function goLive() {
     <button class="btn secondary" type="button" :disabled="busy" @click="goLive">{{ es ? "Probar: tras una hora" : "Test: back after an hour" }}</button>
     <button class="btn secondary" type="button" :aria-pressed="holding" @click="toggleHold">{{ holding ? (es ? "Quitar pantalla de carga" : "Hide loading screen") : (es ? "Ver pantalla de carga" : "Show loading screen") }}</button>
     <button class="btn secondary" type="button" @click="replayDrawIn">{{ es ? "Repetir animaciones" : "Replay animations" }}</button>
+    <button class="btn secondary" type="button" @click="showMaintenance">{{ es ? "Ver cartel de mantenimiento" : "Show maintenance notice" }}</button>
+    <a class="btn secondary" href="/app/holygraph/edit">{{ es ? "Editar el holy graph" : "Edit the holy graph" }}</a>
+    <a class="btn secondary" href="/app/publish?preview=1">{{ es ? "Ver confirmación de publicar" : "Show the publish page" }}</a>
+    <a class="btn secondary" href="/app/delete?preview=1">{{ es ? "Ver confirmación de borrar" : "Show the delete page" }}</a>
   </div>
 </template>

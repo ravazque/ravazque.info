@@ -13,8 +13,8 @@ import (
 // years after their last sign-in. It names nobody and survives "Delete my data". Written to disk (CONSENT_LOG, one JSON
 // line per acceptance, pruned at start-up), as is the visitors list (visitors.go) since v5.
 const (
-	ConsentVersion = 5 // v5: the visitors list (login, first and last sign-in) for the owner's Server stats
-	ConsentUpdated = "2026-11-23"
+	ConsentVersion = 9 // v9: campus figures per week; the C Piscine read again only when it may have changed; v8: such a project keeps its exact figures too (how each did can be told); v7: a campus project fewer than 5 people did names them by login; v6: reports on the server's disk, encrypted, 7 days; campus statistics
+	ConsentUpdated = "2026-11-26"
 	consentKeep    = 2 * 365 * 24 * time.Hour
 )
 

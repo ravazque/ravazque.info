@@ -1,5 +1,6 @@
 {
- "_notes": "Projects of the 42 Madrid Fundación Telefónica Common Core by rank (circle), by API slug: the C track and the Python track (42Next, slugs 42next-*, python-module-*), which share cursus 21 and the rank quests. Any other 42cursus project counts as Outer Core; C Piscine projects (cursus 9) are Piscine. Move or add slugs if 42 changes the curriculum.",
+ "_notes": "Projects of the 42 Madrid Fundación Telefónica Common Core by rank (circle), by API slug: the C track and the Python track (42Next, slugs 42next-*, python-module-*), which share cursus 21 and the rank quests; python lists the Python track slugs. Any other 42cursus project counts as Outer Core; C Piscine projects (cursus 9) are Piscine. Move or add slugs if 42 changes the curriculum.",
+ "python": ["42next-push_swap", "42next-born2beroot", "python-module-00", "python-module-01", "python-module-02", "python-module-03", "python-module-04", "python-module-05", "python-module-06", "python-module-07", "python-module-08", "python-module-09", "python-module-10", "python-module-05-bis", "python-module-06-bis", "a-maze-ing", "42next-exam-rank-02", "call-me-maybe", "codexion", "fly-in", "42next-exam-rank-03", "pac-man", "rag-against-the-machine", "42next-exam-rank-04", "agent-smith", "tree_nity", "the-answer-protocol", "42next-exam-rank-05", "42next-exam-rank-06"],
  "common_core": {
   "rank-00": [
    "42cursus-libft",

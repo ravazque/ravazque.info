@@ -50,9 +50,11 @@ function placeTip(el: HTMLElement, x: number | null = null) {
   if (!tip || (tipFor === el && tip.style.display === "block")) return;
   const text = el.dataset.tip || "";
   // one fact per line, the first one as its heading: tips with their own breaks keep them, others split at " · "; a
-  // line "---" is a rule (between what a tip says and the list under it)
+  // line "---" is a rule (between what a tip says and the list under it), one starting "# " names the section under it
   const lines = (text.includes("\n") ? text.split("\n") : text.split(" · ")).map((l) => l.trim()).filter(Boolean);
-  tip.replaceChildren(...lines.map((l, i) => (l === "---" ? document.createElement("hr") : Object.assign(document.createElement(i ? "span" : "b"), { textContent: l }))));
+  tip.replaceChildren(...lines.map((l, i) => (l === "---" ? document.createElement("hr")
+    : l.startsWith("# ") ? Object.assign(document.createElement("b"), { className: "tip-sec", textContent: l.slice(2) })
+    : Object.assign(document.createElement(i ? "span" : "b"), { textContent: l }))));
   tip.style.display = "block";
   tipFor = el;
   tip.style.left = tip.style.top = "0px";

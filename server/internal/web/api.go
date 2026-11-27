@@ -200,32 +200,12 @@ func (s *Server) madridLevels() []float64 {
 	return levels
 }
 
-// reportCopy is the stored report for the browser to keep, with the signature it must show to hand it back.
-func (s *Server) reportCopy(w http.ResponseWriter, r *http.Request, si signedIn) {
-	if _, ok := s.load(w, si); !ok { // the same opted-out students hidden as on the pages
-		return
+// stored is a freshly extracted report as it is kept: the opted-out students already hidden, so they never reach the disk.
+func (s *Server) stored(raw []byte) []byte {
+	if h := s.hidden(raw); h != nil {
+		return h
 	}
-	raw := s.Store.LoadRaw(si.u.ID)
-	if hidden := s.hidden(raw); hidden != nil {
-		raw = hidden
-		s.Store.SaveRaw(si.u.ID, raw) // the server's copy and the browser's are the same bytes from now on
-	}
-	w.Header().Set("X-Report-Sig", s.Store.Sign(si.u.ID, raw))
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Cache-Control", "no-store")
-	w.Write(raw)
-}
-
-// reportBack takes the browser's copy back: only the exact bytes this server signed for this user.
-func (s *Server) reportBack(w http.ResponseWriter, r *http.Request, si signedIn) {
-	raw, err := io.ReadAll(io.LimitReader(r.Body, maxReport+1))
-	sig := r.Header.Get("X-Report-Sig")
-	if err != nil || len(raw) == 0 || len(raw) > maxReport || !s.Store.Verify(si.u.ID, raw, sig) {
-		writeJSON(w, 400, errBody("signature"))
-		return
-	}
-	s.Store.SaveRaw(si.u.ID, raw)
-	w.WriteHeader(http.StatusNoContent)
+	return raw
 }
 
 // imageTypes: what a photo may be served as from this origin; anything else goes out as a JPEG.

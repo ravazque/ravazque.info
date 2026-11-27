@@ -46,7 +46,7 @@ The details cover Milestone 6 (but its exam), Outer Core and the Common Core pro
 comes from `server/core/data/tracks.json`, as in the web app.
 
 Every table fits the window from 320 px up: wide tables stack into labelled rows instead of scrolling sideways. The page
-follows the system's light or dark theme, takes its colours from `server/core/data/ui.json` and prints on A4 landscape.
+follows the system's light or dark theme, takes its colours from `server/core/data/ui.json` and `colors.json` and prints on A4 landscape.
 Its text is in Spanish only for now.
 
 ## How to read the data

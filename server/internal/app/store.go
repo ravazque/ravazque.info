@@ -2,20 +2,26 @@ package app
 
 import (
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"ravazque.info/server/core"
 	"strconv"
-	"strings"
 	"time"
 )
 
-// Store keeps per user in memory: a copy of the analysed report, the extraction status and the refresh cooldown.
+// Store keeps per user: the analysed report (memory for the hour, encrypted on disk for a week from the last use), the
+// extraction status and the refresh cooldown.
 type Store struct {
 	m        *Memory
 	settings Settings
@@ -53,54 +59,127 @@ func (s *Store) DigestString(v string) string {
 func (s *Store) cooldownKey(uid int) string { return "cooldown:" + s.Digest(uid) }
 func (s *Store) deletedKey(uid int) string  { return "deleted:" + s.Digest(uid) }
 
-// copyLife: how long a browser's copy can be handed back; after that a fresh extraction is needed.
-const copyLife = 30 * 24 * time.Hour
+// reportLife: how long an analysed report stays on disk after its last use (owner, 2026-11-25: 7 days, no copy in the
+// browser); every use starts it again.
+const reportLife = 7 * 24 * time.Hour
 
-func (s *Store) mac(uid int, iat int64, raw []byte) string {
-	sum := sha256.Sum256(raw)
+// touchEvery: a use renews the file's date at most this often (a status poll every few seconds must not write).
+const touchEvery = time.Hour
+
+func (s *Store) reportPath(uid int) string {
+	if s.settings.ReportsDir == "" {
+		return ""
+	}
+	return filepath.Join(s.settings.ReportsDir, s.Digest(uid)+".bin")
+}
+
+// sealer is AES-256-GCM keyed from SESSION_SECRET (changing it also changes every digest: the files are lost either way).
+func (s *Store) sealer() cipher.AEAD {
 	mac := hmac.New(sha256.New, []byte(s.settings.SessionSecret))
-	mac.Write(append([]byte(fmt.Sprintf("report:%d:%d:", uid, iat)), sum[:]...))
-	return hex.EncodeToString(mac.Sum(nil))
+	mac.Write([]byte("reports-key"))
+	block, _ := aes.NewCipher(mac.Sum(nil))
+	gcm, _ := cipher.NewGCM(block)
+	return gcm
 }
 
-// Sign ties a report's exact bytes to one user and the moment it was handed out ("<unix>.<hmac>"): only this server,
-// for this user, can produce it.
-func (s *Store) Sign(uid int, raw []byte) string {
-	iat := s.now().Unix()
-	return strconv.FormatInt(iat, 10) + "." + s.mac(uid, iat, raw)
+// writeReport puts [extracted at, report] on disk encrypted, through a temp file; the file's date is its last use.
+func (s *Store) writeReport(uid int, raw []byte, at time.Time) {
+	p := s.reportPath(uid)
+	if p == "" {
+		return
+	}
+	plain := binary.BigEndian.AppendUint64(nil, uint64(at.Unix()))
+	gcm, nonce := s.sealer(), make([]byte, 12)
+	rand.Read(nonce)
+	sealed := gcm.Seal(nonce, nonce, append(plain, raw...), []byte(s.Digest(uid)))
+	tmp := p + ".tmp"
+	if err := os.WriteFile(tmp, sealed, 0o600); err != nil || os.Rename(tmp, p) != nil {
+		slog.Warn("report not written to disk")
+		os.Remove(tmp)
+		return
+	}
+	os.Chtimes(p, s.now(), s.now())
 }
 
-// Verify accepts a copy signed for this user, less than copyLife ago and not before their last "Delete my data".
-func (s *Store) Verify(uid int, raw []byte, sig string) bool {
-	at, mac, ok := strings.Cut(sig, ".")
-	iat, err := strconv.ParseInt(at, 10, 64)
-	if !ok || err != nil || !hmac.Equal([]byte(mac), []byte(s.mac(uid, iat, raw))) {
-		return false
+// readReport is the report on disk and when it was extracted; a file past its life, unreadable or tampered with goes.
+func (s *Store) readReport(uid int) ([]byte, time.Time, bool) {
+	p := s.reportPath(uid)
+	if p == "" {
+		return nil, time.Time{}, false
 	}
-	issued := time.Unix(iat, 0)
-	if s.now().Sub(issued) > copyLife || issued.After(s.now().Add(time.Minute)) {
-		return false
+	fi, err := os.Stat(p)
+	if err != nil {
+		return nil, time.Time{}, false
 	}
-	if v, ok := s.m.Get("epoch:" + s.Digest(uid)); ok {
-		if gone, _ := strconv.ParseInt(string(v), 10, 64); iat <= gone {
-			return false
+	if s.now().Sub(fi.ModTime()) > reportLife {
+		os.Remove(p)
+		return nil, time.Time{}, false
+	}
+	b, err := os.ReadFile(p)
+	gcm := s.sealer()
+	if err != nil || len(b) < gcm.NonceSize() {
+		os.Remove(p)
+		return nil, time.Time{}, false
+	}
+	plain, err := gcm.Open(nil, b[:gcm.NonceSize()], b[gcm.NonceSize():], []byte(s.Digest(uid)))
+	if err != nil || len(plain) < 8 {
+		os.Remove(p)
+		return nil, time.Time{}, false
+	}
+	os.Chtimes(p, s.now(), s.now())
+	return plain[8:], time.Unix(int64(binary.BigEndian.Uint64(plain[:8])), 0), true
+}
+
+// touchReport renews the file's life on a use served from memory.
+func (s *Store) touchReport(uid int) {
+	p := s.reportPath(uid)
+	if p == "" {
+		return
+	}
+	if fi, err := os.Stat(p); err == nil && s.now().Sub(fi.ModTime()) > touchEvery {
+		os.Chtimes(p, s.now(), s.now())
+	}
+}
+
+// SweepReports removes the files nobody used for reportLife.
+func (s *Store) SweepReports() {
+	if s.settings.ReportsDir == "" {
+		return
+	}
+	entries, _ := os.ReadDir(s.settings.ReportsDir)
+	for _, e := range entries {
+		if fi, err := e.Info(); err == nil && s.now().Sub(fi.ModTime()) > reportLife {
+			os.Remove(filepath.Join(s.settings.ReportsDir, e.Name()))
 		}
 	}
-	return true
 }
 
 func (s *Store) cache() time.Duration { return time.Duration(s.settings.CacheS) * time.Second }
 
-func (s *Store) SaveRaw(uid int, raw []byte) { s.m.Set(dataKey(uid), raw, s.cache(), false) }
+// SaveRaw keeps a freshly extracted report: in memory for the hour, on disk for reportLife.
+func (s *Store) SaveRaw(uid int, raw []byte) {
+	s.m.Set(dataKey(uid), raw, s.cache(), false)
+	s.writeReport(uid, raw, s.now())
+}
 
-// LoadRaw is the stored report, renewed for another hour on every use; nil when there is none.
+// LoadRaw is the stored report, renewed on every use (memory for another hour, disk for reportLife); after a restart
+// or an hour unused it comes back from disk with its status; nil when there is none.
 func (s *Store) LoadRaw(uid int) []byte {
 	raw, ok := s.m.Get(dataKey(uid))
 	if !ok {
-		return nil
+		var at time.Time
+		if raw, at, ok = s.readReport(uid); !ok {
+			return nil
+		}
+		s.m.Set(dataKey(uid), raw, s.cache(), false)
+		if s.Status(uid).State == "none" {
+			s.SetStatus(uid, Status{State: "done", Progress: 1, Last: at.UTC().Format(time.RFC3339)})
+		}
+		return raw
 	}
 	s.m.Expire(dataKey(uid), s.cache())
 	s.m.Expire(statusKey(uid), s.cache())
+	s.touchReport(uid)
 	return raw
 }
 
@@ -152,11 +231,16 @@ func (s *Store) Unlock(uid int) { s.m.Delete(lockKey(uid)) }
 func (s *Store) DeleteUser(uid int) {
 	s.m.Delete(dataKey(uid), statusKey(uid), lockKey(uid), "avatar:"+s.Digest(uid))
 	s.m.Set(s.deletedKey(uid), []byte("1"), 15*time.Minute, false)
-	// copies handed out before now are refused from here on (keyed by the HMAC: it names nobody)
-	s.m.Set("epoch:"+s.Digest(uid), []byte(strconv.FormatInt(s.now().Unix(), 10)), copyLife, false)
+	s.removeReport(uid)
 }
 
-func (s *Store) DropReport(uid int)   { s.m.Delete(dataKey(uid)) }
+func (s *Store) removeReport(uid int) {
+	if p := s.reportPath(uid); p != "" {
+		os.Remove(p)
+	}
+}
+
+func (s *Store) DropReport(uid int)   { s.m.Delete(dataKey(uid)); s.removeReport(uid) }
 func (s *Store) Deleted(uid int) bool { return s.m.Exists(s.deletedKey(uid)) }
 func (s *Store) ForgetStatus(uid int) { s.m.Delete(statusKey(uid)) }
 

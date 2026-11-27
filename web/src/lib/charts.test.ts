@@ -152,3 +152,9 @@ test("a bar chart's labels are counted back from the last, which always shows, n
     expect(spans.at(-1)![1]).toBeUndefined();
   }
 });
+
+test("a colour means one thing everywhere: green is OK or passed (deep green Outstanding), so in progress is a grey", async () => {
+  const { GOOD, NEUTRAL, OUTSTANDING } = await import("./charts");
+  expect([GOOD, OUTSTANDING]).toEqual(["var(--ok)", "var(--ok-deep)"]);
+  expect(NEUTRAL).not.toMatch(/--ok/);
+});

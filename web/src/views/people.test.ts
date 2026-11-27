@@ -128,3 +128,17 @@ test("Connections: Corrected me | I corrected | Both by the title on larger scre
   expect(html).toMatch(/<\/h2><div class="seg wide-only"[^>]*>/);
   expect(html).toMatch(/data-panel="connections"><div class="seg under-title"/);
 });
+
+test("who evaluated you: OK in light green, Outstandings in deep green, negative flags in red only when there are any, as every flag on the site", () => {
+  const pg = (received: any[]) => new Page(new Fmt("en"), { period: "student", network: {}, all_projects: [], connections: [],
+    report: { profile: { login: "me" }, extras: { cursus: [], quests: [] }, summary: { unique_correctors: 1, mutual: 0 }, given: [], received, insights: {},
+      people: [{ login: "peer01", evaluated_me: 4, outstanding_to_me: 1, evaluated_by_me: 0, teammate: 0, projects_on_me: {} }] } } as any, "people", {});
+  const block = (received: any[]) => /<div class="block" data-panel="correctors">[\s\S]*?<\/div><\/div>/.exec(people(pg(received)).find((s) => s.id === "who")!.html)![0];
+  const clean = block([]), flagged = block([{ corrector: { login: "peer01" }, negative_flag: true, mark: 0 }]);
+  expect(clean).not.toContain("--accent");
+  expect(clean).toContain("var(--ok)");
+  expect(clean).toContain("var(--ok-deep)");
+  expect(clean).not.toContain("var(--critical)");
+  expect(flagged).toContain("var(--critical)");
+  expect(flagged).toMatch(/<\/i>Ok</); // the rest named for what it is, OK
+});

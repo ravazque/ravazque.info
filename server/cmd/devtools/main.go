@@ -403,6 +403,10 @@ func main() {
 			usage()
 		}
 		err = fetch(os.Args[2], os.Args[3])
+	case "campus":
+		err = campus(os.Args[2])
+	case "catalog":
+		err = catalog(os.Args[2])
 	case "snapshot":
 		if len(os.Args) != 4 {
 			usage()
@@ -418,7 +422,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: devtools profiles DIR | real DIR | fetch UID OUT | snapshot IN OUT")
+	fmt.Fprintln(os.Stderr, "usage: devtools profiles DIR | real DIR | fetch UID OUT | campus OUT | catalog OUT | snapshot IN OUT")
 	os.Exit(2)
 }
 
@@ -528,6 +532,80 @@ func client42() (*api42.Client, error) {
 		keys[i] = api42.App{UID: a.UID, Secret: a.Secret}
 	}
 	return api42.New(keys, "", app.NewLimiter(len(apps), time.Now, nil), nil), nil
+}
+
+// campus runs the campus count (as the server does every week: totals only, same pace and reserve) and writes it to
+// out, where make dev serves it from (CAMPUS_STATS). ~1,770 requests (2026-11-25).
+func campus(out string) error {
+	apps := app.SettingsFromEnv().Apps()
+	if apps[0].UID == "" {
+		return fmt.Errorf("FT_UID and FT_SECRET are not set (the root .env)")
+	}
+	keys := make([]api42.App, len(apps))
+	for i, a := range apps {
+		keys[i] = api42.App{UID: a.UID, Secret: a.Secret}
+	}
+	lim := app.NewLimiter(len(apps), time.Now, nil)
+	c := api42.New(keys, "", lim, nil)
+	started := time.Now()
+	count := core.NewCampusCount(app.SettingsFromEnv().OptoutLogins, started)
+	tick := time.NewTicker(time.Second / time.Duration(len(apps)))
+	defer tick.Stop()
+	n := 0
+	gate := func(ctx context.Context) error {
+		for !lim.Spare(400) {
+			fmt.Fprintln(os.Stderr, "campus: every app under 400 requests left this hour, waiting")
+			time.Sleep(time.Until(time.Now().Truncate(time.Hour).Add(time.Hour)))
+		}
+		<-tick.C
+		n++
+		if n%100 == 0 {
+			fmt.Fprintf(os.Stderr, "campus: %d requests, %ds\n", n, int(time.Since(started).Seconds()))
+		}
+		return ctx.Err()
+	}
+	if err := api42.Campus(context.Background(), c, count, len(apps), gate); err != nil {
+		return err
+	}
+	res := count.Result()
+	piscine := core.NewPiscineCount(app.SettingsFromEnv().OptoutLogins, started)
+	if err := api42.Piscine(context.Background(), c, piscine, len(apps), gate); err != nil {
+		return err
+	}
+	res["piscine"] = piscine.Result(count.Admitted())
+	res["generated_at"], res["requests"], res["seconds"] = started.UTC().Format(time.RFC3339), n, int(time.Since(started).Seconds())
+	b, err := json.Marshal(res)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(os.Stderr, "campus: done, %d requests, %ds\n", n, int(time.Since(started).Seconds()))
+	if err := os.WriteFile(out+".tmp", b, 0o600); err != nil {
+		return err
+	}
+	return os.Rename(out+".tmp", out)
+}
+
+// catalog writes the raw project catalog tools/holygraph/build.py reads: the 42cursus and C Piscine projects and 42 Madrid's
+// sessions of both (their XP, hours and inscription rules). 14 requests (2026-11-25).
+func catalog(out string) error {
+	c, err := client42()
+	if err != nil {
+		return err
+	}
+	ctx, raw := context.Background(), map[string][]any{}
+	for _, cur := range []string{"21", "9"} {
+		if raw["projects_"+cur], err = c.GetAll(ctx, "/v2/cursus/"+cur+"/projects", nil); err != nil {
+			return err
+		}
+		if raw["sessions_"+cur], err = c.GetAll(ctx, "/v2/project_sessions", url.Values{"filter[campus_id]": {"22"}, "filter[cursus_id]": {cur}}); err != nil {
+			return err
+		}
+	}
+	b, err := json.Marshal(raw)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(out, b, 0o600)
 }
 
 func fetch(uidArg, out string) error {

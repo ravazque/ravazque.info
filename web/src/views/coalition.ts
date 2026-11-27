@@ -59,9 +59,31 @@ export function tigSplit(P: any): { sources: any[]; months: any[] } {
   return { sources: [...sources, { key: "tigs", points: sum, count: tigs.length }], months };
 }
 
+/** Which coalition the page shows (owner, 2026-11-25): the Piscine's only for whoever had one (Madrid's since July 2025);
+ * the chosen period decides, and with "all" the page's own switch does. */
+export function coalitionMode(chosenPeriod: string, hasPiscine: boolean, own: string): "student" | "piscine" {
+  if (!hasPiscine) return "student";
+  return chosenPeriod === "piscine" ? "piscine" : chosenPeriod === "student" ? "student" : own === "piscine" ? "piscine" : "student";
+}
+
+/** Your Piscine coalition: 42 keeps its name and your last place, not its points once the Piscine is over. */
+function piscineCoalition(pg: Page, switcher: string): Section[] {
+  const f = pg.f, P = pg.D.piscine_coalition, c = P.coalition || {}, pts = P.points || {};
+  const facts = `<dl class="facts">${[[f.t("coal.p_name"), `<i class="coal-dot" style="background:${safeColor(c.color)}"></i>${esc(c.name || "–")}`],
+    [f.t("coal.p_rank"), c.rank ? esc(f.t("coal.p_rank_v", { n: f.num(c.rank) })) : "–"],
+    [f.t("coal.p_points"), pts.count ? esc(f.num(pts.total)) : esc(f.t("coal.p_none"))]].map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join("")}</dl>`;
+  return [{ id: "piscine-coalition", nav: f.t("coal.p_title"), html: section("piscine-coalition", f.t("coal.p_title"),
+    `${facts}<p class="note">${esc(f.t("coal.p_note"))}</p>`, { head: switcher.replace(/#standing"/g, '#piscine-coalition"') }) }];
+}
+
 export function coalition(pg: Page): Section[] {
   const f = pg.f, D = pg.D, dv = pg.v.derive || {};
   const out: Section[] = [];
+  const hasPiscine = !!D.piscine_coalition, chosen = pg.params.period || pg.v.default_period || "all";
+  const mode = coalitionMode(chosen, hasPiscine, pg.q("coal", "student", ["student", "piscine"]));
+  const switcher = hasPiscine && chosen !== "piscine" && chosen !== "student"
+    ? pg.seg("coal", [["student", f.t("period.student")], ["piscine", f.t("period.piscine")]], mode, f.t("coal.mode_label"), "standing") : "";
+  if (mode === "piscine") return piscineCoalition(pg, switcher);
 
   const C = pg.v.coalitions || [];
   const recent = allPoints(pg);
@@ -83,7 +105,7 @@ export function coalition(pg: Page): Section[] {
     out.push({ id: "standing", nav: f.t("nav.standing"), html: section("standing", f.t("standing.title"), cols(
       C.length ? block("coalitions", `<ol class="standings${banners ? " banners" : ""}">${coal}</ol>`, f.t("standing.coalitions")) : "",
       recent ? `<div class="block recent" data-panel="coal-recent"><h3>${esc(f.t("standing.recent"))}</h3>`
-        + `<ol class="list" tabindex="0" aria-label="${esc(f.t("standing.recent"))}">${recent}</ol></div>` : "")) });
+        + `<ol class="list" tabindex="0" aria-label="${esc(f.t("standing.recent"))}">${recent}</ol></div>` : ""), { head: switcher }) });
   }
 
   // the logtime bonus in detail (inferred rule) and every bonus given so far

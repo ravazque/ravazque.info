@@ -90,3 +90,12 @@ test("points per month by source come from the awards, TIGs apart, the months wi
   expect(got).toEqual({ evaluations: [250, 0, 500], exams: [2000, 0, 0], tigs: [0, 0, -2100] });
   expect(monthsBySource({ recent: awards }, ["2026-01"])).toBeNull(); // a report saved before every award was kept
 });
+
+test("the Piscine coalition only for whoever had one: the chosen period decides, with All the page's own switch", async () => {
+  const { coalitionMode } = await import("./coalition");
+  expect(coalitionMode("piscine", false, "piscine")).toBe("student");
+  expect(coalitionMode("piscine", true, "student")).toBe("piscine");
+  expect(coalitionMode("student", true, "piscine")).toBe("student");
+  expect(coalitionMode("all", true, "piscine")).toBe("piscine");
+  expect(coalitionMode("all", true, "student")).toBe("student");
+});

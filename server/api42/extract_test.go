@@ -149,3 +149,39 @@ func TestRefusedContactIsSkipped(t *testing.T) {
 		t.Fatal("no contact was refused")
 	}
 }
+
+// A student who had a Piscine coalition (Madrid's since July 2025) keeps its points apart from the 42cursus coalition's:
+// the report gets piscine_coalition (the coalition and its points), the main coalition's figures stay as they were.
+func TestExtractKeepsThePiscineCoalitionApart(t *testing.T) {
+	d := readJSON(t, "../core/testdata/api/mid.json")
+	main := core.Objs(d, "coalitions_users")[0]
+	d["coalitions"] = append(d["coalitions"].([]any), map[string]any{"id": 9101.0, "name": "Corvus", "slug": "42madrid-corvus", "color": "#4A6FA5"})
+	d["coalitions_users"] = append(d["coalitions_users"].([]any), map[string]any{"id": 9201.0, "coalition_id": 9101.0, "user_id": main["user_id"], "score": 1234.0, "rank": 7.0})
+	d["scores_by_coalitions_user"] = map[string]any{"9201": []any{
+		map[string]any{"value": 30.0, "scoreable_type": "ScaleTeam", "scoreable_id": 1.0, "calculation_id": 1.0, "created_at": "2025-07-10T10:00:00.000Z"},
+		map[string]any{"value": 12.0, "scoreable_type": "ProjectsUser", "scoreable_id": 2.0, "calculation_id": 2.0, "created_at": "2025-07-20T10:00:00.000Z"},
+	}}
+	c, _ := newTestClient(t, fake42.Handler(d, func(p string) { t.Errorf("unexpected request %s", p) }))
+	report, err := Extract(context.Background(), c, int(d["user"].(map[string]any)["id"].(float64)), func(float64) {}, func() time.Time { return goldenNow })
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, _ := json.Marshal(report)
+	var out struct {
+		Periods map[string]struct {
+			Piscine *struct {
+				Coalition map[string]any `json:"coalition"`
+				Points    map[string]any `json:"points"`
+			} `json:"piscine_coalition"`
+			Points map[string]any `json:"coalition_points"`
+		} `json:"periods"`
+	}
+	json.Unmarshal(raw, &out)
+	all := out.Periods["all"]
+	if all.Piscine == nil || all.Piscine.Coalition["name"] != "Corvus" || all.Piscine.Coalition["rank"] != 7.0 || all.Piscine.Points["total"] != 42.0 {
+		t.Fatalf("piscine coalition %+v", all.Piscine)
+	}
+	if all.Points["total"] == 42.0 {
+		t.Fatal("the Piscine's points were added to the 42cursus coalition's")
+	}
+}

@@ -22,6 +22,10 @@ const (
 
 func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 	// the landing's box is the consent: a link from another site can't tick it
+	if s.maint.Load() != nil { // Monday's count: nobody signs in until it ends
+		http.Redirect(w, r, "/?maintenance=1", http.StatusSeeOther)
+		return
+	}
 	if r.URL.Query().Get("accept") != "1" || r.Header.Get("Sec-Fetch-Site") == "cross-site" {
 		http.Redirect(w, r, "/?error=consent", http.StatusSeeOther)
 		return
@@ -103,6 +107,9 @@ func (s *Server) logout(w http.ResponseWriter, r *http.Request, si signedIn) {
 func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 	out := map[string]any{"contact_email": s.S.ContactEmail, "issues_url": s.S.IssuesURL, "controller": s.S.ControllerName,
 		"consent_version": app.ConsentVersion, "consent_updated": app.ConsentUpdated, "dev": s.S.DevProfiles != "", "user": nil}
+	if until := s.maint.Load(); until != nil {
+		out["maintenance"] = map[string]string{"until": until.UTC().Format(time.RFC3339)}
+	}
 	var dev []map[string]any
 	for _, login := range s.devOrder {
 		d := s.devLogins[login]

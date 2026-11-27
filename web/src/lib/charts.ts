@@ -4,7 +4,9 @@ import type { Fmt } from "../fmt";
 import { esc, pct, tipAttr } from "./h";
 
 export const S1 = "var(--accent-data)", S2 = "var(--slate)";
-export const GOOD = "var(--good)", BAD = "var(--critical)", NEUTRAL = "var(--neutral)";
+// outcomes never follow the theme (owner, 2026-11-25): passed in 42 blue, Outstanding a deeper one, failed red, in progress a pale
+// passed; the theme only paints series that only count (S1)
+export const GOOD = "var(--ok)", BAD = "var(--critical)", NEUTRAL = "color-mix(in oklab, var(--control) 45%, var(--ground))" /* in progress: a grey, green is only OK and passed */, OUTSTANDING = "var(--ok-deep)";
 
 export type Series = [name: string, values: (number | null)[], colour: string];
 export type Point = { x: number; y: number };

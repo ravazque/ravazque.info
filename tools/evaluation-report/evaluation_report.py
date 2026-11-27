@@ -318,8 +318,12 @@ def section(id_, title, intro, body):
 
 
 def palette():
-    """The site's colours (ui.json) for both themes; dark never prints."""
+    """The site's colours (ui.json, with the main ones the owner keeps in colors.json) for both themes; dark never prints."""
     tokens = json.loads((REPO / "server/core/data/ui.json").read_text())["tokens"]
+    colors = json.loads((REPO / "server/core/data/colors.json").read_text())
+    for theme in ("light", "dark"):
+        tokens[theme].update({e["token"]: e[theme] for e in colors["main"].values()})
+        tokens[theme].update(colors[theme])
     names = "ground sunken ink text-2 muted rule accent on-accent accent-data slate good critical neutral".split()
     theme = lambda t: ";".join(f"--{name}:{t[name]}" for name in names)
     return f":root{{{theme(tokens['light'])}}}@media screen and (prefers-color-scheme:dark){{:root{{{theme(tokens['dark'])}}}}}"

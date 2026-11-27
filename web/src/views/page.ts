@@ -13,14 +13,17 @@ export type View = {
   madrid?: { size: number; rank: number; top: number } | null; // your place by level in Madrid, live (the server's, hourly)
 };
 
-export const PAGES = ["home", "projects", "evaluations", "coalition", "people", "campus"] as const;
-export type PageKey = (typeof PAGES)[number];
+// the band: your pages, then 42 Madrid as the weekly campus count sees it, one page with its tabs (owner, 2026-11-26)
+export const PAGES = ["home", "projects", "evaluations", "coalition", "people", "campus", "holygraph", "madrid"] as const; // the Holy graph: the whole window
+export const CAMPUS_TABS = ["madrid", "exams", "cc", "piscine"] as const;
+export type PageKey = (typeof PAGES)[number] | (typeof CAMPUS_TABS)[number];
+export const onCampus = (k: PageKey | undefined) => (CAMPUS_TABS as readonly string[]).includes(k || "");
 /** The period a page is drawn for: Coalition always shows the student one (coalitions begin with the 42cursus); the
  * chosen one stays in the address for the other pages. */
 export const pagePeriod = (key: PageKey, chosen: string) => (key === "coalition" ? "student" : chosen);
 export const PATHS: Record<PageKey, string> = {
-  home: "/app", projects: "/app/projects", evaluations: "/app/evaluations", people: "/app/people", campus: "/app/campus",
-  coalition: "/app/coalition",
+  home: "/app", projects: "/app/projects", holygraph: "/app/holygraph", evaluations: "/app/evaluations", people: "/app/people", campus: "/app/campus",
+  coalition: "/app/coalition", madrid: "/app/madrid", exams: "/app/madrid/exams", cc: "/app/madrid/42cursus", piscine: "/app/madrid/piscine",
 };
 export const KINDS = ["nice", "rigorous", "interested", "punctuality"];
 
@@ -173,7 +176,7 @@ export function noMark(f: Fmt, e: any) {
 export function flagBadge(f: Fmt, e: any) {
   if (e.outstanding) return badge(f.t("flag.outstanding"), "out");
   if (e.negative_flag) return badge(e.flag || "", "bad");
-  return e.flag ? badge(e.flag) : "";
+  return e.flag ? badge(e.flag, "ok") : ""; // OK (or any other flag that is not negative) in green
 }
 
 /** The negative flags of some evaluations by month (YYYY-MM), each named with how many times, most first. */
@@ -188,6 +191,8 @@ export function negativeFlags(evs: any[]): Map<string, string> {
   return new Map([...by].map(([m, c]) => [m, [...c].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([n, k]) => (k > 1 ? `${n} ×${k}` : n)).join(", ")]));
 }
 
+/** A mark's colour (owner, 2026-11-25): red for a negative flag, a 0 or anything under 80; the counts keep `failed`. */
+export const redMark = (e: any) => !!(e.negative_flag || e.negative) || (e.mark !== null && e.mark !== undefined && e.mark < 80);
 export const failed = (e: any) => e.negative_flag || (e.mark !== null && e.mark !== undefined && e.mark < 50);
 
 export function myRank(extras: any): string | null {

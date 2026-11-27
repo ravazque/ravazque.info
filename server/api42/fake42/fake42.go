@@ -83,6 +83,11 @@ func Handler(d map[string]any, miss func(path string)) http.HandlerFunc {
 			v = d["blocs"]
 		case scores.MatchString(p):
 			v = d["coalition_scores"]
+			if by, ok := d["scores_by_coalitions_user"].(map[string]any); ok { // a test's Piscine coalition has points of its own
+				if own, ok := by[strings.Split(p, "/")[3]]; ok {
+					v = own
+				}
+			}
 		case p == "/v2/locations" && d["peer_locations"] != nil: // the profile sets its peers' sessions itself
 			span, want := strings.Split(q.Get("range[begin_at]"), ","), ids(q.Get("filter[user_id]"))
 			out := []any{}

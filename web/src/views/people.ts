@@ -1,6 +1,6 @@
 // People: who evaluated you, everyone you met (or only your teammates), your connections and your circle.
-import { GOOD, S1, hbars, legend } from "../lib/charts";
-import { GROUPS, bubbles, netClass, ring } from "../lib/graphs";
+import { BAD, GOOD, OUTSTANDING, hbars, legend } from "../lib/charts";
+import { GROUPS, bubbles, groupDot, netClass, ring } from "../lib/graphs";
 import { avatar, esc } from "../lib/h";
 import { table } from "../lib/table";
 import { Page, Section, cols, deletedName, filters, info, myRank, search, section, erased, shownLogin } from "./page";
@@ -88,10 +88,16 @@ export function people(pg: Page): Section[] {
   const tip = (p: any) => [isOuter(p) ? `${p.login} (${outerGroup})` : p.login,
     f.t("who.tip_cross", { you: p.evaluated_by_me, team: p.teammate }), ...(inOuter ? [outerTip(f, D.received, p.login, outerProjects)].filter(Boolean) : [])].join(" · ");
   const order = (g?: string) => (g && GROUPS.includes(g) ? GROUPS.indexOf(g) : 99);
+  // each corrector's evaluations by flag, in the flags' colours everywhere: OK, Outstanding, a negative one (only if any)
+  const negTo = new Map<string, number>();
+  for (const e of D.received || []) if (e.negative_flag && e.corrector?.login) negTo.set(e.corrector.login, (negTo.get(e.corrector.login) || 0) + 1);
+  const neg = (p: any) => negTo.get(p.login) || 0;
+  const bySeries: [string, number[], string][] = [[f.t("flag.ok"), top.map((p: any) => Math.max(0, p.evaluated_me - p.outstanding_to_me - neg(p))), GOOD],
+    [f.t("flag.outstanding"), top.map((p: any) => p.outstanding_to_me), OUTSTANDING], ...(top.some(neg) ? [[f.t("flag.negative"), top.map(neg), BAD] as [string, number[], string]] : [])];
   const lede = esc(f.t("who.lede", { correctors: S.unique_correctors, mutual: S.mutual }));
   out.push({ id: "who", nav: f.t("nav.who"), html: section("who", f.t("who.title"), cols(
-    `<div class="block" data-panel="correctors"><div class="block-head"><h3>${esc(f.t("who.top_title"))}</h3>${legend([[f.t("flag.other"), S1], [f.t("flag.outstanding"), GOOD]])}</div>`
-    + hbars(f, top.map((p: any) => (erased(p.login) ? f.t("who.erased") : p.login)), [[f.t("flag.other"), top.map((p: any) => p.evaluated_me - p.outstanding_to_me), S1], [f.t("flag.outstanding"), top.map((p: any) => p.outstanding_to_me), GOOD]],
+    `<div class="block" data-panel="correctors"><div class="block-head"><h3>${esc(f.t("who.top_title"))}</h3>${legend(bySeries.map(([t, , c]) => [t, c] as [string, string]))}</div>`
+    + hbars(f, top.map((p: any) => (erased(p.login) ? f.t("who.erased") : p.login)), bySeries,
       { label: f.t("who.top_title"), tips: top.map(tip), emptyText: f.t("empty.period"), end: (_i, v) => String(v), min: 8,
         extra: (i) => (top[i].outstanding_to_me ? `${top[i].outstanding_to_me} ${f.t("flag.outstanding")}` : "") }) + "</div>"), { lede }) });
 
@@ -113,7 +119,7 @@ export function people(pg: Page): Section[] {
     + `<div id="who-results">${met === "teammates" ? teammates : `<div class="table-wrap">${table(f, [
       { k: "login", t: f.t("col.login"), nw: true, f: (p) => `${erased(p.login) ? "" : avatar(p)}${shownLogin(f, p.login)}` },
       { k: "name", t: f.t("col.name"), nw: true, f: (p) => (erased(p.login) ? deletedName(f) : esc(shortName(p.name))) },
-      { k: "group", t: f.t("col.group"), nw: true, sv: (p) => order(groupOf.get(p.login)), f: (p) => (groupOf.has(p.login) ? esc(f.t(`groups.${groupOf.get(p.login)}`)) : "–") },
+      { k: "group", t: f.t("col.group"), nw: true, sv: (p) => order(groupOf.get(p.login)), f: (p) => (groupOf.has(p.login) ? groupDot(groupOf.get(p.login)!) + esc(f.t(`groups.${groupOf.get(p.login)}`)) : "–") },
       { k: "evaluated_me", t: f.t("col.evaluated_you"), s: f.t("abbr.evaluated_you"), num: true, cls: "mid" },
       { k: "outstanding_to_me", t: f.t("col.outstanding"), s: f.t("abbr.outstanding"), num: true, cls: "mid" },
       { k: "avg_mark_to_me", t: f.t("col.avg_mark"), s: f.t("abbr.avg_mark"), num: true, cls: "mid", f: (p) => f.num(p.avg_mark_to_me, 1) },

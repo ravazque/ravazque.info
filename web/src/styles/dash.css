@@ -308,8 +308,6 @@
 :where(body:not(.site)) .radar-wide .radar, :where(body:not(.site)) .radar-narrow .radar { display: block; width: 100%; height: auto; max-height: 460px; }
 /* skills: the radar beside a scrollable bar per skill; stacks on a narrow panel */
 /* owner stats page: equal modules, each a block of facts */
-:where(body:not(.site)) .settings .row-links .btn.go { color: var(--good); border-color: var(--good); }
-:where(body:not(.site)) .settings .row-links .btn.go:hover { background: color-mix(in oklab, var(--good) 12%, transparent); }
 /* owner stats page: sections split by a rule, big KPI figures, one budget chart, a session list */
 :where(body:not(.site)) .stats-sec { margin-top: 24px; padding-top: 20px; border-top: 2px solid var(--rule-strong); }
 :where(body:not(.site)) .stats-sec:first-of-type { margin-top: 12px; border-top: 0; padding-top: 0; }
@@ -351,12 +349,12 @@
 :where(body:not(.site)) .identity .groups { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 /* the circle: one-way and two-way chords with arrowheads */
 :where(body:not(.site)) .net .net-links path.one { stroke: var(--control); }
-:where(body:not(.site)) .net .net-links path.both { stroke: var(--accent-data); stroke-opacity: .55; }
+:where(body:not(.site)) .net .net-links path.both { stroke: var(--ink); stroke-opacity: .5; }
 :where(body:not(.site)) .net .arrowhead { fill: var(--ink); }
 :where(body:not(.site)) .focused .net-links path.hl { stroke-opacity: .95; }
 :where(body:not(.site)) .arrow-key { width: 30px; height: 10px; }
 :where(body:not(.site)) .arrow-key line { stroke: var(--control); stroke-width: 2; }
-:where(body:not(.site)) .arrow-key.both line { stroke: var(--accent-data); }
+:where(body:not(.site)) .arrow-key.both line { stroke: var(--ink); }
 :where(body:not(.site)) .arrow-key path { fill: var(--muted); }
 :where(body:not(.site)) .net-key { width: 12px; height: 12px; overflow: visible; }
 :where(body:not(.site)) .net-key circle { stroke-dasharray: none; }
@@ -365,14 +363,15 @@
 :where(body:not(.site)) .legend b { color: var(--ink); font-weight: 600; }
 :where(body:not(.site)) .dir-key { width: 30px; height: 10px; }
 :where(body:not(.site)) .dir-key line { stroke-width: 3; }
-:where(body:not(.site)) .dir-key.in line { stroke: var(--accent-data); }
-:where(body:not(.site)) .dir-key.out line { stroke: var(--slate); }
+:where(body:not(.site)) .dir-key.in line { stroke: var(--ink); }
+:where(body:not(.site)) .dir-key.out line { stroke: var(--control); }
 :where(body:not(.site)) .dir-key.both line { stroke: var(--ink); stroke-width: 5; }
 :where(body:not(.site)) .dir-key.both line.gap { stroke: var(--ground); stroke-width: 1.5; }
-/* with you in focus the arrowheads give way to colour: in, out, and a hollow double line for both ways */
+/* with you in focus the arrowheads give way to ink: in solid, out grey, and a hollow double line for both ways; no blue by the
+   states' colours (owner, 2026-11-26) */
 :where(body:not(.site)) .net.focus-me .net-arrows path.hl { display: none; }
-:where(body:not(.site)) .net.focus-me .net-links path.hl[data-dir="in"] { stroke: var(--accent-data); }
-:where(body:not(.site)) .net.focus-me .net-links path.hl[data-dir="out"] { stroke: var(--slate); }
+:where(body:not(.site)) .net.focus-me .net-links path.hl[data-dir="in"] { stroke: var(--ink); }
+:where(body:not(.site)) .net.focus-me .net-links path.hl[data-dir="out"] { stroke: var(--control); }
 :where(body:not(.site)) .net.focus-me .net-links path.hl[data-dir="both"] { stroke: var(--ink); stroke-width: 4.5; }
 :where(body:not(.site)) .net.focus-me .net-arrows path.hl[data-dir="both"] { display: inline; marker: none; stroke: var(--ground); stroke-width: 1.5; }
 :where(body:not(.site)) .net .net-arrows path { fill: none; stroke: none; pointer-events: none; display: none; }
@@ -383,7 +382,7 @@
 /* nodes and bubbles grow under the pointer or focus; the person's chords take the accent */
 :where(body:not(.site)) .net-node .core, :where(body:not(.site)) .graph .bubble .core { transform-box: fill-box; transform-origin: center; transition: transform var(--motion-fast) ease-out; }
 :where(body:not(.site)) .net-node:hover .core, :where(body:not(.site)) .net-node:focus-visible .core, :where(body:not(.site)) .graph .bubble:hover .core, :where(body:not(.site)) .graph .bubble:focus-visible .core { transform: scale(1.2); }
-:where(body:not(.site)) .focused .net-links path.hl { stroke: var(--accent-data); }
+:where(body:not(.site)) .focused .net-links path.hl { stroke: var(--ink); }
 
 /* lively controls: a small lift and the accent border under the pointer */
 :where(body:not(.site)) .btn, :where(body:not(.site)) .seg > a, :where(body:not(.site)) .seg > label, :where(body:not(.site)) .seg button, :where(body:not(.site)) .periods > a, :where(body:not(.site)) .toggle-check span { transition: transform var(--motion-fast) ease-out, box-shadow var(--motion-fast) ease-out, background-color var(--motion-fast) ease-out, border-color var(--motion-fast) ease-out, color var(--motion-fast) ease-out; }

@@ -357,3 +357,6 @@ export function ring(f: Fmt, net: Net, o: { width: number; height: number; compa
   return `<svg class="graph net" data-me="${esc(meLogin || "")}" viewBox="0 0 ${o.width} ${o.height}"${roving(f, f.t("network.title"))}>${defs}`
     + `<g class="net-me">${centre.join("")}</g><g class="net-links">${chords.join("")}</g><g class="net-arrows">${arrows.join("")}</g><g class="net-nodes">${marks.join("")}</g></svg>`;
 }
+
+/** A group's colour beside its name in a table, the same as its bubbles and circle nodes (ui.json state-*). */
+export const groupDot = (g: string) => `<i class="gdot ${netClass(g)}" aria-hidden="true"></i>`;

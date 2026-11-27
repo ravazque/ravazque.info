@@ -1,7 +1,9 @@
-// Command uicss prints the CSS made from ui.json (make site-sync writes it into the site's repository; the web build uses it).
+// Command uicss prints the CSS made from ui.json and colors.json (make site-sync writes it into the site's repository; make
+// dev-live's Vite serves it as /ui.css). -colors FILE takes the colours from FILE instead (the golden test's frozen ones).
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -9,7 +11,15 @@ import (
 )
 
 func main() {
+	colorsFile := flag.String("colors", "", "a colors.json to use instead of the embedded one")
+	flag.Parse()
 	cfg, err := core.LoadUI()
+	if *colorsFile != "" {
+		var raw []byte
+		if raw, err = os.ReadFile(*colorsFile); err == nil {
+			cfg, err = core.LoadUIWith(raw)
+		}
+	}
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "uicss:", err)
 		os.Exit(1)

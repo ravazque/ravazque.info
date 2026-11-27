@@ -1,11 +1,11 @@
 // Evaluations: what you give back and by milestone, the full log, cancelled evaluations, correction points, feedback,
 // and received and given over time, when and how long.
 import type { Fmt } from "../fmt";
-import { GOOD, BAD, S1, S2, type Series, legend, lines, qline, vbars } from "../lib/charts";
-import { ACCENT, GROUPS, SLATE, heat } from "../lib/graphs";
+import { GOOD, BAD, OUTSTANDING, S1, S2, type Series, legend, lines, qline, vbars } from "../lib/charts";
+import { ACCENT, GROUPS, SLATE, groupDot, heat } from "../lib/graphs";
 import { ARROW, avatar, badge, esc, tipAttr } from "../lib/h";
 import { facts, table } from "../lib/table";
-import { KINDS, Page, Section, block, cols, failed, filters, flagBadge, headBlock, info, kpis, monthsBetween, negativeFlags, noMark, radios, search, section, select, shownLogin, erased, fillTable, projectName } from "./page";
+import { KINDS, Page, Section, block, cols, failed, filters, flagBadge, redMark, headBlock, info, kpis, monthsBetween, negativeFlags, noMark, radios, search, section, select, shownLogin, erased, fillTable, projectName } from "./page";
 import tracks from "@data/tracks.json";
 
 /** Common Core project slug → its milestone (rank-00…rank-06), C and Python tracks alike. */
@@ -91,7 +91,6 @@ export function evaluations(pg: Page): Section[] {
   // which leaves those rushes in the Piscine
   const myRating = avg(theirs, "rating"), myRated = theirs.filter((x: any) => x.rating !== null && x.rating !== undefined).length;
   const role = pg.q("role", "received", ["received", "given"]);
-  const base = role === "received" ? S1 : S2;
   const m = W[`${role}_monthly`];
   // negative flags only when there are some, a full stop only after them (owner, 2026-11-24)
   const negatives = role === "received" ? S.received_negative : S.given_negative;
@@ -125,7 +124,7 @@ export function evaluations(pg: Page): Section[] {
         + `<div class="rate recip"><h3>${esc(f.t("stats.reciprocity_title"))}</h3>${recip(R.i_gave_back, R.gave_me, f.t("stats.recip_in", { back: R.i_gave_back, gave_me: R.gave_me }))}`
         + `${recip(R.they_gave_back, R.i_gave, f.t("stats.recip_out", { back: R.they_gave_back, i_gave: R.i_gave }))}</div></div>`)];
     byGroup = `<div class="block" data-panel="by-group"><h3>${esc(f.t("nav.by_group"))}</h3><div class="table-wrap">${table(f, [
-        { k: "i", t: f.t("col.group"), nw: true, f: (r) => esc(f.t(`groups.${r.g}`)) },
+        { k: "i", t: f.t("col.group"), nw: true, f: (r) => groupDot(r.g) + esc(f.t(`groups.${r.g}`)) },
         { k: "received", t: f.t("col.received"), s: f.t("abbr.received"), num: true, nw: true },
         { k: "in_pct", t: f.t("col.out_pct"), s: f.t("abbr.out_pct"), num: true, nw: true, f: (r) => pctCell(r.in_pct) },
         { k: "given", t: f.t("col.given"), s: f.t("abbr.given"), num: true, nw: true },
@@ -152,12 +151,12 @@ export function evaluations(pg: Page): Section[] {
   const months: string[] = W.months.length ? monthsBetween(W.months[0], [W.months[W.months.length - 1], pg.asOf.slice(0, 7)].sort()[1]) : [];
   const at = (vals: number[]) => months.map((x) => vals[W.months.indexOf(x)] || 0);
   // each month's tip names its negative flags
-  const flagSeries: [string, number[], string][] = [[f.t("flag.ok"), at(m.ok), base], [f.t("flag.outstanding"), at(m.outstanding), GOOD], [f.t("flag.negative"), at(m.negative), BAD]];
+  const flagSeries: [string, number[], string][] = [[f.t("flag.ok"), at(m.ok), GOOD], [f.t("flag.outstanding"), at(m.outstanding), OUTSTANDING], [f.t("flag.negative"), at(m.negative), BAD]];
   const negs = negativeFlags(D[role]);
   const flagTips = months.map((x, i) => [f.monthLabel(x), ...flagSeries.map(([n, v], s) => `${n} ${f.num(v[i])}` + (s === 2 && negs.get(x) ? `: ${negs.get(x)}` : ""))].join("\n"));
   out.push({ id: "over-time", nav: f.t("over_time.title"), html: section("over-time", "", cols(
     headBlock("recv-monthly", f.t(role === "received" ? "received.monthly_title" : "given.monthly_title"),
-      legend([[f.t("flag.ok"), base], [f.t("flag.outstanding"), GOOD], [f.t("flag.negative"), BAD]]),
+      legend([[f.t("flag.ok"), GOOD], [f.t("flag.outstanding"), OUTSTANDING], [f.t("flag.negative"), BAD]]),
       vbars(f, months.map((x: string) => f.monthLabel(x)), flagSeries,
         { label: f.t("received.monthly_title"), stacked: true, colTips: true, fmt: (v) => f.num(v), tips: flagTips, emptyText: f.t("empty.period") })),
     headBlock("marks", f.t("received.marks_title"), legend(roles), vbars(f, bins.map(([b]) => b), [[f.t("role.received"), count(D.received), S1], [f.t("role.given"), count(D.given), S2]],
@@ -279,7 +278,7 @@ function correctedTable(pg: Page): string {
       last: begins[begins.length - 1].slice(0, 10), whom, last_e: evs.reduce((a, b) => (b.begin > a.begin ? b : a)) };
   });
   const chip = (e: any) => {
-    const state = e.mark === null || e.mark === undefined ? "open" : failed(e) ? "fail" : "pass";
+    const state = e.mark === null || e.mark === undefined ? "open" : redMark(e) ? "fail" : "pass";
     return `<span class="mark ${state}" title="${esc(f.day(e.begin) + (e.negative_flag && e.flag ? ` · ${e.flag}` : ""))}">${e.mark !== null && e.mark !== undefined ? esc(e.mark) : noMark(f, e)}</span>`;
   };
   const detail = (r: any) => {

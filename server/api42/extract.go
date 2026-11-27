@@ -233,6 +233,15 @@ func Extract(ctx context.Context, c *Client, uid int, progress func(float64), cl
 	cus := core.Objs(d, "coalitions_users")
 	sort.SliceStable(cus, func(i, j int) bool { return orderOf(cus[i]) < orderOf(cus[j]) })
 	d["coalitions"], d["coalitions_users"] = toAny(cs), toAny(cus)
+	// a Piscine coalition (Madrid's Piscine bloc, since July 2025: any coalition outside the 42cursus one): its points are
+	// kept apart, the Coalition page shows them in Piscine mode
+	var piscineCU raw
+	for i, cu := range cus {
+		if o := orderOf(cu); i > 0 && o < len(cs) && rankOf(cs[o]) == len(rank) {
+			piscineCU = cu
+			break
+		}
+	}
 
 	core.DropHiddenEvaluations(d)
 	met := core.PeopleIDs(d, uid)
@@ -240,7 +249,7 @@ func Extract(ctx context.Context, c *Client, uid int, progress func(float64), cl
 	// the second round reads d while it runs: results wait in these until every request is back
 	var groups map[string]string
 	var standing *core.OMap
-	var scores, people, projects []any
+	var scores, piscineScores, people, projects []any
 	var corrSessions, evalSessions, fbs raw
 	g = &group{}
 	g.Go(func() error { // the points given to the main coalition feed the logtime bonus and the points by source
@@ -257,6 +266,15 @@ func Extract(ctx context.Context, c *Client, uid int, progress func(float64), cl
 		step()
 		return nil
 	})
+	if piscineCU != nil {
+		g.Go(func() error {
+			v, err := c.GetAll(ctx, "/v2/coalitions_users/"+idStr(piscineCU["id"])+"/scores", nil)
+			for _, s := range objs(v) {
+				piscineScores = append(piscineScores, pickFields(s, scoreFields))
+			}
+			return err
+		})
+	}
 	g.Go(func() error { // other people: only id, login, name and whether they are staff are kept
 		v, err := c.batched(ctx, "/v2/users", "filter[id]", met, nil)
 		if err != nil {
@@ -342,6 +360,14 @@ func Extract(ctx context.Context, c *Client, uid int, progress func(float64), cl
 		return nil, err
 	}
 	d["coalition_scores"], d["people"], d["projects"] = scores, people, projects
+	if piscineCU != nil {
+		co := cs[orderOf(piscineCU)]
+		d["piscine_coalition"] = core.M("name", co["name"], "color", co["color"], "logo", co["image_url"], "score", piscineCU["score"], "rank", piscineCU["rank"])
+		if piscineScores == nil {
+			piscineScores = []any{}
+		}
+		d["piscine_coalition_scores"] = piscineScores
+	}
 	d["corrector_sessions"], d["evaluated_sessions"], d["feedbacks"] = corrSessions, evalSessions, fbs
 
 	periods := core.NewOMap()

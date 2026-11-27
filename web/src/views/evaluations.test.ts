@@ -232,7 +232,7 @@ test("By milestone always lists every group, in order, the ones with nothing gre
   const pg = new Page(f, { period: "all", report: all, layout: doc.layout, all_projects: all.projects, all_cursus: all.extras.cursus } as any, "evaluations", {});
   const html = evaluations(pg).find((s) => s.id === "by-group")!.html;
   const table = html.slice(html.indexOf('data-panel="by-group"'), html.indexOf('data-panel="depth-projects"'));
-  const names = [...table.matchAll(/<tr( class="zero")?><td class="nowrap" data-v="\d+">([^<]+)<\/td>/g)];
+  const names = [...table.matchAll(/<tr( class="zero")?><td class="nowrap" data-v="\d+">(?:<i class="gdot [^"]*" aria-hidden="true"><\/i>)?([^<]+)<\/td>/g)]; // after its colour dot
   // staff and deleted accounts only when there is something to show (owner, 2026-11-12)
   const shown = GROUPS.filter((g) => !["staff", "deleted", "no-cursus"].includes(g) || all.stats.by_group[g]);
   expect(names.map((m) => m[2])).toEqual(shown.map((g) => f.t(`groups.${g}`)));
@@ -456,4 +456,18 @@ test("the log's seat column shows on phones too while a seat filter is on (how l
   expect(seatTh(html())).toContain("narrow-hide");
   expect(seatTh(html({ seat: "late" }))).not.toContain("narrow-hide");
   expect(seatTh(html({ seat: "me" }))).not.toContain("narrow-hide");
+});
+
+test("a mark is red with a negative flag, a 0 or anything under 80; green from 80 (owner, 2026-11-25)", async () => {
+  const { redMark } = await import("./page");
+  expect([redMark({ mark: 0 }), redMark({ mark: 79 }), redMark({ mark: 80 }), redMark({ mark: 125, negative_flag: true }), redMark({ mark: 100, negative: true }), redMark({ mark: null })])
+    .toEqual([true, true, false, true, true, false]);
+});
+
+test("a flag's badge: OK in green, Outstanding in deep green, a negative one in red", async () => {
+  const { flagBadge } = await import("./page");
+  const f = new Fmt("en");
+  expect(flagBadge(f, { flag: "Ok" })).toBe('<span class="badge ok">Ok</span>');
+  expect(flagBadge(f, { flag: "Outstanding project", outstanding: true })).toContain('class="badge out"');
+  expect(flagBadge(f, { flag: "Norme", negative_flag: true })).toBe('<span class="badge bad">Norme</span>');
 });

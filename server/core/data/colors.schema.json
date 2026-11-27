@@ -1,0 +1,76 @@
+{
+ "$schema": "http://json-schema.org/draft-07/schema#",
+ "title": "The site's colours (colors.json)",
+ "description": "Editors that read JSON schemas (VS Code) show a swatch and a colour picker beside every light/dark value.",
+ "type": "object",
+ "required": [
+  "main",
+  "light",
+  "dark"
+ ],
+ "properties": {
+  "$schema": {
+   "type": "string"
+  },
+  "_notes": {
+   "type": "string"
+  },
+  "_what": {
+   "type": "object",
+   "additionalProperties": {
+    "type": "string"
+   }
+  },
+  "main": {
+   "type": "object",
+   "additionalProperties": {
+    "type": "object",
+    "required": [
+     "light",
+     "dark",
+     "token",
+     "is"
+    ],
+    "properties": {
+     "light": {
+      "type": "string",
+      "format": "color-hex",
+      "pattern": "^#[0-9a-fA-F]{6}$",
+      "description": "Its colour on the light theme"
+     },
+     "dark": {
+      "type": "string",
+      "format": "color-hex",
+      "pattern": "^#[0-9a-fA-F]{6}$",
+      "description": "Its colour on the dark theme"
+     },
+     "token": {
+      "type": "string",
+      "description": "The name pages use: leave it as it is"
+     },
+     "is": {
+      "type": "string"
+     }
+    },
+    "additionalProperties": false
+   }
+  },
+  "light": {
+   "type": "object",
+   "additionalProperties": {
+    "type": "string",
+    "format": "color-hex",
+    "pattern": "^#[0-9a-fA-F]{6}$"
+   }
+  },
+  "dark": {
+   "type": "object",
+   "additionalProperties": {
+    "type": "string",
+    "format": "color-hex",
+    "pattern": "^#[0-9a-fA-F]{6}$"
+   }
+  }
+ },
+ "additionalProperties": false
+}

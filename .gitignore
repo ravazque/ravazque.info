@@ -34,3 +34,4 @@ web/dist-offline/
 # make update's last check (tools/update.sh)
 .update-check
 .update-check.tmp
+/.holygraph-raw.json

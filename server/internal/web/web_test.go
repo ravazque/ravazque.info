@@ -19,6 +19,7 @@ import (
 	"testing/fstest"
 	"time"
 
+	"ravazque.info/server/core"
 	"ravazque.info/server/internal/app"
 )
 
@@ -37,6 +38,8 @@ type fake42 struct {
 	blocs    atomic.Int64
 	madrid   atomic.Int64
 	requests atomic.Int64
+	piscine  atomic.Int64 // the Piscine's part of a campus count began
+	ended    atomic.Int64 // asked whether a Piscine ended
 }
 
 func (f *fake42) handler(w http.ResponseWriter, r *http.Request) {
@@ -52,6 +55,14 @@ func (f *fake42) handler(w http.ResponseWriter, r *http.Request) {
 		f.madrid.Add(1)
 		row := `{"cursus_id":21,"begin_at":"2024-10-07T08:00:00.000Z","level":%v,"user":{"staff?":false,"alumni?":false,"active?":true}}`
 		fmt.Fprintf(w, "["+row+","+row+","+row+"]", 3.5, 9.1, 12)
+	case r.URL.Path == "/v2/projects_users" || r.URL.Path == "/v2/scale_teams" || r.URL.Path == "/v2/cursus/9/cursus_users": // the campus statistics' lists, empty
+		if r.URL.Path == "/v2/cursus/9/cursus_users" && r.URL.Query().Has("range[end_at]") {
+			f.ended.Add(1) // "did a Piscine end then?": no
+		}
+		w.Write([]byte("[]"))
+	case r.URL.Path == "/v2/cursus/9/projects":
+		f.piscine.Add(1)
+		w.Write([]byte(`[{"id":11,"slug":"c-piscine-c-00"}]`))
 	case r.URL.Path == "/v2/blocs" && f.bloc.Load() != nil:
 		f.blocs.Add(1)
 		json.NewEncoder(w).Encode(f.bloc.Load())
@@ -101,7 +112,7 @@ func (e *env) do(t *testing.T, method, path string, body io.Reader, hdr map[stri
 	for k, v := range hdr {
 		req.Header.Set(k, v)
 	}
-	if e.csrf != "" && method == "POST" && req.Header.Get("X-CSRF-Token") == "" {
+	if e.csrf != "" && method != "GET" && req.Header.Get("X-CSRF-Token") == "" {
 		req.Header.Set("X-CSRF-Token", e.csrf)
 	}
 	r, err := e.hc.Do(req)
@@ -240,7 +251,7 @@ func TestAPINeedsSessionAndCSRF(t *testing.T) {
 		t.Fatal(r.StatusCode)
 	}
 	e.signIn(t)
-	for _, p := range []string{"/api/me/refresh", "/api/me/delete", "/api/me/publish", "/api/me/consent", "/auth/logout", "/api/me/report"} {
+	for _, p := range []string{"/api/me/refresh", "/api/me/delete", "/api/me/publish", "/api/me/consent", "/auth/logout"} {
 		if r := e.do(t, "POST", p, nil, map[string]string{"X-CSRF-Token": "wrong"}); r.StatusCode != 403 {
 			t.Fatalf("%s: %d", p, r.StatusCode)
 		}
@@ -322,25 +333,35 @@ func keys(m map[string]any) []string {
 	return out
 }
 
-func TestReportRoundTripNeedsTheSignature(t *testing.T) {
-	e := newEnv(t, nil)
+// Another device, or the same one after a restart or an hour unused, gets the report from the server's disk.
+func TestReportComesBackFromDisk(t *testing.T) {
+	dir := t.TempDir()
+	e := newEnv(t, func(s *app.Settings) { s.ReportsDir = dir })
 	e.signIn(t)
 	e.s.Jobs.Drain()
 	e.seed(t, 990002, "../../core/testdata/golden/new.report.json")
-	r := e.do(t, "GET", "/api/me/report.json", nil, nil)
-	raw, sig := readAll(r), r.Header.Get("X-Report-Sig")
-	if r.StatusCode != 200 || sig == "" {
-		t.Fatal(r.StatusCode)
+	e.s.M.Delete("user:990002:data", "user:990002:status")
+	if r := e.do(t, "GET", "/api/me/view", nil, nil); r.StatusCode != 200 {
+		t.Fatalf("view after memory loss: %d", r.StatusCode)
 	}
-	e.s.Store.DropReport(990002)
-	if r := e.do(t, "POST", "/api/me/report", strings.NewReader(raw+" "), map[string]string{"X-Report-Sig": sig}); r.StatusCode != 400 {
-		t.Fatal("tampered bytes accepted")
+	if r := e.do(t, "GET", "/api/me/report.json", nil, nil); r.StatusCode != 404 {
+		t.Fatalf("the browser copy endpoint is still there: %d", r.StatusCode)
 	}
-	if r := e.do(t, "POST", "/api/me/report", strings.NewReader(raw), map[string]string{"X-Report-Sig": sig}); r.StatusCode != 204 {
-		t.Fatal(r.StatusCode)
+}
+
+// A report is kept with the opted-out students already hidden: they never reach the disk.
+func TestKeptReportHidesOptedOutStudents(t *testing.T) {
+	dir := t.TempDir()
+	e := newEnv(t, func(s *app.Settings) { s.ReportsDir = dir; s.OptoutLogins = []string{"peer03"} })
+	raw, err := os.ReadFile("../../core/testdata/golden/mid.report.json")
+	if err != nil || !strings.Contains(string(raw), `"peer03"`) {
+		t.Fatal("fixture")
 	}
-	if e.s.Store.LoadRaw(990002) == nil {
-		t.Fatal("not restored")
+	e.s.Store.SaveRaw(990002, e.s.stored(raw)) // as extractJob keeps it
+	fresh := app.NewStore(app.NewMemory(time.Now), e.s.S, time.Now)
+	got := string(fresh.LoadRaw(990002))
+	if got == "" || strings.Contains(got, `"peer03"`) || strings.Contains(got, "Peer 03") {
+		t.Fatal("an opted-out student reached the disk")
 	}
 }
 
@@ -493,30 +514,12 @@ func TestDevLoginOnlyInDevMode(t *testing.T) {
 	buf.WriteString("")
 }
 
-func TestBrowserCopyHidesOptedOutStudents(t *testing.T) {
-	e := newEnv(t, func(s *app.Settings) { s.OptoutLogins = []string{"peer03"} })
-	e.signIn(t)
-	e.s.Jobs.Drain()
-	e.seed(t, 990002, "../../core/testdata/golden/mid.report.json")
-	r := e.do(t, "GET", "/api/me/report.json", nil, nil)
-	raw, sig := readAll(r), r.Header.Get("X-Report-Sig")
-	if strings.Contains(raw, `"peer03"`) || strings.Contains(raw, "Peer 03") {
-		t.Fatal("the browser's copy carries an opted-out student")
-	}
-	e.s.Store.DropReport(990002)
-	if r := e.do(t, "POST", "/api/me/report", strings.NewReader(raw), map[string]string{"X-Report-Sig": sig}); r.StatusCode != 204 {
-		t.Fatalf("the hidden copy comes back: %d", r.StatusCode)
-	}
-}
-
-func TestDeleteEndsEverySessionAndRefusesOldCopies(t *testing.T) {
+func TestDeleteEndsEverySessionAndTheReport(t *testing.T) {
 	e := newEnv(t, nil)
 	e.signIn(t)
 	e.s.Jobs.Drain()
 	e.seed(t, 990002, "../../core/testdata/golden/new.report.json")
 	other := newEnvSharing(t, e) // a second device signed in as the same user
-	r := other.do(t, "GET", "/api/me/report.json", nil, nil)
-	raw, sig := readAll(r), r.Header.Get("X-Report-Sig")
 	if r := e.do(t, "POST", "/api/me/delete", nil, nil); r.StatusCode != 204 {
 		t.Fatal(r.StatusCode)
 	}
@@ -524,15 +527,8 @@ func TestDeleteEndsEverySessionAndRefusesOldCopies(t *testing.T) {
 		t.Fatalf("the other device's session survived: %d", r.StatusCode)
 	}
 	sid := e.s.Sessions.Create(app.Session{ID: 990002, Login: "tmidway"})
-	_ = sid
-	u, _ := e.s.Sessions.Get(sid)
-	req, _ := http.NewRequest("POST", e.srv.URL+"/api/me/report", strings.NewReader(raw))
-	req.Header.Set("X-Report-Sig", sig)
-	req.Header.Set("X-CSRF-Token", u.CSRF)
-	req.AddCookie(&http.Cookie{Name: app.SessionCookie, Value: sid})
-	res, _ := http.DefaultClient.Do(req)
-	if res.StatusCode != 400 {
-		t.Fatalf("a copy from before the deletion was taken back: %d", res.StatusCode)
+	if e.s.Store.LoadRaw(990002) != nil {
+		t.Fatal("the report outlived Delete my data")
 	}
 	for _, k := range e.s.M.Keys("*") {
 		if strings.HasPrefix(k, "sess:") {
@@ -762,5 +758,245 @@ func TestViewTellsYourPlaceInMadridReadInTheBackgroundOncePerHour(t *testing.T) 
 	}
 	if n := e.f.madrid.Load(); n != 1 {
 		t.Fatalf("Madrid read %d times in one hour", n)
+	}
+}
+
+// The campus statistics: totals only, for signed-in users; the owner can start a count; it is kept on disk and read
+// back at start-up.
+func TestCampusStatsForSignedInUsersAndRunByTheOwner(t *testing.T) {
+	file := filepath.Join(t.TempDir(), "campus.json")
+	e := newEnv(t, func(s *app.Settings) { s.CampusStats = file })
+	if r := e.do(t, "GET", "/api/campus-stats", nil, nil); r.StatusCode != 401 {
+		t.Fatalf("signed out: %d", r.StatusCode)
+	}
+	e.signIn(t)
+	e.s.Jobs.Drain()
+	var got struct {
+		Running bool           `json:"running"`
+		Stats   map[string]any `json:"stats"`
+	}
+	json.Unmarshal([]byte(readAll(e.do(t, "GET", "/api/campus-stats", nil, nil))), &got)
+	if got.Running || got.Stats != nil {
+		t.Fatalf("before any count: %+v", got)
+	}
+	if r := e.do(t, "POST", "/api/campus-stats/run", nil, nil); r.StatusCode != 202 {
+		t.Fatalf("run: %d", r.StatusCode)
+	}
+	for deadline := time.Now().Add(20 * time.Second); ; {
+		json.Unmarshal([]byte(readAll(e.do(t, "GET", "/api/campus-stats", nil, nil))), &got)
+		if got.Stats != nil && !got.Running {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("the count never ended")
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	if got.Stats["generated_at"] == nil || got.Stats["requests"] == nil || got.Stats["people"] == nil || got.Stats["piscine"] == nil {
+		t.Fatalf("stats %v", got.Stats)
+	}
+	if raw, err := os.ReadFile(file); err != nil || !strings.Contains(string(raw), `"generated_at"`) {
+		t.Fatal("not kept on disk")
+	}
+	again := New(e.s.S, fstest.MapFS{}, Options{APIBase: e.srv.URL, Now: time.Now})
+	defer again.Close()
+	if again.campus.Load() == nil {
+		t.Fatal("not read back at start-up")
+	}
+	other := newEnv(t, func(s *app.Settings) { s.OwnerLogin = "someone-else" })
+	other.signIn(t)
+	if r := other.do(t, "POST", "/api/campus-stats/run", nil, nil); r.StatusCode != 403 {
+		t.Fatalf("a student started a count: %d", r.StatusCode)
+	}
+}
+
+// Weekly on Monday at 04:00 in Madrid; at once (a minute after start) when there is no count or it is over a week old.
+func TestNextCampusRun(t *testing.T) {
+	wed := time.Date(2026, 11, 25, 15, 0, 0, 0, core.Madrid)
+	if d := nextCampusRun(wed, ""); d != time.Minute {
+		t.Fatalf("no count yet: %v", d)
+	}
+	if d := nextCampusRun(wed, "2026-11-10T03:00:00Z"); d != time.Minute {
+		t.Fatalf("a count over a week old: %v", d)
+	}
+	want := time.Date(2026, 11, 30, 4, 0, 0, 0, core.Madrid).Sub(wed)
+	if d := nextCampusRun(wed, "2026-11-23T03:00:00Z"); d != want {
+		t.Fatalf("next Monday 04:00: %v, want %v", d, want)
+	}
+	mon := time.Date(2026, 11, 30, 3, 0, 0, 0, core.Madrid)
+	if d := nextCampusRun(mon, "2026-11-23T03:00:00Z"); d != time.Hour {
+		t.Fatalf("Monday before 04:00: %v", d)
+	}
+}
+
+// Monday's count closes the site (owner, 2026-11-25): the session says so with when it should end, nobody but the owner
+// gets their data or signs in, and once it ends everything is as before.
+func TestMaintenanceWhileTheCampusIsCounted(t *testing.T) {
+	e := newEnv(t, func(s *app.Settings) { s.OwnerLogin = "someone-else" })
+	e.signIn(t)
+	e.s.Jobs.Drain()
+	owner := newEnvSharing(t, e) // signed in before (the fake 42 has one user: the owner is told apart by OwnerLogin)
+	until := time.Now().Add(90 * time.Minute)
+	e.s.startMaintenance(until)
+	var sess struct {
+		Maintenance *struct{ Until string } `json:"maintenance"`
+	}
+	json.Unmarshal([]byte(readAll(e.do(t, "GET", "/api/session", nil, nil))), &sess)
+	if sess.Maintenance == nil || sess.Maintenance.Until != until.UTC().Format(time.RFC3339) {
+		t.Fatalf("session %+v", sess.Maintenance)
+	}
+	if r := e.do(t, "GET", "/api/me/status", nil, nil); r.StatusCode != 503 {
+		t.Fatalf("a student got through: %d", r.StatusCode)
+	}
+	if r := e.do(t, "GET", "/auth/login?accept=1", nil, nil); r.StatusCode != 303 || !strings.Contains(r.Header.Get("Location"), "maintenance") {
+		t.Fatalf("sign-in during maintenance: %d %s", r.StatusCode, r.Header.Get("Location"))
+	}
+	owner.s.S.OwnerLogin = "tmidway"
+	if r := owner.do(t, "GET", "/api/me/status", nil, nil); r.StatusCode != 200 {
+		t.Fatalf("the owner was shut out: %d", r.StatusCode)
+	}
+	owner.s.S.OwnerLogin = "someone-else"
+	e.s.endMaintenance()
+	if r := e.do(t, "GET", "/api/me/status", nil, nil); r.StatusCode != 200 {
+		t.Fatalf("after maintenance: %d", r.StatusCode)
+	}
+}
+
+// A count made in make dev moves to production through the owner's own session: export there, import here; only a
+// campus count is taken, and only from the owner.
+func TestCampusCountMovesThroughTheOwner(t *testing.T) {
+	file := filepath.Join(t.TempDir(), "campus.json")
+	e := newEnv(t, func(s *app.Settings) { s.CampusStats = file })
+	e.signIn(t)
+	e.s.Jobs.Drain()
+	count := `{"generated_at":"2026-11-25T17:00:00Z","requests":1766,"seconds":1962,"people":{"total":2517},"funnel":{},"projects":[]}`
+	if r := e.do(t, "POST", "/api/campus-stats/import", strings.NewReader(count), nil); r.StatusCode != 200 {
+		t.Fatalf("import: %d %s", r.StatusCode, readAll(r))
+	}
+	if raw, _ := os.ReadFile(file); !strings.Contains(string(raw), "2517") {
+		t.Fatal("not kept on disk")
+	}
+	r := e.do(t, "GET", "/api/campus-stats/export", nil, nil)
+	if body := readAll(r); r.StatusCode != 200 || !strings.Contains(body, `"requests":1766`) || !strings.Contains(r.Header.Get("Content-Disposition"), "attachment") {
+		t.Fatalf("export: %d %s", r.StatusCode, body)
+	}
+	if r := e.do(t, "POST", "/api/campus-stats/import", strings.NewReader(`{"generated_at":"2026-11-25T17:00:00Z","people":{},"funnel":{},"projects":[{"login":"peer01"}]}`), nil); r.StatusCode != 400 {
+		t.Fatalf("a file with a login: %d", r.StatusCode)
+	}
+	other := newEnv(t, func(s *app.Settings) { s.OwnerLogin = "someone-else" })
+	other.signIn(t)
+	for _, p := range []string{"/api/campus-stats/export"} {
+		if r := other.do(t, "GET", p, nil, nil); r.StatusCode != 403 {
+			t.Fatalf("%s for a student: %d", p, r.StatusCode)
+		}
+	}
+	if r := other.do(t, "POST", "/api/campus-stats/import", strings.NewReader(count), nil); r.StatusCode != 403 {
+		t.Fatalf("import by a student: %d", r.StatusCode)
+	}
+}
+
+// The holy graph the owner draws in the editor: kept on the server (dev or production), read by every signed-in page,
+// taken only from the owner and only if it is a holy graph; deleting it goes back to the one built into the app.
+func TestHolyGraphFromTheEditor(t *testing.T) {
+	file := filepath.Join(t.TempDir(), "holygraph.json")
+	e := newEnv(t, func(s *app.Settings) { s.HolyGraph = file })
+	e.signIn(t)
+	e.s.Jobs.Drain()
+	if r := e.do(t, "GET", "/api/holygraph", nil, nil); r.StatusCode != 204 {
+		t.Fatalf("before any edit: %d", r.StatusCode)
+	}
+	raw, _ := core.Data.ReadFile("data/holygraph.json")
+	var g map[string]any
+	json.Unmarshal(raw, &g)
+	g["layout"] = map[string]any{"ring_gap": 50.0}
+	edited, _ := json.Marshal(g)
+	if r := e.do(t, "PUT", "/api/holygraph", bytes.NewReader(edited), nil); r.StatusCode != 200 {
+		t.Fatalf("save: %d %s", r.StatusCode, readAll(r))
+	}
+	if body := readAll(e.do(t, "GET", "/api/holygraph", nil, nil)); !strings.Contains(body, `"ring_gap":50`) {
+		t.Fatal("the saved graph is not served")
+	}
+	if b, _ := os.ReadFile(file); !strings.Contains(string(b), `"ring_gap":50`) {
+		t.Fatal("not kept on disk")
+	}
+	if r := e.do(t, "PUT", "/api/holygraph", strings.NewReader(`{"piscine":[],"login":"x"}`), nil); r.StatusCode != 400 {
+		t.Fatalf("not a holy graph: %d", r.StatusCode)
+	}
+	other := newEnv(t, func(s *app.Settings) { s.OwnerLogin = "someone-else"; s.HolyGraph = file })
+	other.signIn(t)
+	if r := other.do(t, "PUT", "/api/holygraph", bytes.NewReader(edited), nil); r.StatusCode != 403 {
+		t.Fatalf("a student saved a holy graph: %d", r.StatusCode)
+	}
+	if r := e.do(t, "DELETE", "/api/holygraph", nil, nil); r.StatusCode != 204 {
+		t.Fatalf("reset: %d", r.StatusCode)
+	}
+	if r := e.do(t, "GET", "/api/holygraph", nil, nil); r.StatusCode != 204 {
+		t.Fatalf("after reset: %d", r.StatusCode)
+	}
+}
+
+// Monday's count reads the Piscine again only when it may have changed (owner, 2026-11-26): none kept yet, the opted-out
+// students changed, the kept one over eight weeks old, or a Piscine ended since it was read (its results) or six weeks
+// before (its admissions); a question that fails reads it too.
+func TestPiscineDue(t *testing.T) {
+	now := time.Date(2026, 11, 30, 3, 0, 0, 0, time.UTC)
+	at := now.AddDate(0, 0, -7).Format(time.RFC3339)
+	var spans [][2]time.Time
+	none := func(from, to time.Time) (bool, error) {
+		spans = append(spans, [2]time.Time{from, to})
+		return false, nil
+	}
+	for _, c := range []struct {
+		name string
+		head piscineHead
+		want bool
+	}{
+		{"none kept", piscineHead{}, true},
+		{"unreadable date", piscineHead{Raw: []byte("{}"), At: "?", Optout: "fp"}, true},
+		{"the opted-out changed", piscineHead{Raw: []byte("{}"), At: at, Optout: "other"}, true},
+		{"over eight weeks old", piscineHead{Raw: []byte("{}"), At: now.AddDate(0, 0, -57).Format(time.RFC3339), Optout: "fp"}, true},
+		{"nothing ended", piscineHead{Raw: []byte("{}"), At: at, Optout: "fp"}, false},
+	} {
+		spans = nil
+		if got, _ := piscineDue(c.head, "fp", now, none); got != c.want {
+			t.Errorf("%s: %v", c.name, got)
+		}
+	}
+	last := now.AddDate(0, 0, -7)
+	if len(spans) != 2 || spans[0] != [2]time.Time{last, now} || spans[1] != [2]time.Time{last.AddDate(0, 0, -42), now.AddDate(0, 0, -42)} {
+		t.Fatalf("asked %v", spans)
+	}
+	head := piscineHead{Raw: []byte("{}"), At: at, Optout: "fp"}
+	if got, why := piscineDue(head, "fp", now, func(from, _ time.Time) (bool, error) { return from.Equal(last.AddDate(0, 0, -42)), nil }); !got || why != "admissions" {
+		t.Fatalf("admissions: %v %s", got, why)
+	}
+	if got, why := piscineDue(head, "fp", now, func(time.Time, time.Time) (bool, error) { return false, fmt.Errorf("503") }); !got || why != "unknown" {
+		t.Fatalf("the question failed: %v %s", got, why)
+	}
+}
+
+// Monday's count keeps the Piscine it read last week when nothing in it changed: two questions, not its ~2,700 requests;
+// the owner's count reads it every time.
+func TestMondayCountKeepsAnUnchangedPiscine(t *testing.T) {
+	e := newEnv(t, nil)
+	kept := map[string]any{"generated_at": time.Now().AddDate(0, 0, -7).UTC().Format(time.RFC3339), "optout": e.s.optoutPrint(), "people": map[string]any{"total": 4321.0}}
+	b, _ := json.Marshal(map[string]any{"generated_at": kept["generated_at"], "people": map[string]any{}, "funnel": map[string]any{}, "projects": []any{}, "piscine": kept})
+	e.s.campus.Store(&b)
+	if err := e.s.runCampus(context.Background(), time.Now, false); err != nil {
+		t.Fatal(err)
+	}
+	var got struct {
+		Piscine map[string]any `json:"piscine"`
+	}
+	json.Unmarshal(*e.s.campus.Load(), &got)
+	if e.f.piscine.Load() != 0 || e.f.ended.Load() != 2 || got.Piscine["people"].(map[string]any)["total"] != 4321.0 {
+		t.Fatalf("read again: piscine %d, questions %d, kept %v", e.f.piscine.Load(), e.f.ended.Load(), got.Piscine)
+	}
+	if err := e.s.runCampus(context.Background(), time.Now, true); err != nil {
+		t.Fatal(err)
+	}
+	json.Unmarshal(*e.s.campus.Load(), &got)
+	if e.f.piscine.Load() != 1 || got.Piscine["generated_at"] == kept["generated_at"] || got.Piscine["optout"] != e.s.optoutPrint() {
+		t.Fatalf("the owner's count kept it: %d %v", e.f.piscine.Load(), got.Piscine)
 	}
 }

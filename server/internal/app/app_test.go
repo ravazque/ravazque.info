@@ -137,6 +137,28 @@ func TestLimiterAppOutOfBudgetLeftAside(t *testing.T) {
 	}
 }
 
+// Spare: background work (the campus statistics) runs only while every app keeps this much of its hour for people.
+func TestLimiterSpareKeepsAReserve(t *testing.T) {
+	c := newClock()
+	l := NewLimiter(2, c.now, c.sleep)
+	if !l.Spare(400) {
+		t.Fatal("unknown budgets are spare")
+	}
+	l.Record(http.Header{"X-Hourly-Ratelimit-Remaining": {"399"}}, 0)
+	if !l.Spare(400) {
+		t.Fatal("the other app still has its hour")
+	}
+	l.Record(http.Header{"X-Hourly-Ratelimit-Remaining": {"900"}}, 1)
+	l.Record(http.Header{"X-Hourly-Ratelimit-Remaining": {"100"}}, 1)
+	if l.Spare(400) {
+		t.Fatal("no app above the reserve")
+	}
+	c.add(time.Hour)
+	if !l.Spare(400) {
+		t.Fatal("a new hour")
+	}
+}
+
 func TestLimiterStopsOnCancel(t *testing.T) {
 	l := NewLimiter(1, time.Now, func(ctx context.Context, d time.Duration) error { return ctx.Err() })
 	ctx, cancel := context.WithCancel(context.Background())
@@ -190,7 +212,7 @@ func TestStoreDeleteKeepsOnlyAnonymousKeys(t *testing.T) {
 	d := hex.EncodeToString(mac.Sum(nil))
 	keys := m.Keys("*")
 	slices.Sort(keys)
-	if !slices.Equal(keys, []string{"cooldown:" + d, "deleted:" + d, "epoch:" + d}) {
+	if !slices.Equal(keys, []string{"cooldown:" + d, "deleted:" + d}) {
 		t.Fatalf("keys %v", keys)
 	}
 	if m.TTL("deleted:"+d) > 900*time.Second {
@@ -198,11 +220,104 @@ func TestStoreDeleteKeepsOnlyAnonymousKeys(t *testing.T) {
 	}
 }
 
-func TestSignTiesBytesToUser(t *testing.T) {
-	_, s := newStore(newClock())
-	a := s.Sign(1, []byte("x"))
-	if !s.Verify(1, []byte("x"), a) || s.Verify(2, []byte("x"), a) || s.Verify(1, []byte("y"), a) || s.Verify(1, []byte("x"), "1."+a) {
-		t.Fatal("signature")
+func diskStore(c *clock, dir string) (*Memory, *Store) {
+	m := NewMemory(c.now)
+	st := testSettings()
+	st.ReportsDir = dir
+	return m, NewStore(m, st, c.now)
+}
+
+// The report outlives the process (another device, a restart): on disk, encrypted, named by the HMAC, with when it was
+// extracted, so the status comes back as done.
+func TestReportOnDiskSurvivesARestartEncrypted(t *testing.T) {
+	c, dir := newClock(), t.TempDir()
+	_, s := diskStore(c, dir)
+	s.SaveRaw(1, []byte(`{"secret":"peer01"}`))
+	files, _ := os.ReadDir(dir)
+	if len(files) != 1 || files[0].Name() != s.Digest(1)+".bin" {
+		t.Fatalf("files %v", files)
+	}
+	b, _ := os.ReadFile(filepath.Join(dir, files[0].Name()))
+	if strings.Contains(string(b), "peer01") {
+		t.Fatal("the report is on disk in clear")
+	}
+	c.add(2 * time.Hour)
+	_, s2 := diskStore(c, dir) // a restart: memory empty
+	if raw := s2.LoadRaw(1); string(raw) != `{"secret":"peer01"}` {
+		t.Fatalf("raw %q", raw)
+	}
+	if st := s2.Status(1); st.State != "done" || st.Last != time.Unix(1000, 0).UTC().Format(time.RFC3339) {
+		t.Fatalf("status %+v", st)
+	}
+	if s2.LoadRaw(2) != nil {
+		t.Fatal("someone else's report")
+	}
+}
+
+// Seven days from the last use, then gone; every use starts the seven days again.
+func TestReportOnDiskLastsSevenDaysFromTheLastUse(t *testing.T) {
+	c, dir := newClock(), t.TempDir()
+	_, s := diskStore(c, dir)
+	s.SaveRaw(1, []byte(`{}`))
+	c.add(6 * 24 * time.Hour)
+	if _, s2 := diskStore(c, dir); s2.LoadRaw(1) == nil {
+		t.Fatal("gone before seven days")
+	}
+	c.add(6 * 24 * time.Hour) // 12 days after saving, 6 after the last use
+	_, s3 := diskStore(c, dir)
+	if s3.LoadRaw(1) == nil {
+		t.Fatal("the last use did not renew it")
+	}
+	c.add(7*24*time.Hour + time.Minute)
+	_, s4 := diskStore(c, dir)
+	if s4.LoadRaw(1) != nil {
+		t.Fatal("kept past seven days unused")
+	}
+	if files, _ := os.ReadDir(dir); len(files) != 0 {
+		t.Fatalf("expired file left: %v", files)
+	}
+}
+
+func TestSweepRemovesUnusedReports(t *testing.T) {
+	c, dir := newClock(), t.TempDir()
+	_, s := diskStore(c, dir)
+	s.SaveRaw(1, []byte(`{}`))
+	s.SweepReports()
+	if files, _ := os.ReadDir(dir); len(files) != 1 {
+		t.Fatal("swept a fresh report")
+	}
+	c.add(8 * 24 * time.Hour)
+	s.SweepReports()
+	if files, _ := os.ReadDir(dir); len(files) != 0 {
+		t.Fatal("old report kept")
+	}
+}
+
+func TestDeleteRemovesTheReportFromDisk(t *testing.T) {
+	c, dir := newClock(), t.TempDir()
+	_, s := diskStore(c, dir)
+	s.SaveRaw(1, []byte(`{}`))
+	s.DeleteUser(1)
+	if files, _ := os.ReadDir(dir); len(files) != 0 {
+		t.Fatal("Delete my data left the file")
+	}
+	s.SaveRaw(2, []byte(`{}`))
+	s.DropReport(2)
+	if _, s2 := diskStore(c, dir); s2.LoadRaw(2) != nil {
+		t.Fatal("a dropped report came back from disk")
+	}
+}
+
+func TestATamperedFileIsRefused(t *testing.T) {
+	c, dir := newClock(), t.TempDir()
+	_, s := diskStore(c, dir)
+	s.SaveRaw(1, []byte(`{}`))
+	p := filepath.Join(dir, s.Digest(1)+".bin")
+	b, _ := os.ReadFile(p)
+	b[len(b)-1] ^= 1
+	os.WriteFile(p, b, 0o600)
+	if _, s2 := diskStore(c, dir); s2.LoadRaw(1) != nil {
+		t.Fatal("tampered file read")
 	}
 }
 

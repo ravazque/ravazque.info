@@ -9,10 +9,16 @@ export const router = createRouter({
     { path: "/privacy", component: () => import("./components/Reading.vue"), props: { page: "privacy" } },
     { path: "/refused", component: () => import("./components/Refused.vue") },
     { path: "/app/stats", component: () => import("./components/Stats.vue") },
+    // make dev only: the owner's holy graph editor (a production build holds none of it)
+    ...(import.meta.env.DEV ? [{ path: "/app/holygraph/edit", component: () => import("./components/HolyEditor.vue") }] : []),
     { path: "/app/delete", component: () => import("./components/Confirm.vue"), props: { kind: "delete" } },
     { path: "/app/publish", component: () => import("./components/Confirm.vue"), props: { kind: "publish" } },
     { path: "/app/corrections", redirect: "/app/evaluations" },
-    { path: "/app/:page(projects|evaluations|people|campus|coalition)?", component: () => import("./components/Dashboard.vue") },
+    // Stats became 42 Madrid (2026-11-26): its Piscine or track figures are there now
+    { path: "/app/statistics", redirect: (to) => ({ path: to.query.graph === "piscine" ? "/app/madrid/piscine" : "/app/madrid/42cursus", query: to.query, hash: to.hash }) },
+    { path: "/app/madrid/projects", redirect: (to) => ({ path: "/app/madrid/42cursus", query: to.query, hash: to.hash }) },
+    { path: "/app/madrid/:sub(exams|42cursus|piscine)?", component: () => import("./components/Dashboard.vue") },
+    { path: "/app/:page(projects|holygraph|evaluations|people|campus|coalition)?", component: () => import("./components/Dashboard.vue") },
     { path: "/:rest(.*)*", redirect: "/" },
   ],
   scrollBehavior(to, from, saved) {

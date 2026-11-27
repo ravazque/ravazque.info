@@ -1,0 +1,120 @@
+{
+ "$schema": "../../data/colors.schema.json",
+ "_notes": "The site's colours for the owner to edit (2026-11-26). \"main\": the ones changed one or two at a time, each by a plain name, its light and dark value, the token pages use and who or what it marks; below, the rest by token name (\"_what\" says what each is). core.LoadUI adds every one to ui.json's tokens, so every page, the .io's ui.css and the evaluation report take them. Hex #rrggbb. In VS Code every value has a swatch: click it for a colour picker (colors.schema.json). After a change: make dev-build, then cd server && go run ./cmd/uicss > core/testdata/golden/ui.css (the golden test). One colour means one thing everywhere: green OK or passed, deep green Outstanding, red failed; the one exception is your Holy graph's passed projects, in the intra's blue (done).",
+ "main": {
+  "piscine": {
+   "light": "#4893d8",
+   "dark": "#7cb4ee",
+   "token": "state-piscine",
+   "is": "Pisciners: anyone in or after a C Piscine who wasn't admitted. People's nodes and tags, the Piscine part of Profile's path, the period dot, Stats' \"not admitted\"."
+  },
+  "common-core": {
+   "light": "#00898b",
+   "dark": "#14989a",
+   "token": "state-cc",
+   "is": "Common Core students (cadets). People's nodes and tags, Profile's path and grade tag, Stats' ring funnel and \"admitted\"."
+  },
+  "outer-core": {
+   "light": "#6d63cf",
+   "dark": "#7392da",
+   "token": "state-outer",
+   "is": "Outer Core students (Transcenders). People's nodes and tags, Profile's path and grade tag, Stats by start year. Keep it no lighter than common-core."
+  },
+  "alumni": {
+   "light": "#f3eee3",
+   "dark": "#ebe6db",
+   "token": "state-alumni",
+   "is": "Alumni. People's nodes, tags, Stats by start year; a pale fill, always drawn with alumni-edge."
+  },
+  "alumni-edge": {
+   "light": "#9c8a64",
+   "dark": "#a39374",
+   "token": "alumni-edge",
+   "is": "The edge that draws alumni (nodes, tags, bars): change it with alumni."
+  },
+  "frozen": {
+   "light": "#9dbdd0",
+   "dark": "#a9c7d8",
+   "token": "state-frozen",
+   "is": "Frozen (inactive) accounts. Stats by start year; pale, drawn with an outline."
+  },
+  "black-hole": {
+   "light": "#7e8083",
+   "dark": "#8a8c8f",
+   "token": "state-blackhole",
+   "is": "Blackholed accounts. People's nodes (dashed), Stats' donuts (ran out of days), the ring funnel and by start year."
+  },
+  "ok": {
+   "light": "#3d8e53",
+   "dark": "#6bc987",
+   "token": "ok",
+   "is": "OK and passed: an evaluation's OK badge, a passed mark or exam, validated projects, Stats' donuts (passed), Who evaluated you, flags by month."
+  },
+  "outstanding": {
+   "light": "#2d6b43",
+   "dark": "#5a9a6e",
+   "token": "ok-deep",
+   "is": "Outstanding: its badge, Stats' donuts (passed with 3 Outstandings), Who evaluated you, reciprocity bars, flags by month. Keep it darker than ok."
+  },
+  "fail": {
+   "light": "#c2402f",
+   "dark": "#f0715e",
+   "token": "critical",
+   "is": "Failed and negative flags: a 0 or a mark under 80, negative flag badges, failed attempts, Stats' donuts (failed), the reds of why attempts fail start here; delete buttons."
+  }
+ },
+ "_what": {
+  "accent": "The band, buttons and what is live (the 42 blue; a coalition colour replaces it when chosen).",
+  "accent-data": "Series that only count (heatmaps, data bars): the accent a step darker in light mode.",
+  "accent-ink": "Text and focus rings in the accent's colour, readable on the ground.",
+  "on-accent": "Text on the accent (the band).",
+  "on-ok": "Text on ok.",
+  "done": "A passed project on your Holy graph (nodes, lit lines, the rings of milestones done).",
+  "done-deep": "The ring of a project passed with a bonus on your Holy graph.",
+  "on-done": "Text on done (a passed project's name).",
+  "why-cheat": "Why attempts fail: cheat or a forbidden function (the darkest red).",
+  "why-norme": "Why attempts fail: the Norm flag.",
+  "why-other": "Why attempts fail: other negative flags (the lightest red).",
+  "why-marks": "Why attempts fail, no flag: evaluation marks under 50 (the darkest grey).",
+  "why-exam": "Why attempts fail, no flag: an exam under the pass mark.",
+  "why-auto": "Why attempts fail, no flag: the automatic grading (inferred).",
+  "why-none": "Why attempts fail, no flag: closed without an evaluation (the lightest grey).",
+  "group": "Profile group tags (Mentor, Tutor…)."
+ },
+ "light": {
+  "accent": "#00babc",
+  "accent-data": "#009c9e",
+  "accent-ink": "#007778",
+  "on-accent": "#111417",
+  "on-ok": "#111417",
+  "done": "#009c9e",
+  "done-deep": "#006f70",
+  "on-done": "#111417",
+  "why-cheat": "#7a1d14",
+  "why-norme": "#dd6f5f",
+  "why-other": "#e9978a",
+  "why-marks": "#3d4f5c",
+  "why-exam": "#627079",
+  "why-auto": "#8a959d",
+  "why-none": "#a7afb5",
+  "group": "#5b6670"
+ },
+ "dark": {
+  "accent": "#00babc",
+  "accent-data": "#00babc",
+  "accent-ink": "#00babc",
+  "on-accent": "#111417",
+  "on-ok": "#111417",
+  "done": "#00babc",
+  "done-deep": "#7fdcdd",
+  "on-done": "#111417",
+  "why-cheat": "#a3291d",
+  "why-norme": "#f5a497",
+  "why-other": "#f9d0c9",
+  "why-marks": "#9eabb4",
+  "why-exam": "#7f8b94",
+  "why-auto": "#646f77",
+  "why-none": "#4a545b",
+  "group": "#a9b4bc"
+ }
+}

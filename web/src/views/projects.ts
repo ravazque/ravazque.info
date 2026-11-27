@@ -1,10 +1,10 @@
 // Projects: your level and pace, skills, every project and attempt, exams, technical domains and the timeline.
 import { BAD, GOOD, NEUTRAL, S1, S2, type GanttItem, type SeatRow, empty, gantt, hbars, legend, lines, seatbars, vbars } from "../lib/charts";
 import { radar, radarTop, type Skill } from "../lib/graphs";
-import { ARROW, badge, esc } from "../lib/h";
+import { ARROW, badge, esc, tipAttr } from "../lib/h";
 import { pyRound } from "../fmt";
 import { csv, facts, table } from "../lib/table";
-import { Page, Section, aboveShare, block, cols, filters, headBlock, info, search, section, select, shortProject } from "./page";
+import { Page, Section, aboveShare, block, cols, filters, headBlock, info, redMark, search, section, select, shortProject } from "./page";
 import { workExperience } from "./evaluations";
 import projectSkills from "@data/project_skills.json";
 
@@ -110,7 +110,29 @@ const csvButtons = (pg: Page, kind: string, title: string, button: string) =>
 export const tryChip = (f: Page["f"], x: any) =>
   `<span class="mark${x.mark === null || x.mark === undefined ? "" : x.passed ? " pass" : " fail"}" title="${esc(f.day(x.date))}">${esc(x.mark ?? "–")}</span>`;
 
-export function projects(pg: Page): Section[] {
+/** One exam of yours beside 42 Madrid's (the weekly count): its slug from your projects (both tracks name their exams
+ * alike: the one with the same sittings and first day), then the share who pass it the first time and the median days.
+ * Null with no count, or none for that exam. */
+export function examMadrid(pg: Page, e: any, stats: any): { text: string; tip: string } | null {
+  const f = pg.f, same = (pg.D.projects || []).filter((p: any) => p.exam && p.name === e.name);
+  const mine = same.find((p: any) => p.attempts?.length === e.attempts && String(p.attempts[0]?.start || "").slice(0, 10) === e.tries?.[0]?.date) || same[0];
+  const r = mine && (stats?.projects || []).find((p: any) => p.slug === mine.slug);
+  const n = (v: number | null | undefined) => (v === null ? f.t("holy.under5") : f.num(v ?? 0));
+  const pis = !r && mine && (stats?.piscine?.projects || []).find((p: any) => p.slug === mine.slug); // a Piscine exam: how many passed, the median mark
+  if (pis) {
+    const passed = pis.passed === null || pis.registered === null ? f.t("holy.under5") : pis.registered ? f.pct(pis.passed ?? 0, pis.registered) : "–";
+    const mark = pis.median_mark == null ? "–" : f.num(pis.median_mark);
+    return { text: f.t("exams.madrid_piscine", { passed, mark }), tip: [`${e.name} · ${f.t("pages.madrid")}`, f.t("exams.madrid_piscine_tip", { passed, mark, registered: n(pis.registered) }),
+      "---", `# ${f.t("campus.how")}`, f.t("exams.madrid_piscine_how")].join("\n") };
+  }
+  if (!r) return null;
+  const first = r.first_try === null || r.passed === null ? f.t("holy.under5") : r.passed ? f.pct(r.first_try ?? 0, r.passed) : "–";
+  const days = r.median_days == null ? "–" : f.num(r.median_days, Number.isInteger(r.median_days) ? 0 : 1);
+  return { text: f.t("exams.madrid", { first, days }), tip: [`${e.name} · ${f.t("pages.madrid")}`, f.t("exams.madrid_tip", { first, days, registered: n(r.registered) }),
+    "---", `# ${f.t("campus.how")}`, f.t("exams.madrid_how")].join("\n") };
+}
+
+export function projects(pg: Page, stats: any = null): Section[] {
   const f = pg.f, D = pg.D, X = D.extras;
   const out: Section[] = [];
 
@@ -165,7 +187,7 @@ export function projects(pg: Page): Section[] {
   const fl = projectFilters(pg);
   const rows = projectView(pg.allProjects, fl);
   const evalLine = (e: any) => {
-    const state = e.mark === null ? "open" : e.negative || e.mark < 50 ? "fail" : "pass";
+    const state = e.mark === null || e.mark === undefined ? "open" : redMark(e) ? "fail" : "pass";
     const flag = e.outstanding ? " " + badge(f.t("flag.outstanding"), "out") : e.negative ? " " + badge(e.flag || "", "bad") : "";
     return `<li><span class="code">${esc(e.corrector)}</span> <span class="mark ${state}">${esc(e.mark ?? "–")}</span>${flag} <span class="note">${esc(e.begin ? f.dayTime(e.begin) : "")}</span></li>`;
   };
@@ -209,11 +231,14 @@ export function projects(pg: Page): Section[] {
   const exams = D.insights?.exams || [];
   out.push({ id: "exams", nav: f.t("nav.exams"), html: section("exams", f.t("exams.title"), cols(block("exams", `<div class="table-wrap">${table(f, [
     { k: "name", t: f.t("col.exam"), nw: true },
-    { k: "passed", t: f.t("col.status"), nw: true, sv: (e) => (e.passed ? 1 : 0), f: (e) => badge(f.t(e.passed ? "exams.passed" : "exams.pending"), e.passed ? "out" : "") },
+    { k: "passed", t: f.t("col.status"), nw: true, sv: (e) => (e.passed ? 1 : 0), f: (e) => badge(f.t(e.passed ? "exams.passed" : "exams.pending"), e.passed ? "ok" : "") }, // passed: the passed green (deep green is Outstanding)
     { k: "attempts", t: f.t("col.attempts"), s: f.t("abbr.attempts"), num: true }, { k: "best", t: f.t("col.best"), num: true },
     { k: "days_to_pass", t: f.t("col.days_to_pass"), s: f.t("abbr.days_to_pass"), num: true, f: (e) => esc(f.num(e.days_to_pass)) },
     { k: "tries", t: f.t("col.tries"), ph: true, sv: (e) => e.tries.length, f: (e) => '<span class="marks">' + e.tries.map((x: any) => tryChip(f, x)).join("") + "</span>" },
-  ], exams, { label: f.t("exams.title"), sort: ["name", 1], empty: f.t("exams.none") })}</div>`))) });
+    { k: "madrid", t: f.t("pages.madrid"), nw: true, sv: (e) => examMadrid(pg, e, stats)?.text ?? "",
+      f: (e) => { const m = examMadrid(pg, e, stats); return m ? `<span${tipAttr(m.tip)}>${esc(m.text)}</span>` : "–"; } },
+  ], exams, { label: f.t("exams.title"), sort: ["name", 1], empty: f.t("exams.none") })}</div>`
+    + (exams.length ? `<p class="note"><a href="${esc(pg.url("exams"))}">${esc(f.t("exams.madrid_all"))}</a></p>` : "")))) });
 
   const [domains, domainsSwitch] = domainsBody(pg);
   out.push({ id: "domains", nav: f.t("domains.title"), html: section("domains", "", domains,

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // The owner's operations page: API budget, extractions, the process, who is signed in, and who has signed in (since the
 // server started and ever: the visitors list, privacy policy v5).
-import { computed, onBeforeUnmount, onMounted, shallowRef } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from "vue";
 import { useRouter } from "vue-router";
 import { api, fmt, loadSession, state } from "../state";
 import { S1, hbars } from "../lib/charts";
@@ -22,6 +22,34 @@ onMounted(async () => {
   load();
 });
 onBeforeUnmount(() => clearTimeout(timer));
+
+// the campus count: made here or in make dev, moved to production by the owner (export there, import here: only a count
+// is taken, the server checks it holds nothing about anyone)
+const campusAt = ref<string>("");
+const piscineAt = ref<string>(""); // the Piscine is read again only when it may have changed (2026-11-26)
+const imported = ref<string>("");
+async function loadCampus() { const r = await api<{ stats: any }>("/api/campus-stats").catch(() => null); campusAt.value = r?.stats?.generated_at || ""; piscineAt.value = r?.stats?.piscine?.generated_at || ""; }
+onMounted(loadCampus);
+// the holy graph the owner drew in the editor (make dev): imported here in production from the editor's download
+const holyCustom = ref(false), holyNote = ref("");
+async function loadHoly() { holyCustom.value = !!(await api("/api/holygraph").catch(() => null)); }
+onMounted(loadHoly);
+async function importHoly(ev: Event) {
+  const file = (ev.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+  try { await api("/api/holygraph", { method: "PUT", body: await file.text(), headers: { "Content-Type": "application/json" } }); holyNote.value = f.value.t("stats.holy_imported"); loadHoly(); }
+  catch (e: any) { holyNote.value = f.value.t("stats.campus_refused", { why: e?.body?.why || e?.body?.error || "" }); }
+}
+async function resetHoly() { await api("/api/holygraph", { method: "DELETE" }).catch(() => {}); holyNote.value = f.value.t("stats.holy_reset_done"); loadHoly(); }
+async function importCampus(ev: Event) {
+  const file = (ev.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+  try {
+    await api("/api/campus-stats/import", { method: "POST", body: await file.text(), headers: { "Content-Type": "application/json" } });
+    imported.value = f.value.t("stats.campus_imported");
+    loadCampus();
+  } catch (e: any) { imported.value = f.value.t("stats.campus_refused", { why: e?.body?.why || e?.body?.error || "" }); }
+}
 
 const dur = (sec: number) => {
   const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60);
@@ -74,6 +102,22 @@ const intra = (login: string) => `https://profile.intra.42.fr/users/${encodeURIC
     <section class="stats-sec"><h2>{{ f.t("stats.sys_title") }}</h2>
       <div class="stat-tiles"><div v-for="[k, v] in tiles.sys" :key="k" class="stat"><b class="figure">{{ v }}</b><span class="k">{{ k }}</span></div></div>
       <p class="note">{{ tiles.note }}</p></section>
+    <section class="stats-sec"><h2>{{ f.t("stats.campus_title") }}</h2>
+      <p class="note">{{ campusAt ? f.t("stats.campus_at", { date: f.stamp(Date.parse(campusAt)) }) : f.t("stats.campus_none") }}<template v-if="piscineAt && piscineAt !== campusAt"> {{ f.t("stats.campus_piscine_at", { date: f.stamp(Date.parse(piscineAt)) }) }}</template></p>
+      <div class="row-links">
+        <a v-if="campusAt" class="btn secondary" href="/api/campus-stats/export" download="campus.json">{{ f.t("stats.campus_export") }}</a>
+        <label class="btn secondary">{{ f.t("stats.campus_import") }}<input type="file" accept="application/json,.json" class="visually-hidden" @change="importCampus"></label>
+      </div>
+      <p v-if="imported" class="note" role="status">{{ imported }}</p>
+      <p class="note">{{ f.t("stats.campus_how") }}</p></section>
+    <section class="stats-sec"><h2>{{ f.t("stats.holy_title") }}</h2>
+      <p class="note">{{ f.t(holyCustom ? "stats.holy_custom" : "stats.holy_builtin") }}</p>
+      <div class="row-links">
+        <label class="btn secondary">{{ f.t("stats.holy_import") }}<input type="file" accept="application/json,.json" class="visually-hidden" @change="importHoly"></label>
+        <button v-if="holyCustom" class="btn secondary" type="button" @click="resetHoly">{{ f.t("stats.holy_reset") }}</button>
+      </div>
+      <p v-if="holyNote" class="note" role="status">{{ holyNote }}</p>
+      <p class="note">{{ f.t("stats.holy_how") }}</p></section>
     <section class="stats-sec"><h2>{{ f.t("stats.sessions") }}<span class="count"><span class="sep"> · </span>{{ sessions.length }}</span></h2>
       <div v-if="sessions.length" class="table-wrap"><table class="stat-table">
         <thead><tr><th scope="col">{{ f.t("stats.col_login") }}</th><th scope="col">{{ f.t("stats.col_name") }}</th><th scope="col" class="num">{{ f.t("stats.col_signed_in") }}</th></tr></thead>

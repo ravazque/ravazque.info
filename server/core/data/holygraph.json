@@ -1,0 +1,2578 @@
+{
+ "_notes": "Built by tools/holygraph/build.py (make holygraph) from the API's catalog and the owner's structure (2026-11-25): the C Piscine's rows, the Common Core's milestones per track (alt: one of them; chain: modules in order), the Outer Core's roots clockwise from the top, its edges (parent, child) and its boxes (piscines of modules). Edit the structure in build.py, not here.",
+ "piscine": [
+  [
+   "c-piscine-shell-01",
+   "c-piscine-c-01",
+   "c-piscine-c-03",
+   "c-piscine-c-05",
+   "c-piscine-c-07",
+   "c-piscine-c-09",
+   "c-piscine-c-11",
+   "c-piscine-c-13"
+  ],
+  [
+   "c-piscine-shell-00",
+   "c-piscine-c-00",
+   "c-piscine-c-02",
+   "c-piscine-c-04",
+   "c-piscine-c-06",
+   "c-piscine-c-08",
+   "c-piscine-c-10",
+   "c-piscine-c-12"
+  ],
+  [
+   "c-piscine-rush-00",
+   "c-piscine-rush-01",
+   "c-piscine-rush-02",
+   "c-piscine-bsq"
+  ],
+  [
+   "c-piscine-exam-00",
+   "c-piscine-exam-01",
+   "c-piscine-exam-02",
+   "c-piscine-final-exam"
+  ]
+ ],
+ "common_core": {
+  "c": [
+   [
+    "42cursus-libft"
+   ],
+   [
+    "42cursus-get_next_line",
+    "42cursus-ft_printf",
+    "born2beroot"
+   ],
+   [
+    "42cursus-push_swap",
+    {
+     "alt": [
+      "pipex",
+      "minitalk"
+     ]
+    },
+    {
+     "alt": [
+      "so_long",
+      "42cursus-fdf",
+      "42cursus-fract-ol"
+     ]
+    },
+    "exam-rank-02"
+   ],
+   [
+    "42cursus-philosophers",
+    "42cursus-minishell",
+    "exam-rank-03"
+   ],
+   [
+    {
+     "alt": [
+      "minirt",
+      "cub3d"
+     ]
+    },
+    "netpractice",
+    {
+     "chain": [
+      "cpp-module-00",
+      "cpp-module-01",
+      "cpp-module-02",
+      "cpp-module-03",
+      "cpp-module-04"
+     ]
+    },
+    "exam-rank-04"
+   ],
+   [
+    {
+     "alt": [
+      "ft_irc",
+      "webserv"
+     ]
+    },
+    "inception",
+    {
+     "chain": [
+      "cpp-module-05",
+      "cpp-module-06",
+      "cpp-module-07",
+      "cpp-module-08",
+      "cpp-module-09"
+     ]
+    },
+    "exam-rank-05"
+   ],
+   [
+    "ft_transcendence",
+    "exam-rank-06",
+    "42_collaborative_resume"
+   ]
+  ],
+  "python": [
+   [
+    "42cursus-libft"
+   ],
+   [
+    "42cursus-get_next_line",
+    "42cursus-ft_printf",
+    "42next-push_swap"
+   ],
+   [
+    "42next-born2beroot",
+    "a-maze-ing",
+    "42next-exam-rank-02",
+    {
+     "chain": [
+      "python-module-00",
+      "python-module-01",
+      "python-module-02",
+      "python-module-03",
+      "python-module-04"
+     ]
+    },
+    {
+     "alt": [
+      {
+       "chain": [
+        "python-module-05",
+        "python-module-06",
+        "python-module-07",
+        "python-module-08"
+       ]
+      },
+      {
+       "chain": [
+        "python-module-05-bis",
+        "python-module-06-bis"
+       ]
+      }
+     ]
+    },
+    {
+     "chain": [
+      "python-module-09",
+      "python-module-10"
+     ]
+    }
+   ],
+   [
+    "call-me-maybe",
+    "codexion",
+    "fly-in",
+    "42next-exam-rank-03"
+   ],
+   [
+    "pac-man",
+    "rag-against-the-machine",
+    "netpractice",
+    "42next-exam-rank-04"
+   ],
+   [
+    "inception",
+    {
+     "alt": [
+      "tree_nity",
+      "agent-smith"
+     ]
+    },
+    "the-answer-protocol",
+    "42next-exam-rank-05"
+   ],
+   [
+    "ft_transcendence",
+    "42next-exam-rank-06",
+    "42_collaborative_resume"
+   ]
+  ]
+ },
+ "outer": {
+  "roots": [
+   "42cursus-dr-quine",
+   "42cursus-woody-woodpacker",
+   "tinky-winkey",
+   "42cursus-42sh",
+   "42cursus-corewar",
+   "cybersecurity",
+   "ft_lex",
+   "libasm",
+   "42cursus-ft_linux",
+   "nm",
+   "42cursus-malloc",
+   "42cursus-ft_ls",
+   "42cursus-ft_script",
+   "42cursus-ft_select",
+   "42cursus-taskmaster",
+   "piscine-object",
+   "42cursus-avaj-launcher",
+   "42cursus-piscine-ocaml",
+   "42cursus-doom-nukem",
+   "42cursus-mod1",
+   "42cursus-guimp",
+   "42cursus-scop",
+   "unity",
+   "42cursus-rt",
+   "42cursus-zappy",
+   "open-project",
+   "ai-rushes",
+   "42cursus-rushes",
+   "startup-experience",
+   "work-experience-ii",
+   "work-experience-i",
+   "part_time-i",
+   "part_time-ii",
+   "mobile",
+   "piscine-django",
+   "datomic",
+   "tokenizer",
+   "42cursus-n-puzzle",
+   "matrix",
+   "42cursus-computorv1",
+   "ftl_quantum",
+   "piscine-deep-learning",
+   "inception-of-things",
+   "42cursus-cloud-1",
+   "ft_lgtm",
+   "inception-of-context",
+   "inception-of-wisdom",
+   "ecomesh",
+   "activediscovery",
+   "bgp-at-doors-of-autonomous-systems-is-simple",
+   "ft_malcolm",
+   "42cursus-ft_ping"
+  ],
+  "edges": [
+   [
+    "42cursus-woody-woodpacker",
+    "42cursus-famine"
+   ],
+   [
+    "42cursus-famine",
+    "42cursus-pestilence"
+   ],
+   [
+    "42cursus-pestilence",
+    "42cursus-war"
+   ],
+   [
+    "42cursus-war",
+    "42cursus-death"
+   ],
+   [
+    "42cursus-woody-woodpacker",
+    "42cursus-ft_shield"
+   ],
+   [
+    "cybersecurity",
+    "42cursus-snow-crash"
+   ],
+   [
+    "42cursus-snow-crash",
+    "42cursus-rainfall"
+   ],
+   [
+    "42cursus-rainfall",
+    "42cursus-override"
+   ],
+   [
+    "42cursus-snow-crash",
+    "42cursus-boot2root"
+   ],
+   [
+    "42cursus-boot2root",
+    "unleashthebox"
+   ],
+   [
+    "ft_lex",
+    "ft_yacc"
+   ],
+   [
+    "ft_yacc",
+    "cc1"
+   ],
+   [
+    "libasm",
+    "b"
+   ],
+   [
+    "b",
+    "cc1"
+   ],
+   [
+    "42cursus-ft_linux",
+    "42cursus-little-penguin-1"
+   ],
+   [
+    "42cursus-little-penguin-1",
+    "42cursus-userspace_digressions"
+   ],
+   [
+    "42cursus-little-penguin-1",
+    "42cursus-drivers-and-interrupts"
+   ],
+   [
+    "42cursus-drivers-and-interrupts",
+    "42cursus-filesystem"
+   ],
+   [
+    "42cursus-little-penguin-1",
+    "42cursus-process-and-memory"
+   ],
+   [
+    "42cursus-process-and-memory",
+    "42cursus-filesystem"
+   ],
+   [
+    "42cursus-little-penguin-1",
+    "42cursus-kfs-1"
+   ],
+   [
+    "42cursus-kfs-1",
+    "42cursus-kfs-2"
+   ],
+   [
+    "42cursus-kfs-2",
+    "42cursus-kfs-3"
+   ],
+   [
+    "42cursus-kfs-3",
+    "42cursus-kfs-4"
+   ],
+   [
+    "42cursus-kfs-4",
+    "42cursus-kfs-5"
+   ],
+   [
+    "42cursus-kfs-5",
+    "42cursus-kfs-6"
+   ],
+   [
+    "42cursus-kfs-6",
+    "42cursus-kfs-7"
+   ],
+   [
+    "42cursus-kfs-7",
+    "42cursus-kfs-8"
+   ],
+   [
+    "42cursus-kfs-8",
+    "42cursus-kfs-9"
+   ],
+   [
+    "42cursus-kfs-9",
+    "42cursus-kfs-x"
+   ],
+   [
+    "42cursus-malloc",
+    "42cursus-lem-ipc"
+   ],
+   [
+    "42cursus-lem-ipc",
+    "42cursus-nibbler"
+   ],
+   [
+    "42cursus-lem-ipc",
+    "42cursus-strace"
+   ],
+   [
+    "42cursus-lem-ipc",
+    "retroemu"
+   ],
+   [
+    "42cursus-taskmaster",
+    "42cursus-matt-daemon"
+   ],
+   [
+    "piscine-object",
+    "libftpp"
+   ],
+   [
+    "libftpp",
+    "abstract_data"
+   ],
+   [
+    "libftpp",
+    "42cursus-abstract-vm"
+   ],
+   [
+    "42cursus-avaj-launcher",
+    "42cursus-swingy"
+   ],
+   [
+    "42cursus-swingy",
+    "42cursus-fix-me"
+   ],
+   [
+    "42cursus-piscine-ocaml",
+    "42cursus-ft_turing"
+   ],
+   [
+    "42cursus-ft_turing",
+    "42cursus-h42n42"
+   ],
+   [
+    "42cursus-ft_turing",
+    "42cursus-ft_ality"
+   ],
+   [
+    "42cursus-scop",
+    "42cursus-ft_vox"
+   ],
+   [
+    "42cursus-ft_vox",
+    "ft_minecraft"
+   ],
+   [
+    "ft_minecraft",
+    "very_real_engine"
+   ],
+   [
+    "42cursus-scop",
+    "42cursus-42run"
+   ],
+   [
+    "42cursus-scop",
+    "42cursus-humangl"
+   ],
+   [
+    "42cursus-humangl",
+    "42cursus-bomberman"
+   ],
+   [
+    "42cursus-humangl",
+    "42cursus-particle-system"
+   ],
+   [
+    "42cursus-humangl",
+    "42cursus-shaderpixel"
+   ],
+   [
+    "42cursus-humangl",
+    "ft_newton"
+   ],
+   [
+    "ft_newton",
+    "very_real_engine"
+   ],
+   [
+    "unity",
+    "42cursus-in-the-shadows"
+   ],
+   [
+    "42cursus-in-the-shadows",
+    "42cursus-xv"
+   ],
+   [
+    "42cursus-xv",
+    "freddie-mercury"
+   ],
+   [
+    "mobile",
+    "42cursus-swifty-companion"
+   ],
+   [
+    "42cursus-swifty-companion",
+    "42cursus-swifty-proteins"
+   ],
+   [
+    "42cursus-swifty-proteins",
+    "peace_break"
+   ],
+   [
+    "mobile",
+    "42cursus-ft_hangouts"
+   ],
+   [
+    "piscine-django",
+    "42cursus-darkly"
+   ],
+   [
+    "piscine-django",
+    "42cursus-music-room"
+   ],
+   [
+    "piscine-django",
+    "42cursus-red-tetris"
+   ],
+   [
+    "piscine-django",
+    "42cursus-camagru"
+   ],
+   [
+    "42cursus-camagru",
+    "42cursus-matcha"
+   ],
+   [
+    "42cursus-matcha",
+    "42cursus-hypertube"
+   ],
+   [
+    "tokenizer",
+    "tokenizeart"
+   ],
+   [
+    "tokenizeart",
+    "tokenzwap"
+   ],
+   [
+    "42cursus-n-puzzle",
+    "42cursus-lem_in"
+   ],
+   [
+    "42cursus-n-puzzle",
+    "42cursus-rubik"
+   ],
+   [
+    "42cursus-n-puzzle",
+    "42cursus-gomoku"
+   ],
+   [
+    "42cursus-n-puzzle",
+    "42cursus-krpsim"
+   ],
+   [
+    "42cursus-n-puzzle",
+    "42cursus-expert-system"
+   ],
+   [
+    "matrix",
+    "ft_kalman"
+   ],
+   [
+    "matrix",
+    "ready-set-boole"
+   ],
+   [
+    "ready-set-boole",
+    "ft_kleene"
+   ],
+   [
+    "42cursus-computorv1",
+    "42cursus-computorv2"
+   ],
+   [
+    "ftl_quantum",
+    "supercharge"
+   ],
+   [
+    "piscine-deep-learning",
+    "42cursus-dslr"
+   ],
+   [
+    "42cursus-dslr",
+    "leaffliction"
+   ],
+   [
+    "42cursus-dslr",
+    "learn2slither"
+   ],
+   [
+    "42cursus-dslr",
+    "42cursus-ft_linear_regression"
+   ],
+   [
+    "42cursus-dslr",
+    "42cursus-total-perspective-vortex"
+   ],
+   [
+    "42cursus-dslr",
+    "42cursus-multilayer-perceptron"
+   ],
+   [
+    "piscine-deep-learning",
+    "42cursus-call-me-maybe"
+   ],
+   [
+    "42cursus-call-me-maybe",
+    "42cursus-rag-against-the-machine"
+   ],
+   [
+    "42cursus-rag-against-the-machine",
+    "42cursus-agent-smith"
+   ],
+   [
+    "activediscovery",
+    "automaticdirectory"
+   ],
+   [
+    "automaticdirectory",
+    "administrativedirectory"
+   ],
+   [
+    "administrativedirectory",
+    "accessibledirectory"
+   ],
+   [
+    "accessibledirectory",
+    "activeconnect"
+   ],
+   [
+    "accessibledirectory",
+    "activetechtales"
+   ],
+   [
+    "accessibledirectory",
+    "microforensx"
+   ],
+   [
+    "42cursus-ft_ping",
+    "42cursus-ft_traceroute"
+   ],
+   [
+    "42cursus-ft_traceroute",
+    "42cursus-ft_nmap"
+   ],
+   [
+    "42cursus-ft_ping",
+    "42cursus-ft_ssl_md5"
+   ],
+   [
+    "42cursus-ft_ssl_md5",
+    "42cursus-ft_ssl_des"
+   ],
+   [
+    "42cursus-ft_ssl_des",
+    "42cursus-ft_ssl_rsa"
+   ]
+  ],
+  "boxes": {
+   "cybersecurity": [
+    {
+     "slug": "cybersecurity",
+     "modules": [
+      "cybersecurity-stockholm-malware",
+      "optional-cybersecurity-iron-dome-malware",
+      "cybersecurity-arachnida-web",
+      "cybersecurity-ft_onion-web",
+      "cybersecurity-ft_otp-otp",
+      "cybersecurity-inquisitor-network",
+      "cybersecurity-reverse-me-rev",
+      "cybersecurity-vaccine-web"
+     ]
+    }
+   ],
+   "piscine-object": [
+    {
+     "slug": "piscine-object",
+     "modules": [
+      "piscine-object-module-00-encapsulation",
+      "piscine-object-module-01-relationship",
+      "piscine-object-module-02-uml",
+      "piscine-object-module-03-solid",
+      "piscine-object-module-04-design-pattern",
+      "piscine-object-module-05-practical-work"
+     ]
+    }
+   ],
+   "42cursus-piscine-ocaml": [
+    {
+     "slug": "42cursus-piscine-ocaml",
+     "modules": [
+      "ocaml-ocaml-s-modules-language-1",
+      "ocaml-basic-syntax-and-semantics-0",
+      "ocaml-functor-1",
+      "ocaml-imperative-features-1",
+      "ocaml-monoids-and-monads-3",
+      "ocaml-object-oriented-programming-1",
+      "ocaml-object-oriented-programming-2",
+      "ocaml-pattern-matching-and-data-types-0",
+      "ocaml-recursion-and-higher-order-functions-0"
+     ]
+    }
+   ],
+   "unity": [
+    {
+     "slug": "unity",
+     "modules": [
+      "unity-0-the-basics-unity-tools",
+      "unity-1-3d-physics-tags-layers-and-scene",
+      "unity-2-2d-environment-tiles-and-sprites",
+      "unity-3-advanced-inputs-and-2d-gui",
+      "unity-4-animations-and-sound",
+      "unity-5-singleton-playerprefs-and-coroutines",
+      "unity-6-navmesh-light-sound-and-camera"
+     ]
+    }
+   ],
+   "ai-rushes": [
+    {
+     "slug": "ai-rushes",
+     "modules": [
+      "42cursus-brickdepth",
+      "42cursus-chromacraft",
+      "42cursus-cvforge",
+      "42cursus-faceswap42",
+      "42cursus-graff-it",
+      "42cursus-graphforge",
+      "42cursus-interviewsim",
+      "42cursus-leaklab",
+      "42cursus-promptrial",
+      "42cursus-spindetect"
+     ]
+    }
+   ],
+   "42cursus-rushes": [
+    {
+     "slug": "42cursus-rushes",
+     "modules": [
+      "42cursus-rushes-alcu",
+      "rushes-connect4",
+      "rushes-ft_shmup",
+      "rushes-hotrace",
+      "rushes-libunit",
+      "rushes-retro-mfa",
+      "rushes-wong-kar-wai",
+      "42cursus-rushes-wordle",
+      "42cursus-rushes-yasl"
+     ]
+    }
+   ],
+   "mobile": [
+    {
+     "slug": "mobile",
+     "modules": [
+      "mobile-0-basic-of-the-mobile-application",
+      "mobile-1-structure-and-logic",
+      "mobile-2-api-and-data",
+      "mobile-3-design",
+      "mobile-4-auth-and-database",
+      "mobile-5-manage-data-and-display"
+     ]
+    }
+   ],
+   "piscine-django": [
+    {
+     "slug": "piscine-django",
+     "modules": [
+      "django-0-initiation",
+      "django-0-oob",
+      "django-0-starting",
+      "django-1-base-django",
+      "django-1-lib",
+      "django-2-sql",
+      "django-3-advanced",
+      "django-3-final",
+      "django-3-sessions"
+     ]
+    },
+    {
+     "slug": "piscine-ror",
+     "modules": [
+      "ror-0-initiation",
+      "ror-0-oob",
+      "ror-0-starting",
+      "ror-1-base-rails",
+      "ror-1-gems",
+      "ror-2-sql",
+      "ror-3-advanced",
+      "ror-3-final",
+      "ror-3-sessions"
+     ]
+    },
+    {
+     "slug": "piscine-symfony",
+     "modules": [
+      "symfony-0-initiation",
+      "symfony-0-oob",
+      "symfony-0-starting",
+      "symfony-1-base-symfony",
+      "symfony-1-composer",
+      "symfony-2-sql",
+      "symfony-3-advanced",
+      "symfony-3-final",
+      "symfony-3-sessions"
+     ]
+    }
+   ],
+   "piscine-deep-learning": [
+    {
+     "slug": "piscine-deep-learning",
+     "modules": [
+      "deep-learning-0",
+      "deep-learning-1",
+      "deep-learning-2",
+      "deep-learning-3",
+      "deep-learning-4"
+     ]
+    },
+    {
+     "slug": "piscine-data-science",
+     "modules": [
+      "data-science-0",
+      "data-science-1",
+      "data-science-2",
+      "data-science-3",
+      "data-science-4"
+     ]
+    },
+    {
+     "slug": "python-for-data-science",
+     "modules": [
+      "python-0-starting",
+      "python-1-array",
+      "python-2-datatable",
+      "python-3-oop",
+      "python-4-dod"
+     ]
+    }
+   ]
+  },
+  "parts": {
+   "startup-experience": [
+    "startup-experience-startup-experience-contract-upload",
+    "startup-experience-startup-experience-duration",
+    "startup-experience-startup-experience-tutor-mid-evaluation",
+    "startup-experience-startup-experience-tutor-final-evaluation",
+    "startup-experience-startup-experience-peer-video"
+   ],
+   "part_time-ii": [
+    "part_time-ii-part_time-ii-contract-upload",
+    "part_time-ii-part_time-ii-duration",
+    "part_time-ii-part_time-ii-company-mid-evaluation",
+    "part_time-ii-part_time-ii-company-final-evaluation",
+    "part_time-ii-part_time-ii-peer-video"
+   ],
+   "work-experience-ii": [
+    "work-experience-ii-work-experience-ii-contract-upload",
+    "work-experience-ii-work-experience-ii-duration",
+    "work-experience-ii-work-experience-ii-company-mid-evaluation",
+    "work-experience-ii-work-experience-ii-company-final-evaluation",
+    "work-experience-ii-work-experience-ii-peer-video"
+   ],
+   "work-experience-i": [
+    "work-experience-i-work-experience-i-contract-upload",
+    "work-experience-i-work-experience-i-duration",
+    "work-experience-i-work-experience-i-company-mid-evaluation",
+    "work-experience-i-work-experience-i-company-final-evaluation",
+    "work-experience-i-work-experience-i-peer-video"
+   ],
+   "open-project": [
+    "open-project-open-project-define-your-subject",
+    "open-project-open-project-complete-the-project"
+   ],
+   "part_time-i": [
+    "part_time-i-part_time-i-contract-upload",
+    "part_time-i-part_time-i-duration",
+    "part_time-i-part_time-i-company-mid-evaluation",
+    "part_time-i-part_time-i-company-final-evaluation",
+    "part_time-i-part_time-i-peer-video"
+   ]
+  }
+ },
+ "projects": {
+  "42_collaborative_resume": {
+   "name": "ft_resume",
+   "xp": 2100,
+   "hours": 15
+  },
+  "42cursus-42run": {
+   "name": "42run",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-42sh": {
+   "name": "42sh",
+   "xp": 15750,
+   "hours": 294
+  },
+  "42cursus-abstract-vm": {
+   "name": "abstract-vm",
+   "xp": 9450,
+   "hours": 504
+  },
+  "42cursus-agent-smith": {
+   "name": "Agent smith",
+   "xp": 10042,
+   "hours": 100
+  },
+  "42cursus-avaj-launcher": {
+   "name": "avaj-launcher",
+   "xp": 4200,
+   "hours": 50
+  },
+  "42cursus-bomberman": {
+   "name": "bomberman",
+   "xp": 25200,
+   "hours": 196
+  },
+  "42cursus-boot2root": {
+   "name": "boot2root",
+   "xp": 11500,
+   "hours": 49
+  },
+  "42cursus-brickdepth": {
+   "name": "BrickDepth",
+   "xp": 2880,
+   "hours": 48
+  },
+  "42cursus-call-me-maybe": {
+   "name": "Call Me Maybe",
+   "xp": 1764,
+   "hours": 80
+  },
+  "42cursus-camagru": {
+   "name": "camagru",
+   "xp": 4200,
+   "hours": 49
+  },
+  "42cursus-chromacraft": {
+   "name": "ChromaCraft",
+   "xp": 2880,
+   "hours": 48
+  },
+  "42cursus-cloud-1": {
+   "name": "cloud-1",
+   "xp": 9450,
+   "hours": 100
+  },
+  "42cursus-computorv1": {
+   "name": "computorv1",
+   "xp": 4200,
+   "hours": 49
+  },
+  "42cursus-computorv2": {
+   "name": "computorv2",
+   "xp": 9450,
+   "hours": 147
+  },
+  "42cursus-corewar": {
+   "name": "corewar",
+   "xp": 17500,
+   "hours": 196
+  },
+  "42cursus-cvforge": {
+   "name": "CVForge",
+   "xp": 2880,
+   "hours": 48
+  },
+  "42cursus-darkly": {
+   "name": "darkly",
+   "xp": 6300,
+   "hours": 98
+  },
+  "42cursus-death": {
+   "name": "death",
+   "xp": 35700,
+   "hours": 147
+  },
+  "42cursus-doom-nukem": {
+   "name": "doom-nukem",
+   "xp": 15750,
+   "hours": 294
+  },
+  "42cursus-dr-quine": {
+   "name": "dr-quine",
+   "xp": 2520,
+   "hours": 14
+  },
+  "42cursus-drivers-and-interrupts": {
+   "name": "drivers-and-interrupts",
+   "xp": 15750,
+   "hours": 98
+  },
+  "42cursus-dslr": {
+   "name": "dslr",
+   "xp": 6000,
+   "hours": 98
+  },
+  "42cursus-expert-system": {
+   "name": "expert-system",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-faceswap42": {
+   "name": "FaceSwap42",
+   "xp": 2880,
+   "hours": 48
+  },
+  "42cursus-famine": {
+   "name": "famine",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-fdf": {
+   "name": "FdF",
+   "xp": 1000,
+   "hours": 60
+  },
+  "42cursus-filesystem": {
+   "name": "filesystem",
+   "xp": 15750,
+   "hours": 196
+  },
+  "42cursus-fix-me": {
+   "name": "fix-me",
+   "xp": 15750,
+   "hours": 196
+  },
+  "42cursus-fract-ol": {
+   "name": "fract-ol",
+   "xp": 1000,
+   "hours": 60
+  },
+  "42cursus-ft_ality": {
+   "name": "ft_ality",
+   "xp": 4200,
+   "hours": 98
+  },
+  "42cursus-ft_hangouts": {
+   "name": "ft_hangouts",
+   "xp": 4200,
+   "hours": 49
+  },
+  "42cursus-ft_linear_regression": {
+   "name": "ft_linear_regression",
+   "xp": 4200,
+   "hours": 70
+  },
+  "42cursus-ft_linux": {
+   "name": "ft_linux",
+   "xp": 4200,
+   "hours": 49
+  },
+  "42cursus-ft_ls": {
+   "name": "ft_ls",
+   "xp": 4200,
+   "hours": 49
+  },
+  "42cursus-ft_nmap": {
+   "name": "ft_nmap",
+   "xp": 15750,
+   "hours": 49
+  },
+  "42cursus-ft_ping": {
+   "name": "ft_ping",
+   "xp": 4200,
+   "hours": 49
+  },
+  "42cursus-ft_printf": {
+   "name": "ft_printf",
+   "xp": 882,
+   "hours": 55
+  },
+  "42cursus-ft_script": {
+   "name": "ft_script",
+   "xp": 4200,
+   "hours": 168
+  },
+  "42cursus-ft_select": {
+   "name": "ft_select",
+   "xp": 4200,
+   "hours": 168
+  },
+  "42cursus-ft_shield": {
+   "name": "ft_shield",
+   "xp": 15750,
+   "hours": 196
+  },
+  "42cursus-ft_ssl_des": {
+   "name": "ft_ssl_des",
+   "xp": 9450,
+   "hours": 49
+  },
+  "42cursus-ft_ssl_md5": {
+   "name": "ft_ssl_md5",
+   "xp": 9450,
+   "hours": 49
+  },
+  "42cursus-ft_ssl_rsa": {
+   "name": "ft_ssl_rsa",
+   "xp": 15750,
+   "hours": 49
+  },
+  "42cursus-ft_traceroute": {
+   "name": "ft_traceroute",
+   "xp": 4200,
+   "hours": 49
+  },
+  "42cursus-ft_turing": {
+   "name": "ft_turing",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-ft_vox": {
+   "name": "ft_vox",
+   "xp": 15750,
+   "hours": 147
+  },
+  "42cursus-get_next_line": {
+   "name": "get_next_line",
+   "xp": 882,
+   "hours": 55
+  },
+  "42cursus-gomoku": {
+   "name": "gomoku",
+   "xp": 25200,
+   "hours": 196
+  },
+  "42cursus-graff-it": {
+   "name": "grAff-it",
+   "xp": 2880,
+   "hours": 48
+  },
+  "42cursus-graphforge": {
+   "name": "GraphForge",
+   "xp": 2880,
+   "hours": 48
+  },
+  "42cursus-guimp": {
+   "name": "guimp",
+   "xp": 12600,
+   "hours": 147
+  },
+  "42cursus-h42n42": {
+   "name": "h42n42",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-humangl": {
+   "name": "humangl",
+   "xp": 4200,
+   "hours": 49
+  },
+  "42cursus-hypertube": {
+   "name": "hypertube",
+   "xp": 15750,
+   "hours": 196
+  },
+  "42cursus-in-the-shadows": {
+   "name": "in-the-shadows",
+   "xp": 9450,
+   "hours": 147
+  },
+  "42cursus-interviewsim": {
+   "name": "InterviewSim",
+   "xp": 2880,
+   "hours": 48
+  },
+  "42cursus-kfs-1": {
+   "name": "kfs-1",
+   "xp": 15750,
+   "hours": 294
+  },
+  "42cursus-kfs-2": {
+   "name": "kfs-2",
+   "xp": 15750,
+   "hours": 294
+  },
+  "42cursus-kfs-3": {
+   "name": "kfs-3",
+   "xp": 35700,
+   "hours": 294
+  },
+  "42cursus-kfs-4": {
+   "name": "kfs-4",
+   "xp": 25200,
+   "hours": 196
+  },
+  "42cursus-kfs-5": {
+   "name": "kfs-5",
+   "xp": 35700,
+   "hours": 392
+  },
+  "42cursus-kfs-6": {
+   "name": "kfs-6",
+   "xp": 25200,
+   "hours": 294
+  },
+  "42cursus-kfs-7": {
+   "name": "kfs-7",
+   "xp": 35700,
+   "hours": 630
+  },
+  "42cursus-kfs-8": {
+   "name": "kfs-8",
+   "xp": 15750,
+   "hours": 196
+  },
+  "42cursus-kfs-9": {
+   "name": "kfs-9",
+   "xp": 15750,
+   "hours": 245
+  },
+  "42cursus-kfs-x": {
+   "name": "kfs-x",
+   "xp": 35700,
+   "hours": 56
+  },
+  "42cursus-krpsim": {
+   "name": "krpsim",
+   "xp": 9450,
+   "hours": 49
+  },
+  "42cursus-leaklab": {
+   "name": "LeakLab",
+   "xp": 2880,
+   "hours": 48
+  },
+  "42cursus-lem-ipc": {
+   "name": "lem-ipc",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-lem_in": {
+   "name": "lem_in",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-libft": {
+   "name": "Libft",
+   "xp": 462,
+   "hours": 70
+  },
+  "42cursus-little-penguin-1": {
+   "name": "little-penguin-1",
+   "xp": 9450,
+   "hours": 100
+  },
+  "42cursus-malloc": {
+   "name": "malloc",
+   "xp": 9450,
+   "hours": 49
+  },
+  "42cursus-matcha": {
+   "name": "matcha",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-matt-daemon": {
+   "name": "matt-daemon",
+   "xp": 9450,
+   "hours": 49
+  },
+  "42cursus-minishell": {
+   "name": "minishell",
+   "xp": 2814,
+   "hours": 210
+  },
+  "42cursus-mod1": {
+   "name": "mod1",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-multilayer-perceptron": {
+   "name": "multilayer-perceptron",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-music-room": {
+   "name": "music-room",
+   "xp": 25200,
+   "hours": 196
+  },
+  "42cursus-n-puzzle": {
+   "name": "n-puzzle",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-nibbler": {
+   "name": "nibbler",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-override": {
+   "name": "override",
+   "xp": 35700,
+   "hours": 196
+  },
+  "42cursus-particle-system": {
+   "name": "particle-system",
+   "xp": 15750,
+   "hours": 147
+  },
+  "42cursus-pestilence": {
+   "name": "pestilence",
+   "xp": 15750,
+   "hours": 196
+  },
+  "42cursus-philosophers": {
+   "name": "Philosophers",
+   "xp": 3360,
+   "hours": 70
+  },
+  "42cursus-piscine-ocaml": {
+   "name": "Piscine ocaml",
+   "hours": 63
+  },
+  "42cursus-process-and-memory": {
+   "name": "process-and-memory",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-promptrial": {
+   "name": "PrompTrial",
+   "xp": 2880,
+   "hours": 48
+  },
+  "42cursus-push_swap": {
+   "name": "push_swap",
+   "xp": 1855,
+   "hours": 50
+  },
+  "42cursus-rag-against-the-machine": {
+   "name": "RAG against the machine",
+   "xp": 7717,
+   "hours": 150
+  },
+  "42cursus-rainfall": {
+   "name": "rainfall",
+   "xp": 25200,
+   "hours": 672
+  },
+  "42cursus-red-tetris": {
+   "name": "red-tetris",
+   "xp": 15750,
+   "hours": 147
+  },
+  "42cursus-rt": {
+   "name": "rt",
+   "xp": 20750,
+   "hours": 294
+  },
+  "42cursus-rubik": {
+   "name": "rubik",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-rushes": {
+   "name": "Rushes",
+   "xp": 10000,
+   "hours": 120
+  },
+  "42cursus-rushes-alcu": {
+   "name": "AlCu",
+   "hours": 16
+  },
+  "42cursus-rushes-wordle": {
+   "name": "wordle",
+   "hours": 16
+  },
+  "42cursus-rushes-yasl": {
+   "name": "yasl",
+   "hours": 16
+  },
+  "42cursus-scop": {
+   "name": "scop",
+   "xp": 9450,
+   "hours": 49
+  },
+  "42cursus-shaderpixel": {
+   "name": "shaderpixel",
+   "xp": 15750,
+   "hours": 147
+  },
+  "42cursus-snow-crash": {
+   "name": "snow-crash",
+   "xp": 9450,
+   "hours": 147
+  },
+  "42cursus-spindetect": {
+   "name": "SpinDetect",
+   "xp": 2880,
+   "hours": 48
+  },
+  "42cursus-strace": {
+   "name": "strace",
+   "xp": 9450,
+   "hours": 49
+  },
+  "42cursus-swifty-companion": {
+   "name": "swifty-companion",
+   "xp": 4200,
+   "hours": 49
+  },
+  "42cursus-swifty-proteins": {
+   "name": "swifty-proteins",
+   "xp": 15750,
+   "hours": 147
+  },
+  "42cursus-swingy": {
+   "name": "swingy",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-taskmaster": {
+   "name": "taskmaster",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-total-perspective-vortex": {
+   "name": "total-perspective-vortex",
+   "xp": 9450,
+   "hours": 98
+  },
+  "42cursus-userspace_digressions": {
+   "name": "userspace_digressions",
+   "xp": 16800,
+   "hours": 294
+  },
+  "42cursus-war": {
+   "name": "war",
+   "xp": 35700,
+   "hours": 196
+  },
+  "42cursus-woody-woodpacker": {
+   "name": "woody-woodpacker",
+   "xp": 9450,
+   "hours": 49
+  },
+  "42cursus-xv": {
+   "name": "xv",
+   "xp": 22000,
+   "hours": 392
+  },
+  "42cursus-zappy": {
+   "name": "zappy",
+   "xp": 25200,
+   "hours": 294
+  },
+  "42next-born2beroot": {
+   "name": "Born2beroot",
+   "xp": 577,
+   "hours": 50
+  },
+  "42next-exam-rank-02": {
+   "name": "Exam Rank 02",
+   "hours": 96,
+   "exam": true
+  },
+  "42next-exam-rank-03": {
+   "name": "Exam Rank 03",
+   "exam": true
+  },
+  "42next-exam-rank-04": {
+   "name": "Exam Rank 04",
+   "exam": true
+  },
+  "42next-exam-rank-05": {
+   "name": "Exam Rank 05",
+   "exam": true
+  },
+  "42next-exam-rank-06": {
+   "name": "Exam Rank 06",
+   "exam": true
+  },
+  "42next-push_swap": {
+   "name": "push_swap",
+   "xp": 1855,
+   "hours": 70
+  },
+  "a-maze-ing": {
+   "name": "A-Maze-ing",
+   "xp": 1142,
+   "hours": 50
+  },
+  "abstract_data": {
+   "name": "Abstract_data",
+   "xp": 20084,
+   "hours": 290
+  },
+  "accessibledirectory": {
+   "name": "AccessibleDirectory",
+   "xp": 9450,
+   "hours": 70
+  },
+  "activeconnect": {
+   "name": "ActiveConnect",
+   "xp": 15750,
+   "hours": 140
+  },
+  "activediscovery": {
+   "name": "ActiveDiscovery",
+   "xp": 15750,
+   "hours": 140
+  },
+  "activetechtales": {
+   "name": "ActiveTechTales",
+   "xp": 15750,
+   "hours": 140
+  },
+  "administrativedirectory": {
+   "name": "AdministrativeDirectory",
+   "xp": 9450,
+   "hours": 63
+  },
+  "agent-smith": {
+   "name": "Agent Smith",
+   "xp": 10042,
+   "hours": 100
+  },
+  "ai-rushes": {
+   "name": "AI Rushes",
+   "hours": 480
+  },
+  "automaticdirectory": {
+   "name": "AutomaticDirectory",
+   "xp": 9450,
+   "hours": 49
+  },
+  "b": {
+   "name": "B",
+   "xp": 9450,
+   "hours": 50
+  },
+  "bgp-at-doors-of-autonomous-systems-is-simple": {
+   "name": "Bgp At Doors of Autonomous Systems is Simple",
+   "xp": 22450,
+   "hours": 200
+  },
+  "born2beroot": {
+   "name": "Born2beroot",
+   "xp": 577,
+   "hours": 50
+  },
+  "c-piscine-bsq": {
+   "name": "C Piscine BSQ",
+   "xp": 225,
+   "hours": 24
+  },
+  "c-piscine-c-00": {
+   "name": "C Piscine C 00",
+   "xp": 100,
+   "hours": 24
+  },
+  "c-piscine-c-01": {
+   "name": "C Piscine C 01",
+   "xp": 100,
+   "hours": 24
+  },
+  "c-piscine-c-02": {
+   "name": "C Piscine C 02",
+   "xp": 100,
+   "hours": 24
+  },
+  "c-piscine-c-03": {
+   "name": "C Piscine C 03",
+   "xp": 100,
+   "hours": 24
+  },
+  "c-piscine-c-04": {
+   "name": "C Piscine C 04",
+   "xp": 100,
+   "hours": 24
+  },
+  "c-piscine-c-05": {
+   "name": "C Piscine C 05",
+   "xp": 100,
+   "hours": 24
+  },
+  "c-piscine-c-06": {
+   "name": "C Piscine C 06",
+   "xp": 100,
+   "hours": 24
+  },
+  "c-piscine-c-07": {
+   "name": "C Piscine C 07",
+   "xp": 100,
+   "hours": 24
+  },
+  "c-piscine-c-08": {
+   "name": "C Piscine C 08",
+   "xp": 100,
+   "hours": 24
+  },
+  "c-piscine-c-09": {
+   "name": "C Piscine C 09",
+   "xp": 100,
+   "hours": 24
+  },
+  "c-piscine-c-10": {
+   "name": "C Piscine C 10",
+   "xp": 100,
+   "hours": 24
+  },
+  "c-piscine-c-11": {
+   "name": "C Piscine C 11",
+   "xp": 100,
+   "hours": 24
+  },
+  "c-piscine-c-12": {
+   "name": "C Piscine C 12",
+   "xp": 100,
+   "hours": 24
+  },
+  "c-piscine-c-13": {
+   "name": "C Piscine C 13",
+   "xp": 100,
+   "hours": 24
+  },
+  "c-piscine-exam-00": {
+   "name": "C Piscine Exam 00",
+   "xp": 225,
+   "exam": true
+  },
+  "c-piscine-exam-01": {
+   "name": "C Piscine Exam 01",
+   "xp": 225,
+   "exam": true
+  },
+  "c-piscine-exam-02": {
+   "name": "C Piscine Exam 02",
+   "xp": 225,
+   "exam": true
+  },
+  "c-piscine-final-exam": {
+   "name": "C Piscine Final Exam",
+   "xp": 375,
+   "exam": true
+  },
+  "c-piscine-rush-00": {
+   "name": "C Piscine Rush 00",
+   "xp": 150,
+   "hours": 24
+  },
+  "c-piscine-rush-01": {
+   "name": "C Piscine Rush 01",
+   "xp": 150,
+   "hours": 24
+  },
+  "c-piscine-rush-02": {
+   "name": "C Piscine Rush 02",
+   "xp": 150,
+   "hours": 24
+  },
+  "c-piscine-shell-00": {
+   "name": "C Piscine Shell 00",
+   "xp": 100,
+   "hours": 24
+  },
+  "c-piscine-shell-01": {
+   "name": "C Piscine Shell 01",
+   "xp": 100,
+   "hours": 24
+  },
+  "call-me-maybe": {
+   "name": "Call Me Maybe",
+   "xp": 1764,
+   "hours": 80
+  },
+  "cc1": {
+   "name": "cc1",
+   "xp": 50000,
+   "hours": 300
+  },
+  "codexion": {
+   "name": "Codexion",
+   "xp": 1764,
+   "hours": 80
+  },
+  "cpp-module-00": {
+   "name": "CPP Module 00",
+   "hours": 22
+  },
+  "cpp-module-01": {
+   "name": "CPP Module 01",
+   "hours": 12
+  },
+  "cpp-module-02": {
+   "name": "CPP Module 02",
+   "hours": 12
+  },
+  "cpp-module-03": {
+   "name": "CPP Module 03",
+   "hours": 12
+  },
+  "cpp-module-04": {
+   "name": "CPP Module 04",
+   "xp": 9660,
+   "hours": 12
+  },
+  "cpp-module-05": {
+   "name": "CPP Module 05",
+   "hours": 25
+  },
+  "cpp-module-06": {
+   "name": "CPP Module 06",
+   "hours": 25
+  },
+  "cpp-module-07": {
+   "name": "CPP Module 07",
+   "hours": 25
+  },
+  "cpp-module-08": {
+   "name": "CPP Module 08",
+   "hours": 25
+  },
+  "cpp-module-09": {
+   "name": "CPP Module 09",
+   "xp": 10042,
+   "hours": 40
+  },
+  "cub3d": {
+   "name": "cub3d",
+   "xp": 5775,
+   "hours": 280
+  },
+  "cybersecurity": {
+   "name": "Cybersecurity",
+   "hours": 63
+  },
+  "cybersecurity-arachnida-web": {
+   "name": "Cybersecurity - arachnida - Web",
+   "xp": 1350,
+   "hours": 7
+  },
+  "cybersecurity-ft_onion-web": {
+   "name": "Cybersecurity - ft_onion - Web",
+   "xp": 1350,
+   "hours": 7
+  },
+  "cybersecurity-ft_otp-otp": {
+   "name": "Cybersecurity - ft_otp - OTP",
+   "xp": 1350,
+   "hours": 7
+  },
+  "cybersecurity-inquisitor-network": {
+   "name": "Cybersecurity - Inquisitor - Network",
+   "xp": 1350,
+   "hours": 7
+  },
+  "cybersecurity-reverse-me-rev": {
+   "name": "Cybersecurity - Reverse me - Rev",
+   "xp": 1350,
+   "hours": 7
+  },
+  "cybersecurity-stockholm-malware": {
+   "name": "Cybersecurity - Stockholm - Malware",
+   "xp": 1350,
+   "hours": 7
+  },
+  "cybersecurity-vaccine-web": {
+   "name": "Cybersecurity - Vaccine - Web",
+   "xp": 1350,
+   "hours": 7
+  },
+  "data-science-0": {
+   "name": "Data Science - 0",
+   "xp": 545,
+   "hours": 7
+  },
+  "data-science-1": {
+   "name": "Data Science - 1",
+   "xp": 545,
+   "hours": 7
+  },
+  "data-science-2": {
+   "name": "Data Science - 2",
+   "xp": 545,
+   "hours": 7
+  },
+  "data-science-3": {
+   "name": "Data Science - 3",
+   "xp": 545,
+   "hours": 7
+  },
+  "data-science-4": {
+   "name": "Data Science - 4",
+   "xp": 2545,
+   "hours": 7
+  },
+  "datomic": {
+   "name": "Datomic",
+   "hours": 49
+  },
+  "deep-learning-0": {
+   "name": "Deep Learning - 0",
+   "hours": 7
+  },
+  "deep-learning-1": {
+   "name": "Deep Learning - 1",
+   "hours": 7
+  },
+  "deep-learning-2": {
+   "name": "Deep Learning - 2",
+   "hours": 7
+  },
+  "deep-learning-3": {
+   "name": "Deep Learning - 3",
+   "hours": 7
+  },
+  "deep-learning-4": {
+   "name": "Deep Learning - 4",
+   "hours": 7
+  },
+  "django-0-initiation": {
+   "name": "Django - 0 - Initiation",
+   "hours": 7
+  },
+  "django-0-oob": {
+   "name": "Django - 0 - Oob",
+   "xp": 1500,
+   "hours": 7
+  },
+  "django-0-starting": {
+   "name": "Django - 0 - Starting",
+   "hours": 7
+  },
+  "django-1-base-django": {
+   "name": "Django - 1 - Base Django",
+   "xp": 3475,
+   "hours": 7
+  },
+  "django-1-lib": {
+   "name": "Django - 1 - Lib",
+   "hours": 7
+  },
+  "django-2-sql": {
+   "name": "Django - 2 - SQL",
+   "xp": 1000,
+   "hours": 7
+  },
+  "django-3-advanced": {
+   "name": "Django - 3 - Advanced",
+   "hours": 7
+  },
+  "django-3-final": {
+   "name": "Django - 3 - Final",
+   "xp": 3475,
+   "hours": 7
+  },
+  "django-3-sessions": {
+   "name": "Django - 3 - Sessions",
+   "hours": 7
+  },
+  "ecomesh": {
+   "name": "Ecomesh",
+   "xp": 19286,
+   "hours": 200
+  },
+  "exam-rank-02": {
+   "name": "Exam Rank 02",
+   "exam": true
+  },
+  "exam-rank-03": {
+   "name": "Exam Rank 03",
+   "exam": true
+  },
+  "exam-rank-04": {
+   "name": "Exam Rank 04",
+   "exam": true
+  },
+  "exam-rank-05": {
+   "name": "Exam Rank 05",
+   "exam": true
+  },
+  "exam-rank-06": {
+   "name": "Exam Rank 06",
+   "exam": true
+  },
+  "fly-in": {
+   "name": "Fly-in",
+   "xp": 2646,
+   "hours": 120
+  },
+  "freddie-mercury": {
+   "name": "freddie-mercury",
+   "xp": 12600,
+   "hours": 336
+  },
+  "ft_irc": {
+   "name": "ft_irc",
+   "xp": 21630,
+   "hours": 175
+  },
+  "ft_kalman": {
+   "name": "ft_kalman",
+   "xp": 16800,
+   "hours": 210
+  },
+  "ft_kleene": {
+   "name": "ft_kleene",
+   "xp": 13500,
+   "hours": 140
+  },
+  "ft_lex": {
+   "name": "ft_lex",
+   "xp": 15000,
+   "hours": 250
+  },
+  "ft_lgtm": {
+   "name": "ft_lgtm",
+   "xp": 16200,
+   "hours": 180
+  },
+  "ft_malcolm": {
+   "name": "ft_malcolm",
+   "xp": 6000,
+   "hours": 49
+  },
+  "ft_minecraft": {
+   "name": "ft_minecraft",
+   "xp": 20750,
+   "hours": 560
+  },
+  "ft_newton": {
+   "name": "ft_newton",
+   "xp": 24360,
+   "hours": 98
+  },
+  "ft_transcendence": {
+   "name": "ft_transcendence",
+   "xp": 24360,
+   "hours": 245
+  },
+  "ft_yacc": {
+   "name": "ft_yacc",
+   "xp": 20000,
+   "hours": 300
+  },
+  "ftl_quantum": {
+   "name": "Ftl_quantum",
+   "xp": 6500,
+   "hours": 98
+  },
+  "inception": {
+   "name": "Inception",
+   "xp": 15836,
+   "hours": 150
+  },
+  "inception-of-context": {
+   "name": "Inception of context",
+   "xp": 19800,
+   "hours": 220
+  },
+  "inception-of-things": {
+   "name": "Inception-of-Things",
+   "xp": 25450,
+   "hours": 200
+  },
+  "inception-of-wisdom": {
+   "name": "Inception of wisdom",
+   "xp": 21600,
+   "hours": 240
+  },
+  "leaffliction": {
+   "name": "Leaffliction",
+   "xp": 15750,
+   "hours": 294
+  },
+  "learn2slither": {
+   "name": "Learn2Slither",
+   "xp": 9450,
+   "hours": 98
+  },
+  "libasm": {
+   "name": "libasm",
+   "xp": 966,
+   "hours": 20
+  },
+  "libftpp": {
+   "name": "libftpp",
+   "xp": 5880,
+   "hours": 98
+  },
+  "matrix": {
+   "name": "matrix",
+   "xp": 7000,
+   "hours": 110
+  },
+  "microforensx": {
+   "name": "MicroForensX",
+   "xp": 9450,
+   "hours": 49
+  },
+  "minirt": {
+   "name": "miniRT",
+   "xp": 5775,
+   "hours": 280
+  },
+  "minitalk": {
+   "name": "minitalk",
+   "xp": 1142,
+   "hours": 50
+  },
+  "mobile": {
+   "name": "Mobile",
+   "hours": 63
+  },
+  "mobile-0-basic-of-the-mobile-application": {
+   "name": "Mobile - 0 - Basic of the mobile application",
+   "xp": 500,
+   "hours": 7
+  },
+  "mobile-1-structure-and-logic": {
+   "name": "Mobile - 1 - Structure and logic",
+   "xp": 950,
+   "hours": 7
+  },
+  "mobile-2-api-and-data": {
+   "name": "Mobile - 2 - API and data",
+   "xp": 1000,
+   "hours": 7
+  },
+  "mobile-3-design": {
+   "name": "Mobile - 3 - Design",
+   "xp": 2000,
+   "hours": 7
+  },
+  "mobile-4-auth-and-database": {
+   "name": "Mobile - 4 - Auth and dataBase",
+   "xp": 2000,
+   "hours": 7
+  },
+  "mobile-5-manage-data-and-display": {
+   "name": "Mobile - 5 - Manage data and display",
+   "xp": 3000,
+   "hours": 7
+  },
+  "netpractice": {
+   "name": "NetPractice",
+   "xp": 3160,
+   "hours": 50
+  },
+  "nm": {
+   "name": "nm",
+   "xp": 9450,
+   "hours": 336
+  },
+  "ocaml-basic-syntax-and-semantics-0": {
+   "name": "OCAML - Basic syntax and semantics - 0",
+   "hours": 7
+  },
+  "ocaml-functor-1": {
+   "name": "OCAML - Functor - 1",
+   "xp": 2250,
+   "hours": 7
+  },
+  "ocaml-imperative-features-1": {
+   "name": "OCAML - Imperative features - 1",
+   "hours": 7
+  },
+  "ocaml-monoids-and-monads-3": {
+   "name": "OCAML - Monoids and Monads - 3",
+   "xp": 3475,
+   "hours": 7
+  },
+  "ocaml-object-oriented-programming-1": {
+   "name": "OCAML - Object Oriented Programming -  1",
+   "hours": 7
+  },
+  "ocaml-object-oriented-programming-2": {
+   "name": "OCAML - Object Oriented Programming - 2",
+   "xp": 2225,
+   "hours": 7
+  },
+  "ocaml-ocaml-s-modules-language-1": {
+   "name": "OCAML  - OCaml’s modules language - 1",
+   "hours": 7
+  },
+  "ocaml-pattern-matching-and-data-types-0": {
+   "name": "OCAML - Pattern Matching and Data Types - 0",
+   "xp": 1500,
+   "hours": 7
+  },
+  "ocaml-recursion-and-higher-order-functions-0": {
+   "name": "OCAML - Recursion and higher-order functions - 0",
+   "hours": 7
+  },
+  "open-project": {
+   "name": "Open Project",
+   "xp": 31500,
+   "hours": 4320
+  },
+  "open-project-open-project-complete-the-project": {
+   "name": "Open Project - Complete the project",
+   "hours": 3600
+  },
+  "open-project-open-project-define-your-subject": {
+   "name": "Open Project - Define your Subject",
+   "hours": 720
+  },
+  "optional-cybersecurity-iron-dome-malware": {
+   "name": "(Optional) Cybersecurity - Iron Dome - Malware",
+   "hours": 7
+  },
+  "pac-man": {
+   "name": "Pac-Man",
+   "xp": 7717,
+   "hours": 150
+  },
+  "part_time-i": {
+   "name": "Part_Time I",
+   "xp": 42000,
+   "hours": 2880
+  },
+  "part_time-i-part_time-i-company-final-evaluation": {
+   "name": "Part_Time I Company Final Evaluation"
+  },
+  "part_time-i-part_time-i-company-mid-evaluation": {
+   "name": "Part_Time I Company Mid Evaluation"
+  },
+  "part_time-i-part_time-i-contract-upload": {
+   "name": "Part_Time I - Contract Upload",
+   "hours": 24
+  },
+  "part_time-i-part_time-i-duration": {
+   "name": "Part_Time I - Duration",
+   "hours": 24
+  },
+  "part_time-i-part_time-i-peer-video": {
+   "name": "Part_Time I Peer Video",
+   "hours": 168
+  },
+  "part_time-ii": {
+   "name": "Part_Time II",
+   "xp": 63000,
+   "hours": 2880
+  },
+  "part_time-ii-part_time-ii-company-final-evaluation": {
+   "name": "Part_Time II - Company Final Evaluation"
+  },
+  "part_time-ii-part_time-ii-company-mid-evaluation": {
+   "name": "Part_Time II - Company Mid Evaluation"
+  },
+  "part_time-ii-part_time-ii-contract-upload": {
+   "name": "Part_Time II - Contract Upload",
+   "hours": 24
+  },
+  "part_time-ii-part_time-ii-duration": {
+   "name": "Part_Time II - Duration",
+   "hours": 24
+  },
+  "part_time-ii-part_time-ii-peer-video": {
+   "name": "Part_Time II - Peer Video",
+   "hours": 168
+  },
+  "peace_break": {
+   "name": "Peace_Break",
+   "xp": 9000,
+   "hours": 150
+  },
+  "pipex": {
+   "name": "pipex",
+   "xp": 1142,
+   "hours": 50
+  },
+  "piscine-data-science": {
+   "name": "Piscine Data Science",
+   "hours": 35
+  },
+  "piscine-deep-learning": {
+   "name": "Piscine Deep Learning",
+   "hours": 35
+  },
+  "piscine-django": {
+   "name": "Piscine Django",
+   "hours": 63
+  },
+  "piscine-object": {
+   "name": "Piscine Object",
+   "hours": 64
+  },
+  "piscine-object-module-00-encapsulation": {
+   "name": "Piscine Object - Module 00 - Encapsulation",
+   "xp": 945,
+   "hours": 7
+  },
+  "piscine-object-module-01-relationship": {
+   "name": "Piscine Object - Module 01 - Relationship",
+   "xp": 945,
+   "hours": 7
+  },
+  "piscine-object-module-02-uml": {
+   "name": "Piscine Object - Module 02 - UML",
+   "xp": 1890,
+   "hours": 7
+  },
+  "piscine-object-module-03-solid": {
+   "name": "Piscine Object - Module 03 - SOLID",
+   "xp": 1890,
+   "hours": 7
+  },
+  "piscine-object-module-04-design-pattern": {
+   "name": "Piscine Object - Module 04 - Design Pattern",
+   "xp": 1890,
+   "hours": 7
+  },
+  "piscine-object-module-05-practical-work": {
+   "name": "Piscine Object - Module 05 - Practical work",
+   "xp": 1890,
+   "hours": 14
+  },
+  "piscine-ror": {
+   "name": "Piscine RoR",
+   "hours": 63
+  },
+  "piscine-symfony": {
+   "name": "Piscine Symfony",
+   "hours": 63
+  },
+  "python-0-starting": {
+   "name": "Python - 0 - Starting",
+   "xp": 545,
+   "hours": 7
+  },
+  "python-1-array": {
+   "name": "Python - 1 - Array",
+   "xp": 545,
+   "hours": 7
+  },
+  "python-2-datatable": {
+   "name": "Python - 2 - DataTable",
+   "xp": 545,
+   "hours": 7
+  },
+  "python-3-oop": {
+   "name": "Python - 3 - OOP",
+   "xp": 545,
+   "hours": 7
+  },
+  "python-4-dod": {
+   "name": "Python - 4 - Dod",
+   "xp": 2545,
+   "hours": 7
+  },
+  "python-for-data-science": {
+   "name": "Python for Data Science",
+   "hours": 35
+  },
+  "python-module-00": {
+   "name": "Python Module 00",
+   "xp": 70,
+   "hours": 4
+  },
+  "python-module-01": {
+   "name": "Python Module 01",
+   "xp": 70,
+   "hours": 4
+  },
+  "python-module-02": {
+   "name": "Python Module 02",
+   "xp": 80,
+   "hours": 5
+  },
+  "python-module-03": {
+   "name": "Python Module 03",
+   "xp": 80,
+   "hours": 5
+  },
+  "python-module-04": {
+   "name": "Python Module 04",
+   "xp": 90,
+   "hours": 6
+  },
+  "python-module-05": {
+   "name": "Python Module 05",
+   "xp": 90,
+   "hours": 6
+  },
+  "python-module-05-bis": {
+   "name": "Python Module 05 bis",
+   "xp": 200,
+   "hours": 10
+  },
+  "python-module-06": {
+   "name": "Python Module 06",
+   "xp": 100,
+   "hours": 7
+  },
+  "python-module-06-bis": {
+   "name": "Python Module 06 bis",
+   "xp": 190,
+   "hours": 11
+  },
+  "python-module-07": {
+   "name": "Python Module 07",
+   "xp": 100,
+   "hours": 7
+  },
+  "python-module-08": {
+   "name": "Python Module 08",
+   "xp": 100,
+   "hours": 8
+  },
+  "python-module-09": {
+   "name": "Python Module 09",
+   "xp": 110,
+   "hours": 9
+  },
+  "python-module-10": {
+   "name": "Python Module 10",
+   "xp": 110,
+   "hours": 9
+  },
+  "rag-against-the-machine": {
+   "name": "RAG against the machine",
+   "xp": 7717,
+   "hours": 150
+  },
+  "ready-set-boole": {
+   "name": "ready set boole",
+   "xp": 7000,
+   "hours": 110
+  },
+  "retroemu": {
+   "name": "RetroEmu",
+   "xp": 37800,
+   "hours": 420
+  },
+  "ror-0-initiation": {
+   "name": "RoR - 0 - Initiation",
+   "hours": 7
+  },
+  "ror-0-oob": {
+   "name": "RoR - 0 - Oob",
+   "xp": 1500,
+   "hours": 7
+  },
+  "ror-0-starting": {
+   "name": "RoR - 0 - Starting",
+   "hours": 7
+  },
+  "ror-1-base-rails": {
+   "name": "RoR - 1 - Base Rails",
+   "xp": 3475,
+   "hours": 7
+  },
+  "ror-1-gems": {
+   "name": "RoR - 1 - Gems",
+   "hours": 7
+  },
+  "ror-2-sql": {
+   "name": "RoR - 2 - SQL",
+   "xp": 1000,
+   "hours": 7
+  },
+  "ror-3-advanced": {
+   "name": "RoR - 3 - Advanced",
+   "hours": 7
+  },
+  "ror-3-final": {
+   "name": "RoR - 3 - Final",
+   "xp": 3475,
+   "hours": 7
+  },
+  "ror-3-sessions": {
+   "name": "RoR - 3 - Sessions",
+   "hours": 7
+  },
+  "rushes-connect4": {
+   "name": "Connect4",
+   "hours": 16
+  },
+  "rushes-ft_shmup": {
+   "name": "ft_shmup",
+   "hours": 16
+  },
+  "rushes-hotrace": {
+   "name": "Hotrace",
+   "hours": 16
+  },
+  "rushes-libunit": {
+   "name": "Libunit",
+   "hours": 16
+  },
+  "rushes-retro-mfa": {
+   "name": "Retro-MFA",
+   "hours": 16
+  },
+  "rushes-wong-kar-wai": {
+   "name": "Wong kar Wai",
+   "hours": 16
+  },
+  "so_long": {
+   "name": "so_long",
+   "xp": 1000,
+   "hours": 60
+  },
+  "startup-experience": {
+   "name": "Startup Experience",
+   "xp": 63000,
+   "hours": 2880
+  },
+  "startup-experience-startup-experience-contract-upload": {
+   "name": "Startup Experience - Contract Upload",
+   "hours": 24
+  },
+  "startup-experience-startup-experience-duration": {
+   "name": "Startup Experience - Duration",
+   "hours": 24
+  },
+  "startup-experience-startup-experience-peer-video": {
+   "name": "Startup Experience - Peer Video",
+   "hours": 168
+  },
+  "startup-experience-startup-experience-tutor-final-evaluation": {
+   "name": "Startup Experience - Tutor Final Evaluation"
+  },
+  "startup-experience-startup-experience-tutor-mid-evaluation": {
+   "name": "Startup Experience - Tutor Mid Evaluation"
+  },
+  "supercharge": {
+   "name": "Supercharge",
+   "xp": 12600,
+   "hours": 140
+  },
+  "symfony-0-initiation": {
+   "name": "Symfony - 0 - Initiation",
+   "hours": 7
+  },
+  "symfony-0-oob": {
+   "name": "Symfony - 0 - Oob",
+   "xp": 1500,
+   "hours": 7
+  },
+  "symfony-0-starting": {
+   "name": "Symfony - 0 - Starting",
+   "hours": 7
+  },
+  "symfony-1-base-symfony": {
+   "name": "Symfony - 1 - Base Symfony",
+   "xp": 3475,
+   "hours": 7
+  },
+  "symfony-1-composer": {
+   "name": "Symfony - 1 - Composer",
+   "hours": 7
+  },
+  "symfony-2-sql": {
+   "name": "Symfony - 2 - SQL",
+   "xp": 1000,
+   "hours": 7
+  },
+  "symfony-3-advanced": {
+   "name": "Symfony - 3 - Advanced",
+   "hours": 7
+  },
+  "symfony-3-final": {
+   "name": "Symfony - 3 - Final",
+   "xp": 3475,
+   "hours": 7
+  },
+  "symfony-3-sessions": {
+   "name": "Symfony - 3 - Sessions",
+   "hours": 7
+  },
+  "the-answer-protocol": {
+   "name": "The Answer Protocol",
+   "xp": 15836,
+   "hours": 150
+  },
+  "tinky-winkey": {
+   "name": "tinky-winkey",
+   "xp": 16800,
+   "hours": 210
+  },
+  "tokenizeart": {
+   "name": "TokenizeArt",
+   "xp": 9450,
+   "hours": 98
+  },
+  "tokenizer": {
+   "name": "Tokenizer",
+   "xp": 9450,
+   "hours": 98
+  },
+  "tokenzwap": {
+   "name": "TokenZwap",
+   "xp": 9000,
+   "hours": 150
+  },
+  "tree_nity": {
+   "name": "tree_nity",
+   "xp": 10042,
+   "hours": 100
+  },
+  "unity": {
+   "name": "Unity",
+   "hours": 49
+  },
+  "unity-0-the-basics-unity-tools": {
+   "name": "Unity - 0 - The basics Unity tools",
+   "xp": 500,
+   "hours": 7
+  },
+  "unity-1-3d-physics-tags-layers-and-scene": {
+   "name": "Unity - 1 - 3D physics, Tags, Layers and Scene",
+   "xp": 500,
+   "hours": 7
+  },
+  "unity-2-2d-environment-tiles-and-sprites": {
+   "name": "Unity - 2 - 2D environment, tiles and sprites",
+   "xp": 1000,
+   "hours": 7
+  },
+  "unity-3-advanced-inputs-and-2d-gui": {
+   "name": "Unity - 3 - Advanced inputs and 2D GUI",
+   "xp": 1000,
+   "hours": 7
+  },
+  "unity-4-animations-and-sound": {
+   "name": "Unity - 4 - Animations and Sound",
+   "xp": 1000,
+   "hours": 7
+  },
+  "unity-5-singleton-playerprefs-and-coroutines": {
+   "name": "Unity - 5 - Singleton, playerPrefs and coroutines",
+   "xp": 2000,
+   "hours": 7
+  },
+  "unity-6-navmesh-light-sound-and-camera": {
+   "name": "Unity - 6 - Navmesh, light, sound and camera",
+   "xp": 3450,
+   "hours": 7
+  },
+  "unleashthebox": {
+   "name": "UnleashTheBox",
+   "xp": 15750,
+   "hours": 147
+  },
+  "very_real_engine": {
+   "name": "Very_Real_Engine",
+   "xp": 30000,
+   "hours": 600
+  },
+  "webserv": {
+   "name": "webserv",
+   "xp": 21630,
+   "hours": 175
+  },
+  "work-experience-i": {
+   "name": "Work Experience I",
+   "xp": 42000,
+   "hours": 2880
+  },
+  "work-experience-i-work-experience-i-company-final-evaluation": {
+   "name": "Work Experience I - Company Final Evaluation"
+  },
+  "work-experience-i-work-experience-i-company-mid-evaluation": {
+   "name": "Work Experience I - Company Mid Evaluation"
+  },
+  "work-experience-i-work-experience-i-contract-upload": {
+   "name": "Work Experience I  - Contract Upload",
+   "hours": 24
+  },
+  "work-experience-i-work-experience-i-duration": {
+   "name": "Work Experience I - Duration",
+   "hours": 24
+  },
+  "work-experience-i-work-experience-i-peer-video": {
+   "name": "Work Experience I - Peer Video",
+   "hours": 168
+  },
+  "work-experience-ii": {
+   "name": "Work Experience II",
+   "xp": 63000,
+   "hours": 2880
+  },
+  "work-experience-ii-work-experience-ii-company-final-evaluation": {
+   "name": "Work Experience II - Company Final Evaluation"
+  },
+  "work-experience-ii-work-experience-ii-company-mid-evaluation": {
+   "name": "Work Experience II - Company Mid Evaluation"
+  },
+  "work-experience-ii-work-experience-ii-contract-upload": {
+   "name": "Work Experience II - Contract Upload",
+   "hours": 24
+  },
+  "work-experience-ii-work-experience-ii-duration": {
+   "name": "Work Experience II - Duration",
+   "hours": 24
+  },
+  "work-experience-ii-work-experience-ii-peer-video": {
+   "name": "Work Experience II - Peer Video",
+   "hours": 168
+  }
+ }
+}

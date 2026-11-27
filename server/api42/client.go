@@ -71,7 +71,11 @@ type Client struct {
 // New: apps[0] signs users in; requests with an app token are spread over all of them.
 func New(apps []App, redirectURI string, lim Limiter, hc *http.Client) *Client {
 	if hc == nil {
-		hc = &http.Client{Timeout: 60 * time.Second}
+		// an HTTP/2 connection gone quiet is pinged and dropped when no answer comes: Go otherwise reuses a dead one (the
+		// wifi dropped, a NAT forgot it) for every request until the system gives up (2026-11-26: a count hung 38 minutes)
+		tr := http.DefaultTransport.(*http.Transport).Clone()
+		tr.HTTP2 = &http.HTTP2Config{SendPingTimeout: 15 * time.Second, PingTimeout: 10 * time.Second}
+		hc = &http.Client{Timeout: 60 * time.Second, Transport: tr}
 	}
 	return &Client{Base: "https://api.intra.42.fr", CDN: "https://cdn.intra.42.fr/", apps: apps,
 		redirectURI: redirectURI, lim: lim, hc: hc, tokens: map[int]token{}, sleep: sleepCtx}

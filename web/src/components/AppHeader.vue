@@ -6,8 +6,7 @@ import { useRouter } from "vue-router";
 import { api, fmt, pins, setLang, settings, state } from "../state";
 import { applyAccentChoice, applyTheme, setTheme, type Theme } from "../lib/look";
 import { closePops } from "../lib/behave";
-import { forget, idbShelf } from "../lib/copy";
-import { PAGES, PATHS, testFlags, type PageKey } from "../views/page";
+import { PAGES, PATHS, onCampus, testFlags, type PageKey } from "../views/page";
 import BrandMark from "./BrandMark.vue";
 import { offline } from "../offline";
 
@@ -22,8 +21,12 @@ const theme = ref<Theme>(applyTheme(settings.get("theme")));
 const accent = ref(applyAccentChoice(settings.get("accent"), user.value?.coalition_color));
 watch(() => user.value?.coalition_color, (c) => { accent.value = applyAccentChoice(settings.get("accent"), c); });
 
-const label = (k: PageKey) => f.value.t(`pages.${k}`);
-const starHref = (s: { page: string; id: string }) => `${PATHS[s.page as PageKey] || "/app"}#${s.id}`;
+// a section starred on Stats (before 2026-11-26) is on Campus · Projects now
+const was = (p: string) => (p === "statistics" ? "cc" : p) as PageKey;
+const label = (k: PageKey) => f.value.t(`pages.${was(k)}`);
+// 42 Madrid is one page of the band, current on any of its tabs
+const current = (k: PageKey) => k === props.page || (k === "madrid" && onCampus(props.page));
+const starHref = (s: { page: string; id: string }) => `${PATHS[was(s.page)] || "/app"}#${s.id}`;
 // SPIKE ?test=… (views/page.ts testFlags): proposals follow you from page to page
 const tests = computed(() => testFlags(router.currentRoute.value.query.test));
 const href = (k: PageKey) => {
@@ -56,7 +59,6 @@ function pickTheme(t: Theme) { theme.value = t; setTheme(t); accent.value = appl
 function pickAccent(a: "intra" | "coalition") { settings.set("accent", a); accent.value = applyAccentChoice(a, user.value?.coalition_color); }
 
 async function signOut() {
-  if (user.value) { await forget(idbShelf, user.value.login); localStorage.removeItem(`copy:${user.value.login}`); } // the report and its date
   await api("/auth/logout", { method: "POST" }).catch(() => {});
   // a full load, not a route change: nothing of this account stays in memory for Back to show
   location.replace("/");
@@ -75,7 +77,7 @@ function toTop() { window.scrollTo({ top: 0, behavior: matchMedia("(prefers-redu
   <header class="topbar">
     <RouterLink class="brand" to="/app" :aria-label="f.t('brand.name')" @click="page === 'home' && toTop()"><BrandMark /><span>{{ f.t("brand.name") }}</span></RouterLink>
     <nav v-if="page || nav" class="pages" :aria-label="f.t('pages.label')">
-      <RouterLink v-for="k in PAGES" :key="k" :to="href(k)" :aria-current="k === page ? 'page' : undefined" @click="k === page && toTop()">{{ label(k) }}</RouterLink>
+      <RouterLink v-for="k in PAGES" :key="k" :to="href(k)" :aria-current="current(k) ? 'page' : undefined" @click="k === page && toTop()">{{ label(k) }}</RouterLink>
     </nav>
     <div class="topbar-end">
       <div v-if="status && !offline" class="sync" aria-live="polite">
@@ -151,7 +153,7 @@ function toTop() { window.scrollTo({ top: 0, behavior: matchMedia("(prefers-redu
           <svg class="shut" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
         </summary>
         <nav class="menu" :aria-label="f.t('pages.label')">
-          <a v-for="k in PAGES" :key="k" :href="href(k)" :aria-current="k === page ? 'page' : undefined" @click.prevent="go(href(k)); k === page && toTop()">{{ label(k) }}</a>
+          <a v-for="k in PAGES" :key="k" :href="href(k)" :aria-current="current(k) ? 'page' : undefined" @click.prevent="go(href(k)); k === page && toTop()">{{ label(k) }}</a>
         </nav>
       </details>
     </div>

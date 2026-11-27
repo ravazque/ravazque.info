@@ -50,8 +50,8 @@
 :where(body:not(.site)) .tier > b { font: 800 16px/1.4 var(--type-font-display); white-space: nowrap; }
 :where(body:not(.site)) .tier p { color: var(--text-2); font-size: 15px; line-height: 1.4; }
 :where(body:not(.site)) .tier p.state { font: 700 16px/1.4 var(--type-font-display); color: var(--ink); }
-:where(body:not(.site)) .tier.cooldown { border-top-color: var(--good); }
-:where(body:not(.site)) .tier.cooldown p.state { color: var(--good); }
+:where(body:not(.site)) .tier.cooldown { border-top-color: var(--ok); }
+:where(body:not(.site)) .tier.cooldown p.state { color: var(--ok); }
 :where(body:not(.site)) .tier.ready { border-top-color: var(--accent-line, var(--accent)); }
 :where(body:not(.site)) .tier.ready p.state { color: var(--accent-ink); }
 /* the days the coming hours leave on: one line each, opening to the times and the sessions */
@@ -122,8 +122,8 @@
    2026-11-23): Piscine grey, Student the accent, framed in the band's ink; on phones smaller, 2px further in */
 :where(body:not(.site)) .topbar .gear:has(.period-dot) { position: relative; overflow: visible; }  /* a summary clips what it holds */
 :where(body:not(.site)) .topbar .period-dot { position: absolute; top: -7px; right: -7px; width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 0 2px var(--on-accent); pointer-events: none; }
-:where(body:not(.site)) .topbar .period-dot.pd-piscine { background: var(--neutral); }
-:where(body:not(.site)) .topbar .period-dot.pd-student { background: var(--accent-data); }
+:where(body:not(.site)) .topbar .period-dot.pd-piscine { background: var(--state-piscine); }
+:where(body:not(.site)) .topbar .period-dot.pd-student { background: var(--state-cc); }
 @media (max-width: 519.98px) { :where(body:not(.site)) .topbar .period-dot { top: -3px; right: -3px; width: 10px; height: 10px; } }
 /* the settings panel scrolls inside itself on a short screen: its last buttons stay reachable */
 :where(body:not(.site)) .settings { max-height: calc(100dvh - var(--c-topbar-height) - 20px); overflow-y: auto; overscroll-behavior: contain; }
@@ -229,9 +229,9 @@
 :where(body:not(.site)) .pf-line > span { position: absolute; top: calc(var(--tl) / -2); height: var(--tl); }
 :where(body:not(.site)) .pf-line .done { left: 0; background: var(--rule-strong); }
 :where(body:not(.site)) .pf-line .ahead { right: 0; height: 0; border-top: var(--tl) dashed var(--rule-strong); }
-:where(body:not(.site)) .pf-line .phase.pisc { background: var(--neutral); }
-:where(body:not(.site)) .pf-line .phase.cc { background: color-mix(in oklab, var(--accent-data) 45%, var(--ground)); }
-:where(body:not(.site)) .pf-line .phase.oc { background: var(--accent-data); }
+:where(body:not(.site)) .pf-line .phase.pisc { background: var(--state-piscine); }
+:where(body:not(.site)) .pf-line .phase.cc { background: var(--state-cc); }
+:where(body:not(.site)) .pf-line .phase.oc { background: var(--state-outer); }
 :where(body:not(.site)) .pf-line i { box-sizing: border-box; position: absolute; top: calc(var(--td) / -2); width: var(--td); height: var(--td); margin-left: calc(var(--td) / -2);
   background: var(--ground); border: max(4px, var(--tl) * .8) solid var(--ink); border-radius: 50%; }
 :where(body:not(.site)) .pf-line i.key { --k: calc(var(--td) + 4px); top: calc(var(--k) / -2); width: var(--k); height: var(--k); margin-left: calc(var(--k) / -2);
@@ -307,13 +307,13 @@
 /* points taken away, in the coalition's list */
 :where(body:not(.site)) .when.neg { color: var(--critical); }
 /* Connections: bubbles in the colours of the circle's key */
-html body:not(.site) .graph .bubble.net-node.rank circle { fill: color-mix(in oklab, var(--accent-data) var(--bubble-fill), var(--surface)); stroke: var(--accent-data); }
-html body:not(.site) .graph .bubble.net-node.outer circle { fill: color-mix(in oklab, var(--slate) var(--bubble-fill), var(--surface)); stroke: var(--slate); }
-html body:not(.site) .graph .bubble.net-node.alumni circle { fill: var(--alumni); stroke: var(--alumni-edge); }
-html body:not(.site) .graph .bubble.net-node.none circle { fill: var(--surface); stroke: var(--neutral); }
-html body:not(.site) .graph .bubble.net-node.dead circle { fill: color-mix(in oklab, var(--critical) 22%, var(--surface)); stroke: var(--critical); stroke-dasharray: 2 2; }
+html body:not(.site) .graph .bubble.net-node.rank circle { fill: color-mix(in oklab, var(--state-cc) var(--bubble-fill), var(--surface)); stroke: var(--state-cc); }
+html body:not(.site) .graph .bubble.net-node.outer circle { fill: color-mix(in oklab, var(--state-outer) var(--bubble-fill), var(--surface)); stroke: var(--state-outer); }
+html body:not(.site) .graph .bubble.net-node.alumni circle { fill: var(--state-alumni); stroke: var(--alumni-edge); } /* the white beige carries its edge */
+html body:not(.site) .graph .bubble.net-node.none circle { fill: color-mix(in oklab, var(--state-piscine) var(--bubble-fill), var(--surface)); stroke: var(--state-piscine); }
+html body:not(.site) .graph .bubble.net-node.dead circle { fill: color-mix(in oklab, var(--state-blackhole) var(--bubble-fill), var(--surface)); stroke: var(--state-blackhole); stroke-dasharray: 2 2; }
 html body:not(.site) .graph .bubble.net-node.deleted circle { fill: transparent; stroke: var(--muted); stroke-dasharray: 3 2; }
-html body:not(.site) .graph .bubble.net-node.alumni text { fill: var(--on-accent); }
+html body:not(.site) .graph .bubble.net-node.alumni text { fill: var(--ink); }
 
 /* A figure on the title's line of a panel (the busiest month) */
 :where(body:not(.site)) .block-head .head-figure { color: var(--text-2); font: 700 15px var(--type-font-display); }
@@ -344,7 +344,7 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
 :where(body:not(.site)) .rate-bar { display: block; height: 6px; margin: 12px 0 10px; background: var(--sunken); }
 :where(body:not(.site)) .rate-bar i { display: block; height: 100%; }
 :where(body:not(.site)) .rate-bar.bad i { background: var(--critical); }
-:where(body:not(.site)) .rate-bar.good i { background: var(--good); }
+:where(body:not(.site)) .rate-bar.good i { background: var(--ok-deep); }
 :where(body:not(.site)) .rates .recip h3 { margin-bottom: 4px; }
 :where(body:not(.site)) .recip-row + .recip-row { margin-top: 14px; }
 :where(body:not(.site)) .recip-row .frac-v { margin-top: 8px; font: 800 26px/1 var(--type-font-display); letter-spacing: -.02em; }
@@ -457,9 +457,11 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
    so it stays quiet in dark mode: the coalition its own (inline --tag), milestone and grade the accent, track slate,
    groups the accent turned to violet. One line; "+N" opens the rest in the float (Dashboard fitTags) */
 :where(body:not(.site)) .badge.tag { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--tag, var(--rule-strong)) 72%, var(--ground)); }
-:where(body:not(.site)) .tag:is(.k-milestone, .k-grade) { --tag: var(--accent-data); }
+:where(body:not(.site)) .tag.k-milestone { --tag: var(--state-cc); }
+:where(body:not(.site)) .tag.k-grade { --tag: var(--state-cc); } :where(body:not(.site)) .tag.k-grade.g-outer { --tag: var(--state-outer); }
+:where(body:not(.site)) .tag.k-grade.g-alumni { --tag: var(--alumni-edge); } :where(body:not(.site)) .tag.k-grade.g-piscine, :where(body:not(.site)) .tag.k-milestone.g-piscine { --tag: var(--state-piscine); }
 :where(body:not(.site)) .tag.k-track { --tag: var(--slate); }
-:where(body:not(.site)) .tag.k-group { --tag: oklch(from var(--accent-data) l c calc(h + 100)); }
+:where(body:not(.site)) .tag.k-group { --tag: var(--group); }
 :where(body:not(.site)) .pf-tags { flex-wrap: nowrap; overflow: hidden; }
 :where(body:not(.site)) .pf-tags > * { flex: none; }
 :where(body:not(.site)) .tag-more > summary { cursor: pointer; }
@@ -539,3 +541,302 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
   :where(body:not(.site)) .sb-label { max-width: 100%; font-size: 15px; }  /* a long name ends in "…" before the figures (the tip has it whole) */
   :where(body:not(.site)) .seatbars b { font-size: 14px; }
 }
+/* Holy graph (views/holygraph.ts, lib/holy.ts): validated filled in the accent, in progress outlined in it, failed in red,
+   available outlined in ink, not yet available or another option taken in grey; rings in the accent, a milestone done
+   drawn bold; every node is a button that opens its panel */
+:where(body:not(.site)) .hg-wrap { position: relative; }
+/* the Holy graph page: the graph over the whole window under the band, no frame; the switch and the key over its top, the
+   zoom at its corner (owner, 2026-11-26) */
+:where(body:not(.site)) main.holy-full { max-width: none; padding: 0; }
+:where(body:not(.site)) .hg-full { position: relative; }
+:where(body:not(.site)) main.holy-full .hg-full { padding: 0; margin: 0; } /* no section spacing over the stage */
+:where(body:not(.site)) .hg-full .hg-stage { height: calc(100dvh - var(--c-topbar-height)); border: 0; background: var(--ground); }
+:where(body:not(.site)) .hg-bar { position: absolute; z-index: 2; top: 12px; left: 16px; right: 260px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; pointer-events: none; }
+:where(body:not(.site)) .hg-bar > * { pointer-events: auto; }
+:where(body:not(.site)) .hg-bar .seg { background: var(--ground); }
+:where(body:not(.site)) .hg-bar .hg-key { margin: 0; padding: 4px 8px; background: color-mix(in oklab, var(--ground) 86%, transparent); }
+:where(body:not(.site)) .hg-hint { position: absolute; z-index: 2; left: 16px; bottom: 10px; margin: 0; padding: 2px 6px; font-size: 13px; color: var(--muted); background: color-mix(in oklab, var(--ground) 86%, transparent); pointer-events: none; }
+:where(body:not(.site)) .pf-actions { margin: 12px 0 0; }
+:where(body:not(.site)) .hg-stage { position: relative; height: min(78vh, 900px); border: var(--list-line, 1px) solid var(--rule); background: var(--surface); overflow: hidden; touch-action: none; user-select: none; }
+:where(body:not(.site)) .hg-stage:focus-visible { outline: var(--c-focus-width) solid var(--focus); outline-offset: var(--c-focus-offset); }
+:where(body:not(.site)) .holy-graph { display: block; width: 100%; height: 100%; font-family: var(--type-font-text); cursor: grab; }
+:where(body:not(.site)) .hg-stage[data-dragged="1"] .holy-graph { cursor: grabbing; }
+:where(body:not(.site)) .hg-zoom { position: absolute; top: 10px; right: 10px; z-index: 2; display: flex; gap: 6px; }
+:where(body:not(.site)) .hg-zoom .btn { min-width: 44px; height: 40px; padding: 0 12px; background: var(--ground); }
+/* the rings: a milestone all done in the passed projects' blue, the rest and the Common Core's edge in grey */
+:where(body:not(.site)) .holy-graph .hg-ring { fill: none; stroke: var(--control); stroke-width: 1.5; opacity: .55; }
+:where(body:not(.site)) .holy-graph .hg-ring.full { stroke: var(--done); stroke-width: 5; opacity: 1; }
+:where(body:not(.site)) .holy-graph .hg-ring.cc { stroke-width: 6; opacity: .8; }
+:where(body:not(.site)) .holy-graph .hg-ml { font-size: 13px; fill: var(--muted); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; }
+:where(body:not(.site)) .holy-graph .hg-cap { font-size: 13px; font-weight: 600; fill: var(--text-2); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; }
+:where(body:not(.site)) .holy-graph .hg-alt { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 4; }
+:where(body:not(.site)) .holy-graph .hg-cluster { fill: none; stroke: var(--rule); stroke-width: 3; }
+:where(body:not(.site)) .holy-graph .hg-cluster.lit { stroke: var(--done); }
+:where(body:not(.site)) .holy-graph .hg-e { stroke: var(--rule); stroke-width: 3; }
+:where(body:not(.site)) .holy-graph .hg-e.lit { stroke: var(--done); }
+:where(body:not(.site)) .holy-graph .hg-e.second { stroke-dasharray: 6 5; }
+:where(body:not(.site)) .holy-graph .hg-n { cursor: pointer; outline: none; }
+:where(body:not(.site)) .holy-graph .hg-n > :is(circle, rect, polygon) { stroke-width: 3; transition: stroke-width var(--motion-fast) ease-out; }
+:where(body:not(.site)) .holy-graph .hg-n text { font-weight: 600; pointer-events: none; fill: var(--ink); }
+:where(body:not(.site)) .holy-graph .hg-n:is(:hover, :focus-visible, .pinned) > :is(circle, rect, polygon):not(.hg-bonus) { stroke-width: 6; stroke: var(--focus); }
+:where(body:not(.site)) .holy-graph .st-done > :is(circle, rect, polygon), :where(body:not(.site)) .holy-graph .st-bonus > :is(circle, rect, polygon):not(.hg-bonus) { fill: var(--done); stroke: var(--done); }
+:where(body:not(.site)) .holy-graph :is(.st-done, .st-bonus) text { fill: var(--on-done); }
+:where(body:not(.site)) .holy-graph .hg-bonus { fill: none; stroke: var(--done-deep); stroke-width: 3; }
+:where(body:not(.site)) .holy-graph .st-doing > :is(circle, rect, polygon) { fill: var(--ground); stroke: var(--done); stroke-dasharray: 7 4; }
+:where(body:not(.site)) .holy-graph .st-failed > :is(circle, rect, polygon) { fill: color-mix(in oklab, var(--critical) 18%, var(--ground)); stroke: var(--critical); }
+:where(body:not(.site)) .holy-graph .st-open > :is(circle, rect, polygon) { fill: var(--ground); stroke: var(--ink); }
+:where(body:not(.site)) .holy-graph :is(.st-locked, .st-other) > :is(circle, rect, polygon) { fill: var(--sunken); stroke: var(--rule); }
+:where(body:not(.site)) .holy-graph :is(.st-locked, .st-other) text { fill: var(--muted); font-weight: 500; }
+:where(body:not(.site)) .holy-graph .st-other > :is(circle, rect, polygon) { stroke-dasharray: 3 4; }
+:where(body:not(.site)) .holy-graph .hg-box > rect { stroke-width: 2; }
+:where(body:not(.site)) .hg-key { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 12px; padding: 0; font-size: 14px; color: var(--text-2); }
+:where(body:not(.site)) .hg-key li { display: flex; align-items: center; gap: 7px; }
+:where(body:not(.site)) .hg-key i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--rule); background: var(--sunken); }
+:where(body:not(.site)) .hg-key i:is(.st-done, .st-bonus) { background: var(--done); border-color: var(--done); }
+:where(body:not(.site)) .hg-key i.st-bonus { outline: 2px solid var(--done-deep); outline-offset: 2px; }
+:where(body:not(.site)) .hg-key i.st-doing { background: var(--ground); border: 2px dashed var(--done); }
+:where(body:not(.site)) .hg-key i.st-failed { background: color-mix(in oklab, var(--critical) 18%, var(--ground)); border-color: var(--critical); }
+:where(body:not(.site)) .hg-key i.st-open { background: var(--ground); border-color: var(--ink); }
+:where(body:not(.site)) .hg-key i.st-other { border-style: dashed; }
+/* a node's panel: floating beside it (behave.ts floatAt), kept open by a click */
+:where(body:not(.site)) .hg-panel { width: min(380px, calc(100vw - 16px)); white-space: normal; }
+:where(body:not(.site)) .hg-panel .hg-p-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 0 0 8px; font-size: 17px; }
+:where(body:not(.site)) .hg-panel .hg-p-st { font-size: 13px; padding: 2px 8px; border: 2px solid var(--rule); white-space: nowrap; }
+:where(body:not(.site)) .hg-panel .hg-p-st:is(.st-done, .st-bonus) { background: var(--done); border-color: var(--done); color: var(--on-done); }
+:where(body:not(.site)) .hg-panel .hg-p-st.st-doing { border-color: var(--done); }
+:where(body:not(.site)) .hg-panel .hg-p-st.st-failed { border-color: var(--critical); color: var(--critical); }
+:where(body:not(.site)) .hg-panel .hg-p-facts { display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; margin: 0 0 8px; }
+:where(body:not(.site)) .hg-panel .hg-p-facts div { display: contents; }
+:where(body:not(.site)) .hg-panel .hg-p-facts dt { color: var(--muted); }
+:where(body:not(.site)) .hg-panel .hg-p-facts dd { margin: 0; }
+:where(body:not(.site)) .hg-panel .hg-p-sub { margin: 8px 0 2px; color: var(--muted); font-size: 13px; }
+:where(body:not(.site)) .hg-panel .hg-p-list { margin: 0; padding-left: 0; list-style: none; max-height: 30vh; overflow: auto; }
+:where(body:not(.site)) .hg-panel .hg-p-list li { padding: 4px 0; border-bottom: var(--list-line) solid var(--rule); white-space: normal; }
+:where(body:not(.site)) .hg-panel .sub { display: block; color: var(--text-2); font-size: 13px; white-space: normal; overflow: visible; text-overflow: clip; }
+:where(body:not(.site)) .hg-panel .hg-p-campus { margin: 10px 0 0; padding-top: 8px; border-top: 2px solid var(--ink); }
+:where(body:not(.site)) .holy-graph .st-view > :is(circle, rect, polygon) { fill: var(--ground); stroke: var(--control); }
+:where(body:not(.site)) .hg-key li.hg-view { color: var(--text-2); font-weight: 600; }
+:where(body:not(.site)) .hg-key .info { margin-left: 2px; }
+:where(body:not(.site)) .hg-source { max-width: 80ch; }
+:where(body:not(.site)) .hg-panel .hg-p-why { margin: 0 0 8px; color: var(--text-2); }
+:where(body:not(.site)) .hg-panel .neg { display: block; color: var(--critical); font-size: 13px; font-weight: 600; }
+/* the campus figures: rings that fill to the share who got that far, a donut per project, 100% bars (campusviz.ts) */
+:where(body:not(.site)) .hg-funnel { display: grid; grid-template-columns: minmax(220px, 340px) 1fr; gap: 40px; align-items: center; }
+:where(body:not(.site)) .ring-funnel { width: 100%; max-width: 340px; display: block; }
+:where(body:not(.site)) .ring-funnel path { fill: none; stroke-width: 14; }
+:where(body:not(.site)) .ring-funnel .rf-track { stroke: var(--seat-empty); }
+:where(body:not(.site)) .ring-funnel .rf-reached { stroke: var(--state-cc); }
+:where(body:not(.site)) .ring-funnel .rf-lost { stroke: var(--state-blackhole); }
+:where(body:not(.site)) .ring-funnel .rf-label { font-size: 12px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+:where(body:not(.site)) .ring-funnel .rf-middle { font-size: 26px; font-weight: 800; fill: var(--ink); }
+:where(body:not(.site)) .hg-lead { font-size: var(--c-section-lede-size); line-height: 1.4; max-width: 46ch; margin: 0 0 14px; }
+:where(body:not(.site)) .hg-strip { margin-top: 32px; padding-top: 10px; border-top: 2px solid var(--ink); }
+:where(body:not(.site)) .hg-strip h3 { margin: 0; }
+:where(body:not(.site)) .donuts { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); gap: 20px 14px; padding: 0; margin: 16px 0 0; }
+:where(body:not(.site)) .donut { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; min-width: 0; }
+:where(body:not(.site)) .donut svg { width: 92px; height: 92px; }
+:where(body:not(.site)) .donut path { fill: none; stroke-width: 10; }
+:where(body:not(.site)) .donut text { font-size: 17px; font-weight: 800; fill: var(--ink); }
+:where(body:not(.site)) .donut b { font-size: 14px; line-height: 1.25; overflow-wrap: anywhere; }
+:where(body:not(.site)) .donut span { font-size: 13px; color: var(--muted); }
+:where(body:not(.site)) .donut-alt { grid-column: span var(--n, 2); }
+:where(body:not(.site)) .donut-alt > ol { list-style: none; display: grid; grid-template-columns: repeat(var(--n, 2), 1fr); gap: 14px; padding: 6px 0 0; margin: 0; border-top: 1px dashed var(--muted); }
+:where(body:not(.site)) .hg-more > summary { margin-top: 16px; font-weight: 600; cursor: pointer; }
+:where(body:not(.site)) :is(.dn-track) { stroke: var(--seat-empty); }
+:where(body:not(.site)) .dn-out { stroke: var(--ok-deep); background: var(--ok-deep); } /* passed with 3 Outstandings */
+:where(body:not(.site)) .dn-pass { stroke: var(--ok); background: var(--ok); }
+:where(body:not(.site)) .dn-gone { stroke: var(--why-none); background: var(--why-none); } /* left unfinished or closed without a mark: the grey of "closed without evaluation" */
+:where(body:not(.site)) .dn-failed { stroke: var(--critical); background: var(--critical); }
+:where(body:not(.site)) .dn-lost { stroke: var(--state-blackhole); background: var(--state-blackhole); }
+:where(body:not(.site)) i.rf-reached { background: var(--state-cc); }
+:where(body:not(.site)) i.rf-lost { background: var(--state-blackhole); }
+:where(body:not(.site)) .split-bars > ol { list-style: none; display: grid; grid-template-columns: minmax(96px, 170px) auto minmax(0, 1fr) minmax(56px, auto); column-gap: 14px; padding: 0; margin: 0; }
+/* bars split at one axis (campusviz splitBars): every row on the list's grid, so the axis is one line down the figure */
+:where(body:not(.site)) .split-bars > ol > li { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: stretch; }
+:where(body:not(.site)) .split-bars :is(.sb-label, .spl-lead, .sb-count) { align-self: center; }
+:where(body:not(.site)) .split-bars .sb-label { min-width: 0; } /* a long name ends in "…" in its column */
+:where(body:not(.site)) .spl-lead { text-align: right; font: 700 15px var(--type-font-text); color: var(--ink); font-variant-numeric: tabular-nums; }
+:where(body:not(.site)) .spl-bar { display: grid; grid-template-columns: var(--l) 1fr; }
+:where(body:not(.site)) :is(.spl-l, .spl-r) { display: flex; gap: 2px; align-items: center; min-width: 0; padding: 5px 0; }
+:where(body:not(.site)) .spl-l { justify-content: flex-end; padding-right: 3px; }
+:where(body:not(.site)) .spl-r { border-left: 2px solid var(--ink); padding-left: 3px; }
+:where(body:not(.site)) .spl-bar i { display: block; flex: 0 1 auto; min-width: 0; height: 18px; }
+:where(body:not(.site)) .spl-head { font-size: 13px; font-weight: 600; color: var(--muted); }
+:where(body:not(.site)) .spl-head .spl-lead { font: inherit; color: inherit; }
+:where(body:not(.site)) .spl-head :is(.spl-l, .spl-r) { align-items: flex-end; padding-bottom: 8px; line-height: 1.2; }
+:where(body:not(.site)) .spl-head .spl-l { text-align: right; }
+:where(body:not(.site)) .spl-sum { border-bottom: 1px solid var(--rule); }
+:where(body:not(.site)) .spl-sum :is(.spl-l, .spl-r) { padding: 4px 0 12px; }
+:where(body:not(.site)) .spl-sum .spl-l { padding-right: 3px; }
+:where(body:not(.site)) .spl-sum .spl-r { padding-left: 3px; }
+:where(body:not(.site)) .spl-sum .spl-bar i { height: 28px; }
+:where(body:not(.site)) .spl-sum :is(.sb-label, .sb-count) { color: var(--ink); font-weight: 700; }
+:where(body:not(.site)) .spl-sum .spl-lead { font-size: 24px; font-weight: 800; }
+:where(body:not(.site)) .spl-sum + li :is(.spl-l, .spl-r) { padding-top: 12px; }
+:where(body:not(.site)) .spl-key { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 40px; margin-top: 20px; }
+:where(body:not(.site)) .spl-side { margin: 0; padding-bottom: 4px; border-bottom: 2px solid var(--ink); font: 700 14px var(--type-font-text); color: var(--ink); }
+:where(body:not(.site)) .spl-key ul { list-style: none; margin: 0; padding: 0; }
+:where(body:not(.site)) .spl-key li { display: grid; grid-template-columns: 12px 1fr auto 4ch; gap: 10px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--rule); font-size: 14px; color: var(--text-2); }
+:where(body:not(.site)) .spl-key li i { width: 12px; height: 12px; }
+:where(body:not(.site)) .spl-key :is(b, em) { font-style: normal; text-align: right; font-variant-numeric: tabular-nums; }
+:where(body:not(.site)) .spl-key b { font-weight: 600; color: var(--ink); }
+:where(body:not(.site)) .spl-key em { color: var(--muted); }
+:where(body:not(.site)) .sb-count { text-align: right; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+:where(body:not(.site)) .sb-key { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 0; margin: 14px 0 0; font-size: 14px; color: var(--text-2); }
+:where(body:not(.site)) .sb-key li { display: flex; align-items: center; gap: 7px; }
+:where(body:not(.site)) .sb-key i { display: inline-block; width: 12px; height: 12px; }
+/* why attempts fail: the negative flags in reds, darkest the worst; the rest in slate greys (ui.json why-*) */
+:where(body:not(.site)) .sb-cheat { background: var(--why-cheat); } :where(body:not(.site)) .sb-tech { background: var(--critical); }
+:where(body:not(.site)) .sb-norme { background: var(--why-norme); } :where(body:not(.site)) .sb-other { background: var(--why-other); }
+:where(body:not(.site)) .sb-marks { background: var(--why-marks); } :where(body:not(.site)) .sb-exam { background: var(--why-exam); }
+:where(body:not(.site)) .sb-auto { background: var(--why-auto); } :where(body:not(.site)) .sb-none { background: var(--why-none); }
+:where(body:not(.site)) .sb-st-active { background: var(--state-cc); } :where(body:not(.site)) .sb-st-transcender { background: var(--state-outer); }
+:where(body:not(.site)) .sb-st-alumni { background: var(--state-alumni); box-shadow: inset 0 0 0 1px var(--alumni-edge); } :where(body:not(.site)) .sb-st-blackholed { background: var(--state-blackhole); }
+:where(body:not(.site)) .sb-st-inactive { background: var(--state-frozen); box-shadow: inset 0 0 0 1px var(--control); } /* ice white: its outline */ :where(body:not(.site)) .sb-st-piscine { background: var(--state-piscine); }
+@media (max-width: 720px) {
+  :where(body:not(.site)) .hg-funnel { grid-template-columns: 1fr; gap: 20px; }
+  :where(body:not(.site)) .ring-funnel { max-width: 280px; margin: 0 auto; }
+  :where(body:not(.site)) .split-bars > ol { grid-template-columns: 88px auto minmax(0, 1fr) auto; column-gap: 8px; }
+  :where(body:not(.site)) .split-bars .sb-label { font-size: 14px; }
+  :where(body:not(.site)) .spl-head :is(.spl-lead, .sb-count) { font-size: 0; } /* the side names stay; the key says the rest */
+  :where(body:not(.site)) .spl-sum .spl-lead { font-size: 18px; }
+  :where(body:not(.site)) .spl-key { grid-template-columns: 1fr; }
+  :where(body:not(.site)) .donut-alt { grid-column: 1 / -1; }
+  :where(body:not(.site)) .hg-bar { right: 12px; left: 12px; top: 10px; }
+  :where(body:not(.site)) .hg-bar .seg { max-width: 100%; overflow-x: auto; }
+  :where(body:not(.site)) .hg-bar .hg-key { display: none; } /* the states are in each node's panel */
+  :where(body:not(.site)) .hg-full .hg-zoom { top: auto; bottom: 12px; } /* the switch has the top */
+  :where(body:not(.site)) .hg-hint { display: none; }
+}
+/* Monday's maintenance notice (Maintenance.vue): the band, the poster title over a 6 px rule, the text and a game */
+.maint { min-height: 100vh; background: var(--ground); color: var(--ink); }
+.maint-band { height: var(--c-topbar-height); background: var(--accent); display: flex; justify-content: flex-end; align-items: center; padding: 0 clamp(16px, 4vw, 48px); }
+.maint-lang { display: flex; }
+.maint-lang button { min-width: 48px; height: 44px; font: inherit; font-weight: 700; font-size: 16px; background: transparent; color: var(--on-accent); border: 2px solid var(--on-accent); cursor: pointer; }
+.maint-lang button + button { border-left: 0; }
+.maint-lang button[aria-pressed="true"] { background: var(--on-accent); color: var(--accent); }
+.maint-main { max-width: var(--c-page-max-width); padding: 56px clamp(16px, 4vw, 48px) 64px; margin: 0 auto; }
+.maint-brand { font-weight: 800; font-size: 22px; margin: 0 0 28px; }
+.maint h1 { font-size: clamp(48px, 9vw, 112px); line-height: .92; letter-spacing: -.035em; margin: 0 0 36px; padding-bottom: 20px; border-bottom: 6px solid var(--ink); }
+.maint-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 400px); gap: clamp(32px, 5vw, 80px); align-items: start; }
+.maint-lead { font-size: clamp(19px, 1.6vw, 23px); line-height: 1.45; max-width: 46ch; margin: 0 0 28px; }
+.maint-until { font-size: clamp(24px, 2.4vw, 32px); font-weight: 800; margin: 0 0 8px; }
+.maint-auto { font-size: 17px; color: var(--text-2); margin: 0 0 28px; }
+.snake { display: grid; gap: 12px; padding-top: 10px; border-top: 2px solid var(--ink); }
+.snake-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 0; font-size: 20px; white-space: nowrap; }
+.snake-head span { font-variant-numeric: tabular-nums; color: var(--text-2); font-size: 17px; }
+.snake-board { position: relative; }
+.snake canvas { width: 100%; aspect-ratio: 1; display: block; image-rendering: pixelated; touch-action: none; }
+.snake canvas:focus-visible { outline: var(--c-focus-width) solid var(--focus); outline-offset: var(--c-focus-offset); }
+.snake-start { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 14px; background: color-mix(in oklab, var(--ground) 55%, transparent); }
+.snake-over { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
+.snake-go { min-width: 168px; min-height: 60px; padding: 0 36px; font: inherit; font-size: 22px; font-weight: 800; letter-spacing: -.01em;
+  background: var(--ink); color: var(--ground); border: 0; border-radius: var(--radius-m); cursor: pointer; transition: transform var(--motion-fast) var(--motion-ease); }
+.snake-go:hover { transform: translateY(-2px); }
+.snake-go:focus-visible { outline: var(--c-focus-width) solid var(--focus); outline-offset: 4px; }
+.snake-how { margin: 0; font-size: 15px; color: var(--muted); white-space: nowrap; }
+@media (max-width: 820px) { .maint-cols { grid-template-columns: 1fr; } }
+/* Asked before acting (Confirm.vue): a page of its own, a lede to read in one go, what goes and what stays side by side,
+   two 48 px buttons; deleting is the one red button of the site */
+:where(body:not(.site)) .confirm-page { max-width: var(--c-page-max-width); margin: 0 auto; padding: 0 var(--c-page-padding-x) var(--c-page-padding-bottom); }
+:where(body:not(.site)) .confirm-lede { font-size: clamp(19px, 1.6vw, 23px); line-height: 1.45; max-width: 58ch; margin: 28px 0 0; }
+:where(body:not(.site)) .confirm-preview { margin: 24px 0 0; padding-top: 10px; border-top: 2px solid var(--ink); font-weight: 700; color: var(--accent-ink); }
+:where(body:not(.site)) .confirm-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(28px, 4vw, 64px); margin-top: 40px; }
+:where(body:not(.site)) .confirm-list { padding-top: 10px; border-top: 2px solid var(--ink); }
+:where(body:not(.site)) .confirm-list h2 { font-size: 22px; margin: 0 0 6px; }
+:where(body:not(.site)) .confirm-list ul { list-style: none; margin: 0; padding: 0; }
+:where(body:not(.site)) .confirm-list li { font-size: 18px; line-height: 1.45; padding: 12px 0; border-bottom: var(--list-line, 1px) solid var(--rule); }
+:where(body:not(.site)) .confirm-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 40px; }
+:where(body:not(.site)) .confirm-actions .btn { min-height: 48px; padding: 0 28px; font-size: 18px; }
+:where(body:not(.site)) .btn.danger-solid { background: var(--critical); border-color: var(--critical); color: var(--on-image); }
+:where(body:not(.site)) .btn.danger-solid:hover { background: color-mix(in oklab, var(--critical) 85%, var(--ink)); }
+@media (max-width: 720px) { :where(body:not(.site)) .confirm-cols { grid-template-columns: 1fr; } :where(body:not(.site)) .confirm-actions .btn { flex: 1 1 100%; } }
+/* the confirmations' title on one line from 390 px up (owner, 2026-11-25): it scales with the width instead of wrapping */
+:where(body:not(.site)) .confirm-page .page-head h1 { font-size: min(112px, 8.4vw); white-space: nowrap; }
+/* a group's dot beside its name in tables (graphs.ts groupDot): the colour of its bubbles and circle nodes */
+:where(body:not(.site)) .gdot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; vertical-align: 0; border: 1.5px solid var(--g-edge, var(--rule)); background: color-mix(in oklab, var(--g-edge, var(--rule)) 45%, var(--surface)); }
+:where(body:not(.site)) .gdot.rank { --g-edge: var(--state-cc); } :where(body:not(.site)) .gdot.outer { --g-edge: var(--state-outer); }
+:where(body:not(.site)) .gdot.alumni { --g-edge: var(--alumni-edge); background: var(--state-alumni); } :where(body:not(.site)) .gdot.none { --g-edge: var(--state-piscine); }
+:where(body:not(.site)) .gdot.dead { --g-edge: var(--state-blackhole); border-style: dashed; } :where(body:not(.site)) .gdot.staff { --g-edge: var(--muted); }
+:where(body:not(.site)) .gdot.deleted { --g-edge: var(--muted); background: transparent; border-style: dashed; }
+/* the owner's holy graph editor (make dev, HolyEditor.vue): the structure on the left, the real drawing on the right */
+:where(body:not(.site)) .hge { max-width: var(--c-page-max-width); margin: 0 auto; padding: 0 var(--c-page-padding-x) var(--c-page-padding-bottom); }
+:where(body:not(.site)) .hge-bar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center; margin: 20px 0 12px; position: sticky; top: var(--c-topbar-height); z-index: 4; background: var(--ground); padding: 10px 0; border-bottom: 1px solid var(--rule); }
+:where(body:not(.site)) .hge-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+:where(body:not(.site)) .hge-note { font-weight: 600; color: var(--accent-ink); margin: 0 0 12px; }
+:where(body:not(.site)) .hge-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 32px; align-items: start; }
+:where(body:not(.site)) .hge-preview { position: sticky; top: calc(var(--c-topbar-height) + 80px); }
+:where(body:not(.site)) .hge-preview .hg-stage { height: 72vh; }
+:where(body:not(.site)) .hge-svg, :where(body:not(.site)) .hge-svg svg { width: 100%; height: 100%; }
+:where(body:not(.site)) .hge-ring { padding-top: 8px; border-top: 2px solid var(--ink); margin-bottom: 26px; }
+:where(body:not(.site)) .hge-ring h3 { margin: 0 0 6px; }
+:where(body:not(.site)) .hge-ring ul { list-style: none; margin: 0; padding: 0; }
+:where(body:not(.site)) .hge-ring li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--rule); }
+:where(body:not(.site)) .hge-pick { display: flex; gap: 8px; align-items: center; min-width: 0; } .hge-pick span { overflow-wrap: anywhere; }
+:where(body:not(.site)) .hge-tools { display: flex; gap: 4px; flex: none; }
+:where(body:not(.site)) .hge-tools :is(button, select) { min-width: 34px; height: 34px; font: inherit; font-size: 14px; background: var(--ground); color: var(--ink); border: 1.5px solid var(--rule-strong); cursor: pointer; }
+:where(body:not(.site)) .hge-add { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+:where(body:not(.site)) .hge-add input { flex: 1 1 180px; height: 44px; padding: 0 10px; font: inherit; border: 1px solid var(--control); background: var(--surface); color: var(--ink); }
+:where(body:not(.site)) .hge textarea { width: 100%; font: 13px/1.5 ui-monospace, monospace; padding: 10px; border: 1px solid var(--control); background: var(--surface); color: var(--ink); }
+:where(body:not(.site)) .hge-slider { display: grid; gap: 4px; padding: 8px 0; border-bottom: 1px solid var(--rule); }
+:where(body:not(.site)) .hge-slider label { display: flex; justify-content: space-between; } .hge-slider b { font-variant-numeric: tabular-nums; }
+:where(body:not(.site)) .hge-slider input { width: 100%; accent-color: var(--accent-data); }
+@media (max-width: 960px) { :where(body:not(.site)) .hge-cols { grid-template-columns: 1fr; } :where(body:not(.site)) .hge-preview { position: static; } }
+/* a donut with nothing to show (no attempt at 42 Madrid, or under 5): a dashed ring, so it reads as empty, not missing */
+:where(body:not(.site)) .donut .dn-edge { fill: none; stroke: var(--control); stroke-width: 1.5; } /* nobody tried it: the ring's outline */
+:where(body:not(.site)) .dn-few { stroke: color-mix(in oklab, var(--control) 55%, var(--ground)); } /* 1 to 4 signed up: the ring, figures hidden */
+:where(body:not(.site)) .donut:is(.empty, :has(.dn-few)) text { fill: var(--muted); font-weight: 600; }
+/* the editor's hand on each project: grab to move, the picked one outlined, the square on its edge to size it */
+:where(body:not(.site)) .hge-node { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; min-height: 56px; padding-bottom: 10px; }
+:where(body:not(.site)) .hge-node .note { margin: 0; flex: 1 1 280px; }
+:where(body:not(.site)) .hge-size { display: flex; gap: 8px; align-items: center; }
+:where(body:not(.site)) .hge-size input { width: 140px; accent-color: var(--accent-data); }
+:where(body:not(.site)) .hge-svg .holy-graph { touch-action: none; }
+:where(body:not(.site)) .hge-svg .holy-graph .hg-n { cursor: grab; }
+:where(body:not(.site)) .hge-svg .holy-graph .hg-n:active { cursor: grabbing; }
+:where(body:not(.site)) .hge-svg .holy-graph .hge-sel > :is(circle, rect, polygon):not(.hg-bonus) { stroke: var(--accent-data); stroke-width: 5; stroke-dasharray: 7 4; }
+:where(body:not(.site)) .hge-svg .holy-graph .hge-handle { fill: var(--accent-data); stroke: var(--ground); stroke-width: 2px; vector-effect: non-scaling-stroke; cursor: ew-resize; }
+:where(body:not(.site)) .sb-key i.dn-few { background: color-mix(in oklab, var(--control) 55%, var(--ground)); }
+:where(body:not(.site)) .sb-key i.dn-nobody { background: transparent; box-shadow: inset 0 0 0 1.5px var(--control); }
+/* the editor full screen: the drawing alone; Shift and a drag picks an area */
+:where(body:not(.site)) .hge-preview:fullscreen { background: var(--ground); padding: 16px 20px; display: flex; flex-direction: column; }
+:where(body:not(.site)) .hge-preview:fullscreen .hg-stage { height: auto; flex: 1 1 auto; min-height: 0; }
+:where(body:not(.site)) .hge-svg .holy-graph .hge-marquee { fill: color-mix(in oklab, var(--accent-data) 12%, transparent); stroke: var(--accent-data); stroke-width: 1.5px; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; }
+:where(body:not(.site)) .hge-group { padding: 8px 0 12px; border-bottom: 2px solid var(--rule); }
+/* the editor's lines by hand: the picked one, its round ends, the line being drawn (solid once it meets something) */
+:where(body:not(.site)) .hge-svg .holy-graph line.hge-line-sel { stroke: var(--accent-data); stroke-width: 4px; vector-effect: non-scaling-stroke; }
+:where(body:not(.site)) .hge-svg .holy-graph .hge-end { fill: var(--ground); stroke: var(--accent-data); stroke-width: 2px; vector-effect: non-scaling-stroke; cursor: move; }
+:where(body:not(.site)) .hge-svg .holy-graph .hge-draft { stroke: var(--accent-data); stroke-width: 2px; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; pointer-events: none; }
+:where(body:not(.site)) .hge-svg .holy-graph .hge-draft.snap { stroke-dasharray: none; }
+:where(body:not(.site)) .hge-lines .hge-svg .holy-graph .hg-n { cursor: crosshair; }
+:where(body:not(.site)) .hge-lines .hge-svg .holy-graph line[data-link] { cursor: pointer; }
+:where(body:not(.site)) .hge-node .btn[aria-pressed="true"] { background: var(--rule-strong); color: var(--ground); }
+
+/* ---------- the band's eight pages (2026-11-26): they need 1366px, the menu below ---------- */
+:where(body:not(.site)) .topbar .pages a { white-space: nowrap; }
+@media (min-width: 1280px) and (max-width: 1365.98px) {
+  :where(body:not(.site)) .topbar .pages { display: none; }
+  :where(body:not(.site)) .menu-wrap { display: block; }
+}
+
+/* Campus · Summary: last week in six equal modules */
+@media (min-width: 1000px) { :where(body:not(.site)) .kpis.six { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+:where(body:not(.site)) .kpis.six > div[data-tip] { cursor: help; }
+
+/* Campus · Exams: the sitting they passed in, 1st to 4th or more, greens from strong to pale (green: passed) */
+:where(body:not(.site)) .tries-bar { display: flex; width: 100%; min-width: 120px; height: 12px; background: var(--sunken); }
+:where(body:not(.site)) .tries-bar i { display: block; min-width: 2px; }
+:where(body:not(.site)) .tries-bar .t1 { background: var(--ok); }
+:where(body:not(.site)) .tries-bar .t2, :where(body:not(.site)) .tries-key.t2 { background: color-mix(in oklab, var(--ok) 68%, var(--ground)); }
+:where(body:not(.site)) .tries-bar .t3, :where(body:not(.site)) .tries-key.t3 { background: color-mix(in oklab, var(--ok) 44%, var(--ground)); }
+:where(body:not(.site)) .tries-bar .t4, :where(body:not(.site)) .tries-key.t4 { background: color-mix(in oklab, var(--ok) 24%, var(--ground)); outline: 1px solid color-mix(in oklab, var(--ok) 50%, var(--ground)); outline-offset: -1px; }
+:where(body:not(.site)) .tries-key.t1 { background: var(--ok); }
+
+/* 42 Madrid: its parts as tabs under the title (links, not a switch: never the segmented look), above the section index */
+:where(body:not(.site)) .campus-tabs { display: flex; gap: 32px; overflow-x: auto; scrollbar-width: none; padding-top: 18px; border-bottom: 1px solid var(--rule); }
+:where(body:not(.site)) .campus-tabs::-webkit-scrollbar { display: none; }
+:where(body:not(.site)) .campus-tabs a { flex: none; padding: 4px 0 12px; margin-bottom: -1px; border-bottom: 4px solid transparent; color: var(--text-2); text-decoration: none;
+  font: 800 22px/1.1 var(--type-font-display); letter-spacing: -.01em; transition: color var(--motion-fast) ease-out, border-color var(--motion-fast) ease-out; }
+:where(body:not(.site)) .campus-tabs a:hover { color: var(--ink); }
+:where(body:not(.site)) .campus-tabs a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--ink); }
+@media (max-width: 599.98px) { :where(body:not(.site)) .campus-tabs { gap: 22px; padding-top: 14px; } :where(body:not(.site)) .campus-tabs a { font-size: 18px; padding-bottom: 10px; } }

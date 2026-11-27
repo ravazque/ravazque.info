@@ -109,7 +109,7 @@ test("the card names who you are beside your name, and lists coalition, mileston
   expect(student).toContain(`<span class="pf-status">${f.t("profile.st_student")}</span>`);
   expect(student).toMatch(/<span class="badge tag k-coal" style="--tag:[^"]+">Zefiria<\/span>/); // its name alone: no dot, no place, framed in its colour
   expect(student).not.toContain(f.t("home.nth", { n: 3 }));
-  expect(student).toContain(`<span class="badge tag k-milestone">${f.t("groups.rank-03")}</span>`);
+  expect(student).toContain(`<span class="badge tag k-milestone g-cc">${f.t("groups.rank-03")}</span>`); // its state's colour: Common Core
   expect(student).toContain('<span class="badge tag k-group">Mentor</span>');
   expect(profile(pg("Transcender"))[0].html).toContain(`<span class="pf-status">${f.t("profile.st_outer")}</span>`);
   expect(profile(pg("Alumni"))[0].html).toContain(`<span class="pf-status">${f.t("profile.st_alumni")}</span>`);
@@ -242,3 +242,22 @@ test("Pace for a transcender: how long the Common Core took, and how far the alu
   expect(pace({ quests: [] })).not.toContain(f.t("pace.transcended")); // not a transcender
   expect(pace({ period: "piscine" })).not.toContain(f.t("pace.transcended"));
 });
+
+test("the grade tag takes its state's colour, as in Connections: Transcender orange, Alumni blue, a Cadet green", () => {
+  const f = new Fmt("en");
+  const card = (grade: string, quests: any[]) => profile(new Page(f, { period: "student", report: {
+    profile: { login: "peer01", name: "Pat Peer" }, extras: { ...extras, titles: [], cursus: [{ name: "42cursus", level: 12, grade }], quests },
+    summary: { validated: 0, projects: 0, attempts: 0, retries: 0, received: 0, given: 0 }, logtime: { total_seconds: 0, days_present: 0 }, projects: [] }, all_projects: [] } as any, "home", {}))[0].html;
+  expect(card("Transcender", [{ name: "Common Core", validated: "2026-01-01" }])).toContain('class="badge tag k-grade g-outer">Transcender<');
+  expect(card("Alumni", [])).toContain('class="badge tag k-grade g-alumni">Alumni<');
+  expect(card("Cadet", [{ name: "Common Core Rank 02", validated: "2026-01-01" }])).toContain('class="badge tag k-grade g-cc">Cadet<');
+});
+
+test("a passed exam's badge is the passed green, not the Outstanding one", async () => {
+  const { projects } = await import("./projects");
+  const html = projects(new Page(new Fmt("en"), { period: "student", all_projects: [], report: { profile: { login: "me" }, extras: { cursus: [], quests: [] }, projects: [],
+    summary: {}, logtime: {}, insights: { exams: [{ name: "Exam Rank 02", passed: true, attempts: 1, best: 100, tries: [100] }] } } } as any, "projects", {})).map((s) => s.html).join("");
+  expect(html).toContain('<span class="badge ok">');
+  expect(html).not.toMatch(/<span class="badge out">[^<]*Passed/);
+});
+

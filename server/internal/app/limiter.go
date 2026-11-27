@@ -128,5 +128,19 @@ func (l *Limiter) BudgetOK() bool {
 	return false
 }
 
+// Spare is true while some app has more than reserve requests left this hour (or an unknown budget): background work
+// waits otherwise, so people signing in always find budget.
+func (l *Limiter) Spare(reserve int) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	t := l.now()
+	for a := range l.apps {
+		if l.hourly[a] < 0 || !t.Before(l.hourlyUntil[a]) || l.hourly[a] >= reserve {
+			return true
+		}
+	}
+	return false
+}
+
 // PerSecond changes the per-app rate (the dev tools' fake API has no limit).
 func (l *Limiter) PerSecond(n int) { l.mu.Lock(); l.perSecond = n; l.mu.Unlock() }

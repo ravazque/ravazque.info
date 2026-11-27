@@ -8,7 +8,7 @@ OPEN_DEV := nohup $(CHROME) https://localhost >/dev/null 2>&1 &
 TEST_PROFILES := /preview/test-*.json
 REAL_PROFILES := /preview/real-*.json
 .DEFAULT_GOAL := help
-.PHONY: help dev dev-build dev-real dev-live dev-up dev-vite profiles-test profiles-real dev-down dev-fclean dev-logs production production-down logs down ps test preview snapshot eval-report report site-sync certs clean fclean re update
+.PHONY: help dev dev-build dev-real dev-live dev-up dev-vite profiles-test profiles-real dev-down dev-fclean dev-logs production production-down logs down ps test preview snapshot eval-report report site-sync holygraph certs clean fclean re update
 
 help: ## Show this help
 	@echo "ravazque.info — dev at https://localhost, production at https://ravazque.info (both sign in with FT_UID)"
@@ -112,6 +112,10 @@ update: ## Update base images, npm packages and Actions (patch and minor; majors
 
 preview: .env ## Save a real extraction to web/preview/data.json for make snapshot (UID=<42 user id>, about 120 requests)
 	@mkdir -p web/preview && $(DEVTOOLS) fetch $(UID) $(CURDIR)/web/preview/data.json
+
+holygraph: .env ## Rebuild server/core/data/holygraph.json from the API's project catalog (14 requests; the structure lives in tools/holygraph/build.py)
+	@$(DEVTOOLS) catalog $(CURDIR)/.holygraph-raw.json && python3 -I tools/holygraph/build.py $(CURDIR)/.holygraph-raw.json > server/core/data/holygraph.json.tmp \
+		&& mv server/core/data/holygraph.json.tmp server/core/data/holygraph.json && rm -f $(CURDIR)/.holygraph-raw.json && echo "server/core/data/holygraph.json rebuilt"
 
 # the CV site lives in its own repository (ravazque/ravazque.github.io), checked out beside this one
 SITE_DIR ?= ../ravazque.github.io

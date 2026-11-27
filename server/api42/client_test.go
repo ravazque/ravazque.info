@@ -257,3 +257,13 @@ func TestMadridIsReadOncePerHour(t *testing.T) {
 		t.Fatal("last hour's levels are not this hour's")
 	}
 }
+
+// The default client pings an HTTP/2 connection that went quiet and drops it when no answer comes, rather than reusing a
+// dead one until the system gives up (2026-11-26: a campus count hung 38 minutes on one after the wifi dropped).
+func TestDefaultClientDropsDeadConnections(t *testing.T) {
+	c := New([]App{{UID: "u", Secret: "s"}}, "", nil, nil)
+	tr, ok := c.hc.Transport.(*http.Transport)
+	if !ok || tr.HTTP2 == nil || tr.HTTP2.SendPingTimeout <= 0 || tr.HTTP2.PingTimeout <= 0 || c.hc.Timeout != 60*time.Second {
+		t.Fatalf("transport %#v, timeout %v", c.hc.Transport, c.hc.Timeout)
+	}
+}

@@ -16,8 +16,8 @@ publicado desde la aplicación (https://ravazque.github.io/ravazque/) están en 
 
 ## Qué ves
 
-Seis páginas. Cada elección (periodo, filtros, vistas) queda en la dirección, así que cualquier vista se puede
-guardar o compartir.
+Siete páginas en la barra, y tu holy graph en una página propia. Cada elección (periodo, filtros, vistas) queda en la
+dirección, así que cualquier vista se puede guardar o compartir.
 
 - **Perfil**, la página de inicio. Tu ficha (foto, nombre y login, el título que elegiste en la intra, coalición,
   milestone, curso de C o de Python, grado, grupos como mentor) con cuatro cifras, cada una con su línea: tu nivel y tu
@@ -28,13 +28,30 @@ guardar o compartir.
   Avance (plegado a sus cifras), Contribución, Ritmo, el bonus de horas, el registro de evaluaciones, las evaluaciones
   canceladas, el feedback y dónde ocurren las evaluaciones. Añade más desde el selector del final (Actividad entre
   ellas: logros, eventos, títulos y quests junto a tus campus), quítalos, cambia su tamaño, arrástralos a su sitio y
-  pliega a sus cifras los que las tienen sobre sus gráficas; se guarda en tu navegador.
+  pliega a sus cifras los que las tienen sobre sus gráficas; se guarda en tu navegador. **Tu holy graph** se abre desde
+  la ficha.
+- **Tu holy graph** (desde Perfil): el Common Core de C o de Python y el Outer Core como los dibuja la intra, en toda la
+  ventana, para arrastrar y hacer zoom: cada proyecto en su estado (aprobado en el azul de la intra, con un anillo si
+  pasa de 100, en curso, suspendido, disponible, aún no disponible u otra opción elegida) y un panel por proyecto con tu
+  nota, cada intento y la flag negativa que lo suspendió, la XP y cómo le fue al campus. El selector muestra el grafo de
+  la Piscina o el del otro curso, solo para mirar.
 - **Proyectos**: tu avance (tiempo en el 42cursus, XP por mes, tu promo por nivel), skills, cada proyecto e intento
   en un solo registro con su milestone (0 = Libft … 6, para el Common Core de C y el de Python; un proyecto hecho en los
   dos cursos dice cuál es cuál) y filtros por estado y milestone, los proyectos de otros cursus (Discovery, Reload…)
   aparte, exportación a CSV, exámenes, dominios técnicos (cada skill por su nivel en la escala del radar de skills, o
   las etiquetas RNCP de la intra con un cuadrado por proyecto validado y la XP que suman, con un portafolio para
   previsualizar o descargar) y tus reintentos y proyectos validados a lo largo del tiempo.
+- **42 Madrid**: una página con cuatro pestañas, 42 Madrid según un recuento semanal. *Resumen*: la semana pasada
+  en seis cifras (evaluaciones y por estudiante, proyectos aprobados y suspendidos, exámenes, Outstandings y flags
+  negativos, black holes), las doce semanas anteriores, quién hay y dónde está hoy cada año de inicio. *Exámenes*: cada
+  examen de los tracks de C y Python (inscritos, aprobados, sesiones suspendidas, a la primera, en qué sesión, mediana
+  de días y tú) y los de la Piscina (tu página Proyectos también enseña cada examen tuyo junto al de 42 Madrid).
+  *42cursus*: hasta dónde llega cada curso, cada proyecto como un donut (aprobado, aprobado con
+  tres Outstandings, suspendido, sin días, sin acabar; su tooltip da primero los porcentajes, luego los intentos
+  suspendidos por flag y luego cómo aprobaron), el Outer Core por grupos con buscador, por qué fallan los intentos (las
+  flags negativas a un lado de un eje, el resto al otro). *Piscina*: quién entró y cada día, rush y examen. Cada tooltip
+  dice cómo se cuenta su cifra. Una cifra que cubre a menos de 5 personas sale como "< 5", pero un proyecto que hicieron
+  solo de 1 a 4 personas muestra sus cifras y quién lo hizo.
 - **Evaluaciones**: lo que devuelves (horas, personas, valoración, cuántas acabaron por debajo de 50, Outstanding en
   los dos sentidos, según el milestone de la otra persona), recibidas y hechas a lo largo del tiempo, cuándo ocurren
   (día × hora, duración, con cuánta antelación se reservaron), tu feedback (como estudiante solo
@@ -65,8 +82,8 @@ Cosas que merece la pena probar:
 - El **selector de periodo**: todo, solo el 42cursus o solo la piscina.
 - La **estrella** junto al título de cada sección: las secciones marcadas se reúnen en el menú de la estrella de la barra, a un clic
   (un perfil nuevo empieza con cinco).
-- **Actualizar** tus datos una vez por hora; la extracción va en segundo plano con el progreso en la barra, y cuando
-  vuelves pasada una hora la copia de tu navegador dibuja la página al momento mientras se trae una nueva.
+- **Actualizar** tus datos una vez por hora; la extracción va en segundo plano con el progreso en la barra. La copia que
+  guarda el servidor dibuja la página al momento cuando vuelves, y una de más de un día se actualiza sola.
 - El botón de **ampliar** junto a una gráfica que comparte fila la abre en grande.
 - **Ajustes** (el engranaje): acento (el azul de 42 por defecto o el color de tu coalición, ajustado para que se lea
   bien en los dos temas), tema (sistema, claro u oscuro), periodo e idioma.
@@ -108,17 +125,26 @@ blackhole o congeladas ven una página con el motivo. El acceso se comprueba de 
 
 ## Tus datos
 
-- **Sin base de datos.** Tu informe vive en tu navegador (IndexedDB). El servidor guarda una copia firmada en memoria
-  durante una hora desde su último uso, y solo acepta la copia del navegador si lleva su propia firma para tu cuenta.
+- **Sin base de datos.** Tu informe se guarda en el disco del servidor, cifrado (AES-GCM, con una clave derivada de
+  `SESSION_SECRET`, en un fichero nombrado por un hash con clave), durante 7 días desde su último uso, y en memoria
+  durante la hora; en tu navegador no queda nada.
 - Tu token de 42 se usa una vez para saber quién eres y se descarta; los tokens nunca llegan al navegador.
 - De otros estudiantes solo se guarda login, nombre, grupo (milestone, alumni, blackhole…) y si son staff y, en tus
   evaluaciones de los últimos 60 días, el asiento que usó la otra parte (y cuánto tarde hicieron login los estudiantes que
   evaluaste). Del feedback que recibiste, solo el tuyo.
-- El servidor escribe dos ficheros: el registro de aceptación (un hash con clave de tu id de 42, la versión de la política
-  y la fecha, que se conserva dos años) y el registro de visitas de la página de operaciones del responsable (tu login con
-  tu primer y último inicio de sesión, que se va con *Borrar mis datos* o dos años después de tu último inicio de sesión).
-- *Borrar mis datos* elimina la copia del servidor, cancela una actualización pendiente y le pide a tu navegador que
-  borre lo que guarda.
+- Además de los informes, el servidor escribe el registro de aceptación (un hash con clave de tu id de 42, la versión de
+  la política y la fecha, que se conserva dos años), el registro de visitas de la página de operaciones del responsable
+  (tu login con tu primer y último inicio de sesión, que se va con *Borrar mis datos* o dos años después de tu último
+  inicio de sesión), el recuento del campus y el holy graph que dibujó el responsable.
+- *Borrar mis datos* elimina tu informe (memoria y disco), cancela una actualización pendiente y borra lo que guarda
+  este navegador.
+- **Estadísticas del campus** (42 Madrid, solo con sesión iniciada): una vez a la semana (lunes, 04:00 de Madrid) el
+  servidor lee los estudiantes del 42cursus y los candidatos de la Piscina de C de 42 Madrid y guarda totales por
+  proyecto, promoción, Piscina y semana (la Piscina solo se vuelve a leer cuando termina una, seis semanas después por
+  sus admisiones, cuando alguien más pide salir y al menos cada ocho semanas); una cifra de menos de 5 personas sale como "< 5". En un proyecto en el que solo se
+  inscribieron de 1 a 4 personas se guardan y muestran sus cifras exactas y sus logins, así que a menudo se puede saber
+  cómo le fue a cada una, como ya lo muestra la intra. Mientras cuenta, el sitio se cierra para todos menos el
+  responsable. Los estudiantes de `OPTOUT_LOGINS` quedan fuera.
 - Quien pide no aparecer sale como "Hidden N", sin nombre, foto ni asiento, en los informes de los demás (`OPTOUT_LOGINS`):
   el número solo distingue a unas personas de otras dentro de ese informe, y su login desaparece también de los nombres
   de equipo y los comentarios.
@@ -156,6 +182,7 @@ make dev-logs        # sigue los logs de dev
                      # cada nivel de dev se engancha a un dev ya levantado, salvo que cambien el código, los ajustes o el nivel; make dev-down baja de nivel
 make dev-down        # para dev (los navegadores conservan sus informes)
 make test            # tests de Go, comprobación de tipos y Vitest, tests del informe de evaluaciones y de tools/update.sh
+make holygraph       # reconstruye los datos del holy graph desde el catálogo de proyectos de la API (14 peticiones)
 make update          # actualiza imágenes base, paquetes npm y Actions (parches y menores) y pasa make test; cada nivel de dev lista lo desactualizado
 make production      # compila y arranca https://ravazque.info a través del túnel de Cloudflare
 make production-down # para producción (el registro de aceptación se queda en su volumen)
@@ -213,8 +240,11 @@ GITHUB_REPO, GITHUB_BRANCH   #   GITHUB_TOKEN y GITHUB_REPO estén definidos)
   asiento de los clusters y cien evaluaciones recientes): datos
   sintéticos movidos a la fecha de hoy, nunca personas reales, que no pueden publicar ni actualizar. `make dev-real`
   añade **Real · login** para los logins de `DEV_REAL_LOGINS`, guardados en `web/preview/` (solo en local). Un cambio
-  en el código necesita `make dev-build` de nuevo; `make dev-live` muestra al momento los cambios de la app del navegador
-  (`ui.json` y el servidor siguen necesitando reconstruir).
+  en el código necesita `make dev-build` de nuevo; `make dev-live` muestra al momento los cambios de la app del navegador,
+  también los de `ui.json` y `colors.json` (el código del servidor sigue necesitando reconstruir). Dev tiene además el
+  editor del holy graph del responsable (`/app/holygraph/edit`): mover, cambiar de tamaño y de forma cada proyecto,
+  dibujar sus líneas y agrupar el Outer Core; guarda en el servidor y producción lo recibe con la importación de Server
+  stats, igual que un recuento del campus hecho en dev.
 - **Producción** (`make production`, https://ravazque.info) se sirve a través de un túnel
   de Cloudflare con nombre (Zero Trust → Networks → Tunnels: un conector Docker cuyo hostname público apunta a
   `http://caddy:8080`; su token va en `TUNNEL_TOKEN`). Dev y producción son proyectos de Compose distintos y pueden
@@ -248,7 +278,9 @@ aplicación las cuida:
 Una actualización completa son unas 120 peticiones y 40 segundos con tres apps, y cada actualización registra cuántas
 peticiones ha hecho. Cuando queda poco presupuesto en la hora, el trabajo espera a la siguiente. Los niveles de Madrid
 (tu posición en Perfil) cuestan unas 26 peticiones, como mucho una vez por hora, compartidas por todos, y solo en una
-hora en la que alguien abre una página.
+hora en la que alguien abre una página. El recuento semanal del campus son unas 1.800 peticiones del 42cursus, más 2
+para saber si cambió alguna Piscina y, solo entonces, unas 2.700 de la Piscina (hora y media o dos en total), a una petición por segundo por app, dejando 400 por hora para quien
+inicia sesión (60 mientras el sitio está cerrado por él).
 
 ## La página pública y su workflow
 
@@ -310,8 +342,11 @@ Los datos de prueba están anonimizados o son sintéticos.
 
 ## Personalizar
 
-- `server/core/data/ui.json`: colores de los dos temas, tipografía, espaciado, puntos de corte y disposición de los
-  paneles, servido como `/ui.css`.
+- `server/core/data/colors.json`: los colores del sitio, claro y oscuro. Primero los que se cambian de uno en uno por un
+  nombre claro (piscine, common-core, outer-core, alumni, frozen, black-hole, ok, outstanding, fail), cada uno diciendo a
+  quién o qué marca, y después el resto; VS Code muestra un selector de color junto a cada valor (`colors.schema.json`).
+- `server/core/data/ui.json`: los colores neutros, tipografía, espaciado, puntos de corte y disposición de los paneles;
+  con `colors.json`, servido como `/ui.css`.
 - `web/src/styles/spacing.css`: cada distancia y línea de cada página, sección a sección, para ajustar a mano (los
   valores negativos acercan más).
 - `web/src/styles/zoom.css`: el panel que abre una gráfica en grande (ancho, alto, posición, márgenes, alto de la
@@ -320,6 +355,8 @@ Los datos de prueba están anonimizados o son sintéticos.
 - `server/core/data/tracks.json`: a qué milestone del Common Core pertenece cada proyecto, para los cursos de C y de
   Python. Cualquier otro proyecto del 42cursus cuenta como Outer Core.
 - `server/core/data/skills.json` (orden de las skills) y `rncp.json` (los proyectos detrás de cada etiqueta RNCP).
+- `server/core/data/holygraph.json`: la estructura del holy graph, que construye `tools/holygraph/build.py` (`make
+  holygraph`); el editor del responsable en dev dibuja encima.
 
 ## Licencia
 

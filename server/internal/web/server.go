@@ -49,9 +49,13 @@ type Server struct {
 	publishMu sync.Mutex
 	devLogins map[string]devLogin
 	devOrder  []string
-	devFiles  map[int]string // the saved reports of make dev, by user id: never extracted from 42
-	devLive   sync.Map       // ...unless the owner turned theirs live (POST /dev/live): user id → true, until a restart
-	madridOn  atomic.Bool    // a read of Madrid's levels is under way
+	devFiles  map[int]string            // the saved reports of make dev, by user id: never extracted from 42
+	devLive   sync.Map                  // ...unless the owner turned theirs live (POST /dev/live): user id → true, until a restart
+	madridOn  atomic.Bool               // a read of Madrid's levels is under way
+	campus    atomic.Pointer[[]byte]    // the campus statistics' last count (campus.go)
+	campusOn  atomic.Bool               // a count is under way
+	holy      atomic.Pointer[[]byte]    // the owner's holy graph from the editor (holygraph.go); nil: the one built in
+	maint     atomic.Pointer[time.Time] // while Monday's count runs: when it should end (the site is closed but to the owner)
 	stop      chan struct{}
 }
 
@@ -92,6 +96,8 @@ func New(s app.Settings, static fs.FS, o Options) *Server {
 		slog.Error("consent log", "error", err.Error())
 	}
 	srv.Visitors = app.LoadVisitors(s.VisitorsLog, s.VisitorsSeed, o.Now())
+	srv.loadCampus()
+	srv.loadHolyGraph()
 	if s.DevProfiles != "" {
 		srv.seedDev()
 	}
@@ -118,6 +124,7 @@ func (s *Server) sweep() {
 			return
 		case <-t.C:
 			s.M.Sweep()
+			s.Store.SweepReports()
 		}
 	}
 }
@@ -149,7 +156,8 @@ func (s *Server) extractJob(ctx context.Context, uid int) error {
 		}
 		slog.Info("extraction", "requests", n, "seconds", int(took.Seconds())) // never the user: counts only
 		s.Stats.Extraction(n, took, true, false)
-		return json.Marshal(report)
+		raw, err := json.Marshal(report)
+		return s.stored(raw), err
 	})
 }
 
@@ -186,9 +194,14 @@ func (s *Server) routes() {
 	m.HandleFunc("POST /api/me/consent", s.user(s.csrf(s.consent)))
 	m.HandleFunc("POST /api/me/publish", s.user(s.csrf(s.publish)))
 	m.HandleFunc("GET /api/me/view", s.user(s.view))
-	m.HandleFunc("GET /api/me/report.json", s.user(s.reportCopy))
-	m.HandleFunc("POST /api/me/report", s.user(s.csrf(s.reportBack)))
 	m.HandleFunc("GET /api/stats", s.user(s.stats))
+	m.HandleFunc("GET /api/campus-stats", s.user(s.campusStats))
+	m.HandleFunc("POST /api/campus-stats/run", s.user(s.csrf(s.campusRun)))
+	m.HandleFunc("GET /api/holygraph", s.user(s.holyGraph))
+	m.HandleFunc("PUT /api/holygraph", s.user(s.csrf(s.holyGraphSave)))
+	m.HandleFunc("DELETE /api/holygraph", s.user(s.csrf(s.holyGraphReset)))
+	m.HandleFunc("GET /api/campus-stats/export", s.user(s.campusExport))
+	m.HandleFunc("POST /api/campus-stats/import", s.user(s.csrf(s.campusImport)))
 	m.HandleFunc("GET /avatar/me", s.user(s.avatar))
 	m.HandleFunc("GET /api/me/coalition-image", s.user(s.coalitionImage))
 	m.HandleFunc("GET /api/me/coalitions", s.user(s.coalitions))
@@ -250,6 +263,10 @@ func (s *Server) user(h func(http.ResponseWriter, *http.Request, signedIn)) http
 		u, ok := s.Sessions.Get(c.Value)
 		if !ok {
 			writeJSON(w, 401, errBody("session"))
+			return
+		}
+		if until := s.maint.Load(); until != nil && !s.isOwner(u) {
+			writeJSON(w, 503, map[string]string{"error": "maintenance", "until": until.UTC().Format(time.RFC3339)})
 			return
 		}
 		h(w, r, signedIn{c.Value, u})

@@ -32,7 +32,9 @@ function card(pg: Page): string {
     .filter(Boolean)) as [string, string][];
   // each tag framed in its kind's colour (owner's pick 2026-11-22: the coalition its own, milestone and grade the accent,
   // track slate, groups violet), on one line: the ones that don't fit open from "+N" at its end (Dashboard fitTags)
-  const tag = ([t, k]: [string, string]) => `<span class="badge tag k-${k}"${k === "coal" ? ` style="--tag:${safeColor(coal?.color)}"` : ""}>${esc(t)}</span>`;
+  // grade and milestone in their state's colour (owner, 2026-11-25), as in Connections: Common Core, Outer Core, Alumni, Piscine
+  const state = rank === "alumni" ? "alumni" : rank === "outer-core" ? "outer" : rank?.startsWith("rank-") ? "cc" : "piscine";
+  const tag = ([t, k]: [string, string]) => `<span class="badge tag k-${k}${k === "grade" || k === "milestone" ? ` g-${state}` : ""}"${k === "coal" ? ` style="--tag:${safeColor(coal?.color)}"` : ""}>${esc(t)}</span>`;
   const tags = kinds.map(tag).join("") + `<details class="pop tag-more" data-float hidden><summary class="badge tag">+</summary>`
     + `<div class="pop-panel"><span class="tag-all">${kinds.map(tag).join("")}</span></div></details>`;
   // the four figures, drawn like the three modules under the card (larger: spacing.css, --card-module-*) and counting up
@@ -60,7 +62,8 @@ function card(pg: Page): string {
   return `<section id="profile" class="pf" aria-label="${esc(f.t("profile.title"))}">`
     + `<div class="pf-head"><div class="avatar-lg pf-photo"><span aria-hidden="true">${esc(initials(P.name || P.login))}</span>${P.image ? `<img src="${esc(P.image)}" alt="">` : ""}</div>`
     + `<div class="pf-id"><p class="pf-name">${esc(P.name || P.login)}${status ? `<span class="pf-status">${esc(f.t(`profile.${status}`))}</span>` : ""}</p>`
-    + `<p class="pf-sub pf-who"><span>${who}</span></p><div class="pf-sub pf-tags">${tags}</div></div></div>`
+    + `<p class="pf-sub pf-who"><span>${who}</span></p><div class="pf-sub pf-tags">${tags}</div>`
+    + `<p class="pf-actions"><a class="btn secondary" href="${esc(pg.url("holygraph"))}">${esc(f.t("holy.open"))}</a></p></div></div>`
     + figures
     + "</section>";
 }
@@ -188,7 +191,7 @@ const BUILD: Record<string, (pg: Page) => Section[]> = { home: activity, project
 
 /** The added sections on a two-column grid, each built by its own page (once per page), in the student's order, size
  * and column. */
-export function widgets(pg: Page, chosen: { page: string; id: string; wide?: boolean; side?: string; folded?: boolean }[]): Section[] {
+export function widgets(pg: Page, chosen: { page: string; id: string; wide?: boolean; side?: string; folded?: boolean }[], stats: any = null): Section[] {
   const f = pg.f, built = new Map<string, Section[]>(), cells: string[] = [];
   const title = (page: string, id: string) => {
     const w = WIDGETS.find(([p, i]) => p === page && i === id);
@@ -196,7 +199,7 @@ export function widgets(pg: Page, chosen: { page: string; id: string; wide?: boo
   };
   chosen.forEach(({ page, id, wide, side, folded }, i) => {
     if (!BUILD[page] || !WIDGETS.some(([p, k]) => p === page && k === id)) return;
-    if (!built.has(page)) built.set(page, BUILD[page](pg));
+    if (!built.has(page)) built.set(page, page === "projects" ? projects(pg, stats) : BUILD[page](pg)); // stats: your exams beside 42 Madrid's
     const s = built.get(page)!.find((x) => x.id === id);
     const html = s ? s.html : `<section id="${esc(id)}"><h2>${esc(title(page, id))}</h2><p class="note">${esc(f.t("widgets.none"))}</p></section>`;
     const big = wide ?? true, fold = WIDGETS.some(([p, k, , can]) => p === page && k === id && can);
@@ -214,13 +217,13 @@ export function widgetPicker(pg: Page, chosen: { page: string; id: string }[]): 
   return left.length ? [{ id: "widgets", nav: f.t("widgets.title"), html: `<section id="widgets" class="widget-add"><div class="add-row">${pick}</div></section>` }] : [];
 }
 
-export function profile(pg: Page, chosen: { page: string; id: string }[] = []): Section[] {
+export function profile(pg: Page, chosen: { page: string; id: string }[] = [], stats: any = null): Section[] {
   const f = pg.f;
   return [
     { id: "profile", nav: f.t("profile.title"), html: card(pg) },
     { id: "home-kpis", nav: f.t("nav.home_kpis"), html: modules(pg) },
     ...((html) => (html ? [{ id: "path", nav: "", html: `<section id="path" class="pf-path" aria-label="${esc(f.t("profile.title"))}">${html}</section>` }] : []))(path(pg)),
-    ...widgets(pg, chosen),
+    ...widgets(pg, chosen, stats),
     ...widgetPicker(pg, chosen), // always last
   ];
 }

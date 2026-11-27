@@ -8,6 +8,7 @@ export type User = { login: string; name: string; has_image: boolean; coalition_
 export type SessionInfo = {
   user: User | null; contact_email: string; issues_url: string; controller: string; consent_version: number; consent_updated: string;
   dev: boolean; dev_logins: { label: string; href: string }[] | null;
+  maintenance?: { until: string } | null; // Monday's campus count: the site is closed to all but the owner until then
 };
 export type Status = {
   state: string; progress: number; message?: string; last?: string; next_refresh_in: number; has_report: boolean; consent: boolean; published?: string; frozen?: boolean;
@@ -67,6 +68,7 @@ export async function api<T = any>(path: string, init: RequestInit = {}): Promis
   }
   let body: any = text;
   try { body = text ? JSON.parse(text) : null; } catch { /* not JSON */ }
+  if (r.status === 503 && body?.error === "maintenance" && state.session) state.session.maintenance = { until: body.until }; // the app shows the notice
   if (!r.ok) throw new HttpError(r.status, body);
   return body as T;
 }

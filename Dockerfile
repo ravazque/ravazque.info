@@ -12,13 +12,15 @@ WORKDIR /src/server
 COPY server/go.mod ./
 COPY server .
 COPY --from=web /src/server/internal/web/dist internal/web/dist
-RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/ravazque-info ./cmd/ravazque-info && mkdir -p /out/data
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/ravazque-info ./cmd/ravazque-info && mkdir -p /out/data /out/reports
 
 FROM gcr.io/distroless/static-debian12@sha256:d75cdd72874d4790092fcb1b058493ecf6bb5bf2b2b897045b00ff01d91843f2
 COPY --from=server /out/ravazque-info /ravazque-info
 # the consent log's volume: uid 1000, as v1's image, so production's existing volume stays writable
 COPY --from=server --chown=1000:1000 /out/data /data
+# the reports' volume (encrypted analysed reports, a week from the last use): a new volume takes this owner
+COPY --from=server --chown=1000:1000 /out/reports /reports
 USER 1000:1000
 EXPOSE 8000
-# one process: its memory is the only store (sessions, report copies, limits)
+# one process: sessions and limits in its memory, reports also on the reports volume
 ENTRYPOINT ["/ravazque-info"]
