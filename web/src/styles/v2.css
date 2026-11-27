@@ -889,3 +889,8 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
 /* passed with 3 Outstandings told apart without colour too: a dashed slice */
 :where(body:not(.site)) svg path.dn-out { stroke-dasharray: 5 2.5; }
 
+/* user test, round 3: donut slices told apart without colour, in the slice and in the key */
+:where(body:not(.site)) svg path.dn-gone { stroke-dasharray: 1.6 1.6; }
+:where(body:not(.site)) .sb-key i.dn-out { background: repeating-linear-gradient(90deg, var(--ok-deep) 0 4px, transparent 4px 6px); outline: 1px solid var(--ok-deep); outline-offset: -1px; }
+:where(body:not(.site)) .sb-key i.dn-gone { background: radial-gradient(circle, var(--why-none) 45%, transparent 50%) 0 0 / 4px 4px; outline: 1px solid var(--why-none); outline-offset: -1px; }
+

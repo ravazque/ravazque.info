@@ -727,7 +727,7 @@
  "profile.piscine": "Piscine",
  "profile.kickoff": "Main cursus since",
  "site.back": "← Back",
- "home.k_hours": "Logged time",
+ "home.k_hours": "Time at campus",
  "home.hours_avg": "{time} a day on average",
  "profile.alumni": "You finish 42 around (est.)",
  "profile.paused": "Paused [Work Exp.]",
@@ -1246,8 +1246,8 @@
  "holy.o.unmarked": "closed without a mark",
  "holy.t.how_passed": "How they passed",
  "holy.dn_pass": "Passed",
- "holy.dn_out": "Passed with 3 Outstandings",
- "holy.dn_gone": "Left unfinished or closed without a mark",
+ "holy.dn_out": "Passed with 3 Outstandings (dashed)",
+ "holy.dn_gone": "Left unfinished or closed without a mark (dotted)",
  "holy.open": "Your holy graph",
  "pages.madrid": "42 Madrid",
  "pages.exams": "Exams",
@@ -1444,5 +1444,8 @@
  "s3c.bubbles_title": "Who have you evaluated with most?",
  "s3c.bubbles_how": "One bubble is one person; the bigger, the more evaluations between you.",
  "s3c.circle_title": "Who evaluates whom around you?",
- "s3c.circle_how": "You in the middle. A line joins people who evaluated each other; the arrow points to who was evaluated."
+ "s3c.circle_how": "You in the middle. A line joins people who evaluated each other; the arrow points to who was evaluated.",
+ "s4.yours": "your track",
+ "s4.level_axis": "Level · each column: how many in your promo have it",
+ "s4.cohorts_gap": "This total is a little below the one above: figures of fewer than 5 people are not added up, so no one can be singled out."
 }

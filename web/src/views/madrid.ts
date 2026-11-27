@@ -5,7 +5,7 @@ import { esc, tipAttr } from "../lib/h";
 import { vbars, legend, waffle, S1, GOOD, BAD } from "../lib/charts";
 import { table, type Col } from "../lib/table";
 import { cohortsSection } from "./holygraph";
-import { type Page, type Section, cols, block, info, section } from "./page";
+import { type Page, type Section, cols, block, info, myTrack, section } from "./page";
 
 type Count = number | null | undefined;
 const num = (v: Count) => v ?? 0;
@@ -118,7 +118,7 @@ export function examsPage(pg: Page, S: any): Section[] {
     const showFirst = first;
     first = false;
     out.push({ id: `exams-${track}`, nav: f.t(`campus.exams_${track}`), html: section(`exams-${track}`, "",
-      (lede ? `<p class="finding">${lede}</p>` : "") + (showFirst ? `<p class="note">${esc(f.t("md2.under5"))}</p>` : "") + `<div class="table-wrap">${tbl}</div>` + (hard ? triesWaffle(hard) : ""), { head: head(f.t(`campus.exams_${track}`), f.t("campus.exams_note")) }) });
+      (lede ? `<p class="finding">${lede}</p>` : "") + (showFirst ? `<p class="note">${esc(f.t("md2.under5"))}</p>` : "") + `<div class="table-wrap">${tbl}</div>` + (hard ? triesWaffle(hard) : ""), { head: head(f.t(`campus.exams_${track}`) + (track === (myTrack(pg.D.extras) || "c") ? ` · ${f.t("s4.yours")}` : ""), f.t("campus.exams_note")) }) }); // which track is yours (user test)
   }
   const pis: any[] = (S.piscine?.projects || []).filter((p: any) => /^c-piscine-(?:exam-0\d|final-exam)$/.test(p.slug)).sort((a: any, b: any) => a.slug.localeCompare(b.slug));
   if (pis.length) {

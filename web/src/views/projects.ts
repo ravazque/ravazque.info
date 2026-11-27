@@ -336,7 +336,7 @@ function promoChart(pg: Page, promo: any) {
   // below you and above you in two tones, your level marked by a line and "You" (owner's pick 2026-11-20: your bar alone may be a sliver)
   const part = (keep: (lv: number) => boolean) => levels.map((lv) => (keep(lv) ? hist.get(lv) || 0 : 0));
   return vbars(f, levels.map(String), [[f.t("standing.below_you"), part((lv) => lv < mine), S2], [f.t("standing.your_level"), part((lv) => lv === mine), S1],
-    [f.t("standing.above_you"), part((lv) => lv > mine), ABOVE]], { label: f.t("standing.promo"), stacked: true, four: true, colTips: true, fmt: (v) => f.num(v), tips, mark: [levels.indexOf(mine), f.t("network.key_me")] });
+    [f.t("standing.above_you"), part((lv) => lv > mine), ABOVE]], { label: f.t("standing.promo"), xtitle: f.t("s4.level_axis"), stacked: true, four: true, colTips: true, fmt: (v) => f.num(v), tips, mark: [levels.indexOf(mine), f.t("network.key_me")] });
 }
 
 /** Technical domains: the skills 42's transcript gives your validated projects, or the RNCP domains, one at a time (RNCP

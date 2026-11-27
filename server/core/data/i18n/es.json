@@ -727,7 +727,7 @@
  "profile.piscine": "Piscina",
  "profile.kickoff": "En el cursus principal desde",
  "site.back": "← Volver",
- "home.k_hours": "Tiempo logueado",
+ "home.k_hours": "Tiempo en el campus",
  "home.hours_avg": "{time} de media al día",
  "profile.alumni": "Terminas 42 hacia el (est.)",
  "profile.paused": "En pausa [Work Exp.]",
@@ -1246,8 +1246,8 @@
  "holy.o.unmarked": "cerrados sin nota",
  "holy.t.how_passed": "Cómo aprobaron",
  "holy.dn_pass": "Aprobado",
- "holy.dn_out": "Aprobado con 3 sobresalientes",
- "holy.dn_gone": "Sin acabar o cerrado sin nota",
+ "holy.dn_out": "Aprobado con 3 sobresalientes (a trazos)",
+ "holy.dn_gone": "Sin acabar o cerrado sin nota (punteado)",
  "holy.open": "Tu holy graph",
  "pages.madrid": "42 Madrid",
  "pages.exams": "Exámenes",
@@ -1444,5 +1444,8 @@
  "s3c.bubbles_title": "¿Con quién has evaluado más?",
  "s3c.bubbles_how": "Una burbuja es una persona; cuanto más grande, más evaluaciones entre vosotros.",
  "s3c.circle_title": "¿Quién evalúa a quién a tu alrededor?",
- "s3c.circle_how": "Tú en el centro. Una línea une a quienes se evaluaron; la flecha apunta a quien fue evaluado."
+ "s3c.circle_how": "Tú en el centro. Una línea une a quienes se evaluaron; la flecha apunta a quien fue evaluado.",
+ "s4.yours": "tu camino",
+ "s4.level_axis": "Nivel · cada columna: cuántos de tu promo lo tienen",
+ "s4.cohorts_gap": "Este total es algo menor que el de arriba: las cifras de menos de 5 personas no se suman, para que nadie pueda ser identificado."
 }

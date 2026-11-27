@@ -376,8 +376,9 @@ export function cohortsSection(pg: Page, S: any): Section | null {
     { label: f.t("holy.state.blackholed"), keys: [{ key: "st-blackholed", label: f.t("holy.state.blackholed") }] },
     { lead: f.t("holy.h_still"), count: f.t("holy.h_people") }, f.t("holy.cohorts"), f.num);
   const everyone = Object.values(allYears).reduce((a, v) => a + v, 0);
+  const gap = everyone ? `<p class="note">${esc(f.t("s4.cohorts_gap"))}</p>` : ""; // why this total is below the one above (user test)
   const finding = everyone ? `<p class="finding">${f.t("md2.cohorts_finding", { share: `<b>${Math.round((100 * (allYears.blackholed || 0)) / everyone)}%</b>`, n: esc(f.num(everyone)) })}</p>` : "";
-  return { id: "cohorts", nav: f.t("holy.cohorts"), html: section("cohorts", f.t("holy.cohorts"), `<h3 class="wf-title">${esc(f.t("s3m.cohorts_title"))}</h3>${finding}<p class="note">${esc(f.t("s3m.cohorts_sides"))}</p>${yearBars}`) };
+  return { id: "cohorts", nav: f.t("holy.cohorts"), html: section("cohorts", f.t("holy.cohorts"), `<h3 class="wf-title">${esc(f.t("s3m.cohorts_title"))}</h3>${finding}${gap}<p class="note">${esc(f.t("s3m.cohorts_sides"))}</p>${yearBars}`) };
 }
 
 /** The Piscine's figures: everyone who did it in Madrid, admitted or not: who got in per Piscine, and every day, rush and
