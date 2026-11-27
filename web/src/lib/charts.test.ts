@@ -158,3 +158,29 @@ test("a colour means one thing everywhere: green is OK or passed (deep green Out
   expect([GOOD, OUTSTANDING]).toEqual(["var(--ok)", "var(--ok-deep)"]);
   expect(NEUTRAL).not.toMatch(/--ok/);
 });
+
+test("a waffle draws shares of a whole as 100 squares that add up, a key naming each part with its count", async () => {
+  const { waffle } = await import("./charts");
+  const html = waffle([{ label: "first time", value: 320, color: "var(--ok)" }, { label: "second", value: 206, color: "red" }, { label: "later", value: 483, color: "blue" }], { label: "Of every 100 who pass" });
+  expect((html.match(/<i class="wf-sq"/g) || []).length).toBe(100);
+  expect((html.match(/class="wf-sq" style="background:var\(--ok\)"/g) || []).length).toBe(32); // 320 of 1,009
+  expect(html).toContain("first time</span><b>32</b>");
+  expect(html).toContain('aria-label="Of every 100 who pass: first time 32, second 20, later 48"');
+  expect(waffle([], { label: "x" })).toBe("");
+});
+
+test("a meter fills up to its value with each mark named under it", async () => {
+  const { meter } = await import("./charts");
+  const html = meter(14.8, 24, { label: "Hours this week", marks: [{ at: 15, label: "bonus" }], ends: ["0 h", "24 h"] });
+  expect(html).toContain('style="width:61.67%"');
+  expect(html).toContain('<u style="left:62.50%"');
+  expect(html).toContain(">bonus</span>");
+});
+
+test("standing puts you on the line among everyone, the share behind you said in words", async () => {
+  const { standing } = await import("./charts");
+  const html = standing([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 8, { label: "Level in your promo", meLabel: "You · 8", low: "lowest", high: "highest" });
+  expect((html.match(/class="st-dot"/g) || []).length).toBe(10);
+  expect(html).toContain('class="st-me" style="left:77.78%"');
+  expect(html).toContain("You · 8");
+});

@@ -259,3 +259,39 @@ export function gantt(f: Fmt, groups: [string, GanttItem[]][], o: { label: strin
   return `<div class="gantt-scroll cal-scroll"><figure class="gantt" role="img" aria-label="${esc(o.label)}" style="--rows:${rows};--gt-min:${track + 140}px">${body}`
     + `<div class="gt-axis" aria-hidden="true"><span></span><span class="ch-months">${monthTicks(f, lo, hi, end)}</span></div></figure></div>`;
 }
+
+// ---- friendlier forms (2026-11-27): shares as 100 squares, a meter towards a goal, you among everyone
+
+export type Part = { label: string; value: number; color: string };
+
+/** Shares of a whole as 100 squares, one per cent, in the parts' order, with a key naming each part and its share:
+ * "of every 100…" reads for anyone. The shares are rounded so the squares add up to 100 (largest remainder). */
+export function waffle(parts: Part[], o: { label: string }): string {
+  const total = parts.reduce((s, p) => s + Math.max(0, p.value), 0);
+  if (!total) return "";
+  const raw = parts.map((p) => (100 * Math.max(0, p.value)) / total), n = raw.map(Math.floor);
+  raw.map((r, i) => [r - n[i], i]).sort((a, b) => b[0] - a[0]).slice(0, 100 - n.reduce((s, v) => s + v, 0)).forEach(([, i]) => n[i]++);
+  const squares = parts.flatMap((p, i) => Array.from({ length: n[i] }, () => `<i class="wf-sq" style="background:${p.color}"></i>`)).join("");
+  const key = parts.map((p, i) => `<li><i style="background:${p.color}"></i><span>${esc(p.label)}</span><b>${n[i]}</b></li>`).join("");
+  const said = `${o.label}: ${parts.map((p, i) => `${p.label} ${n[i]}`).join(", ")}`;
+  return `<figure class="waffle"><div class="wf-grid" role="img" aria-label="${esc(said)}">${squares}</div><ul class="wf-key">${key}</ul></figure>`;
+}
+
+/** A quantity on its way to a goal: a thick bar to `value` of `max`, a tick at each mark, each mark named under it. */
+export function meter(value: number, max: number, o: { label: string; color?: string; marks?: { at: number; label: string }[]; ends?: [string, string] }): string {
+  const at = (v: number) => pct(Math.max(0, Math.min(v, max)), max || 1);
+  const marks = (o.marks || []).map((m) => `<u style="left:${at(m.at)}"></u>`).join("");
+  const names = (o.marks || []).map((m) => `<span style="left:${at(m.at)}">${esc(m.label)}</span>`).join("");
+  return `<figure class="meter" role="img" aria-label="${esc(o.label)}"><div class="mt-bar"><i style="width:${at(value)}${o.color ? `;background:${o.color}` : ""}"></i>${marks}</div>`
+    + `<div class="mt-names">${o.ends ? `<span class="mt-end">${esc(o.ends[0])}</span>` : ""}${names}${o.ends ? `<span class="mt-end last">${esc(o.ends[1])}</span>` : ""}</div></figure>`;
+}
+
+/** Where you stand among others: everyone as a faint dot on one line (three rows so they don't hide each other), you as
+ * a tick with your label over it, the line's two ends named. */
+export function standing(values: number[], me: number, o: { label: string; meLabel: string; low: string; high: string }): string {
+  if (!values.length) return "";
+  const lo = Math.min(...values, me), hi = Math.max(...values, me), at = (v: number) => pct(v - lo, hi - lo || 1);
+  const dots = values.map((v, i) => `<i class="st-dot" style="left:${at(v)};top:${8 + (i % 3) * 7}px"></i>`).join("");
+  return `<figure class="standing" role="img" aria-label="${esc(`${o.label}: ${o.meLabel}`)}"><div class="st-line">${dots}`
+    + `<span class="st-me" style="left:${at(me)}"><b>${esc(o.meLabel)}</b></span></div><div class="st-ends"><span>${esc(o.low)}</span><span>${esc(o.high)}</span></div></figure>`;
+}

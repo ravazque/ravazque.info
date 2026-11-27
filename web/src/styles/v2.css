@@ -840,3 +840,33 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
 :where(body:not(.site)) .campus-tabs a:hover { color: var(--ink); }
 :where(body:not(.site)) .campus-tabs a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--ink); }
 @media (max-width: 599.98px) { :where(body:not(.site)) .campus-tabs { gap: 22px; padding-top: 14px; } :where(body:not(.site)) .campus-tabs a { font-size: 18px; padding-bottom: 10px; } }
+
+/* ---------- friendlier forms (2026-11-27) ---------- */
+/* a waffle: 100 squares, one per cent, its key beside it (under it on a phone) */
+:where(body:not(.site)) .waffle { display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr); gap: 16px 28px; align-items: start; margin: 12px 0 0; }
+:where(body:not(.site)) .wf-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; }
+:where(body:not(.site)) .wf-sq { aspect-ratio: 1; display: block; }
+:where(body:not(.site)) .wf-key { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+:where(body:not(.site)) .wf-key li { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
+:where(body:not(.site)) .wf-key i { width: 14px; height: 14px; }
+:where(body:not(.site)) .wf-key b { font: 800 20px/1 var(--type-font-display); font-variant-numeric: tabular-nums; }
+@media (max-width: 599.98px) { :where(body:not(.site)) .waffle { grid-template-columns: minmax(0, 1fr); } :where(body:not(.site)) .wf-grid { max-width: 280px; } }
+/* a meter: a thick bar towards a goal, its marks named under it */
+:where(body:not(.site)) .meter { margin: 14px 0 0; }
+:where(body:not(.site)) .mt-bar { position: relative; height: 26px; background: var(--sunken); }
+:where(body:not(.site)) .mt-bar i { position: absolute; inset: 0 auto 0 0; background: var(--accent-data); }
+:where(body:not(.site)) .mt-bar u { position: absolute; top: -6px; bottom: -6px; width: 2px; margin-left: -1px; background: var(--ink); }
+:where(body:not(.site)) .mt-names { position: relative; height: 22px; margin-top: 6px; font-size: 13px; color: var(--muted); }
+:where(body:not(.site)) .mt-names span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+:where(body:not(.site)) .mt-names .mt-end { left: 0; transform: none; }
+:where(body:not(.site)) .mt-names .mt-end.last { left: auto; right: 0; }
+/* standing: everyone as faint dots on a line, you as a tick with your label */
+:where(body:not(.site)) .standing { margin: 30px 0 0; }
+:where(body:not(.site)) .st-line { position: relative; height: 36px; border-bottom: 2px solid var(--rule); }
+:where(body:not(.site)) .st-dot { position: absolute; width: 8px; height: 8px; margin-left: -4px; background: var(--muted); opacity: .35; }
+:where(body:not(.site)) .st-me { position: absolute; bottom: -8px; top: -4px; width: 4px; margin-left: -2px; background: var(--accent-data); }
+:where(body:not(.site)) .st-me b { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 4px; font-size: 14px; white-space: nowrap; }
+:where(body:not(.site)) .st-ends { display: flex; justify-content: space-between; margin-top: 8px; font-size: 13px; color: var(--muted); }
+/* a section's finding, said first in plain words */
+:where(body:not(.site)) .finding { font-size: clamp(18px, 2vw, 21px); line-height: 1.4; max-width: 62ch; margin: 14px 0 4px; color: var(--ink); }
+:where(body:not(.site)) .finding b { font-weight: 800; }
