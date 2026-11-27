@@ -142,19 +142,18 @@ export function projects(pg: Page, stats: any = null): Section[] {
   const lvl: [string, string][] = [];
   if (pc) {
     if (pc.months_since_kickoff !== null && pc.months_since_kickoff !== undefined) lvl.push([f.t("pr2.since"), esc(f.plural(pc.months_since_kickoff, "pace.months"))]);
-    lvl.push([f.t("pr2.xp_month"), f.num(pc.xp_per_month)]);
-  }
+    }
   // transcenders (owner, 2026-11-23): how long the Common Core took (42cursus kickoff → the Rank 06 quest) and how far the
   // alumni estimate is (Profile's path has the dates); not in the Piscine's view
   const q6 = (X.quests || []).find((q: any) => /rank 06/i.test(q.name || "") && q.validated);
   const kick = (pg.v.all_cursus || X.cursus || []).find((c: any) => c.name === "42cursus")?.begin;
   if (q6 && pg.period !== "piscine") {
     const day = (s: string) => Date.parse(String(s).slice(0, 10)), month = 30.44 * 864e5;
-    if (kick) lvl.push([f.t("pr2.transcended"), esc(f.plural(Math.round((day(q6.validated) - day(kick)) / month), "pace.months"))]);
+    if (kick) lvl.push([f.t("s3p.transcended"), esc(f.plural(Math.round((day(q6.validated) - day(kick)) / month), "pace.months"))]);
     const due = pg.v.derive?.alumni_due;
     if (due && !D.profile?.alumnized) {
       const left = due === "paused" ? NaN : day(due) - day(pg.asOf || new Date().toISOString());
-      lvl.push([f.t("pr2.alumni_in"), esc(due === "paused" ? f.t("profile.paused") : left <= 0 ? f.t("pace.alumni_due")
+      lvl.push([f.t("s3p.alumni_in"), esc(due === "paused" ? f.t("profile.paused") : left <= 0 ? f.t("pace.alumni_due")
         : left < 31 * 864e5 ? f.plural(Math.round(left / 864e5), "pace.days_left") : `≈ ${f.plural(Math.round(left / month), "pace.months")}`)]);
     }
   }
@@ -265,8 +264,8 @@ export function projects(pg: Page, stats: any = null): Section[] {
   const retries = D.projects.flatMap((p: any) => p.attempts.slice(1).map((a: any) => a.start_ms)).sort((a: number, b: number) => a - b).map((x: number, i: number) => ({ x, y: i + 1 }));
   const validated = D.projects.map((p: any) => p.attempts.find((a: any) => a.validated && a.end_ms)?.end_ms).filter(Boolean)
     .sort((a: number, b: number) => a - b).map((x: number, i: number) => ({ x, y: i + 1 }));
-  const cumulative = [block("cum-retries", lines(f, [[f.t("col.retries"), retries, S1]], { label: f.t("pr2.retries_title"), emptyText: f.t("empty.period") }), f.t("pr2.retries_title"), f.t("pr2.retries_note")),
-    block("cum-validated", lines(f, [[f.t("outcome.validated"), validated, GOOD]], { label: f.t("pr2.validated_title"), emptyText: f.t("empty.period") }), f.t("pr2.validated_title"), f.t("pr2.validated_note"))];
+  const cumulative = [block("cum-retries", lines(f, [[f.t("col.retries"), retries, S1]], { label: f.t("pr2.retries_title"), emptyText: f.t("empty.period") }), f.t("pr2.retries_title")),
+    block("cum-validated", lines(f, [[f.t("outcome.validated"), validated, GOOD]], { label: f.t("pr2.validated_title"), emptyText: f.t("empty.period") }), f.t("pr2.validated_title"))];
   const key = legend([[f.t("outcome.validated"), GOOD], [f.t("outcome.failed"), BAD], [f.t("outcome.in_progress"), NEUTRAL]]);
   // each project's attempts on one row with its name, packed so the history fits the screen (owner, 2026-11-22); shown in
   // dev only until the owner says (2026-11-23): ravazque.info has the two cumulative charts alone
@@ -287,7 +286,7 @@ export function projects(pg: Page, stats: any = null): Section[] {
       return [lane, lane === laneName("work") && items.length > 1 ? [{ name: items.map((x) => x.name).sort((x, y) => x.length - y.length)[0],
         tip: items.map((x) => x.tip).join("\n---\n"), spans: items.flatMap((x) => x.spans).sort((x, y) => x[0] - y[0]) }] : items] as [string, GanttItem[]];
     });
-    blocks.push(`<div class="block" data-panel="timeline"><div class="block-head"><h3>${esc(f.t("projects.timeline_title"))}</h3>${key}</div>`
+    blocks.push(`<div class="block" data-panel="timeline"><div class="block-head"><h3>${esc(f.t("s3p.timeline_title"))}</h3>${key}</div>`
       + `${gantt(f, groups, { label: f.t("projects.timeline_aria"), emptyText: f.t("empty.period") })}</div>`);
   }
   out.push({ id: "timeline", nav: f.t(pg.dev ? "nav.projects" : "projects.title"), html: section("timeline", f.t("projects.title"), cols(...blocks, ...cumulative)) });

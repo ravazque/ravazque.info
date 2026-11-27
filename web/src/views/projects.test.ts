@@ -69,7 +69,7 @@ const cardLines = (pg: Page) => [...profile(pg)[0].html.matchAll(/<p class="line
 test("the four figures of the card each carry a line: your place in Madrid, in your kickoff, the wallet, the points", () => {
   const f = new Fmt("en");
   expect(cardLines(cardPage({ madrid: { size: 913, rank: 30, top: 3.3 } }))).toEqual([f.t("profile.madrid_top", { pct: "3.3" }),
-    f.t("profile.promo_line", { pct: "99.5" }), f.t("profile.wallet_line"),
+    f.t("s3p.promo_line", { pct: "99.5" }),
     f.t("profile.points_line", { earned: "13", spent: "8" })]); // 5 = 12 - 8 + 1 left from the Piscine, counted as earned
   expect(profile(cardPage({ madrid: { size: 913, rank: 30, top: 3.3 } }))[0].html).toContain(f.t("profile.madrid_tip", { n: "913" }));
 });
@@ -232,15 +232,15 @@ test("Pace for a transcender: how long the Common Core took, and how far the alu
     all_projects: [] }) as any;
   const pace = (o = {}) => projects(new Page(f, view(o), "projects", {})).find((s) => s.id === "pace")!.html;
   const html = pace({ due: "2027-03-23" });
-  expect(html).toContain(f.t("pr2.transcended"));
+  expect(html).toContain(f.t("s3p.transcended"));
   expect(html).toContain("16 months"); // 2 Sep 2024 → 15 Jan 2026
-  expect(html).toContain(f.t("pr2.alumni_in"));
+  expect(html).toContain(f.t("s3p.alumni_in"));
   expect(html).toContain("≈ 4 months"); // 23 Nov 2026 → 23 Mar 2027
   expect(pace({ due: "2026-12-10" })).toContain("17 days left");
   expect(pace({ due: "paused" })).toContain(f.t("profile.paused"));
-  expect(pace({ due: "2027-03-23", alumnized: "2026-11-01" })).not.toContain(f.t("pr2.alumni_in")); // alumni already
-  expect(pace({ quests: [] })).not.toContain(f.t("pr2.transcended")); // not a transcender
-  expect(pace({ period: "piscine" })).not.toContain(f.t("pr2.transcended"));
+  expect(pace({ due: "2027-03-23", alumnized: "2026-11-01" })).not.toContain(f.t("s3p.alumni_in")); // alumni already
+  expect(pace({ quests: [] })).not.toContain(f.t("s3p.transcended")); // not a transcender
+  expect(pace({ period: "piscine" })).not.toContain(f.t("s3p.transcended"));
 });
 
 test("the grade tag takes its state's colour, as in Connections: Transcender orange, Alumni blue, a Cadet green", () => {

@@ -23,7 +23,7 @@ function card(pg: Page): string {
   const has = (v: any) => v !== null && v !== undefined;
   const title = (D.extras.titles || []).find((t: any) => t.selected)?.name;
   // the campus its own part: when the line doesn't fit it goes first, then the type shrinks (Dashboard fitCard)
-  const who = esc(title || P.login) + (P.campus_current ? `<span class="pf-campus"> · ${esc(P.campus_current)}</span>` : "");
+  const who = [title ? esc(title) : "", P.campus_current ? `<span class="pf-campus">${esc(P.campus_current)}</span>` : ""].filter(Boolean).join(" · ");
   // beside your name, where you are: Student, OuterCore or Alumni; under it everything else as tags: the coalition (its
   // name alone), the milestone you are on, grade, track and your groups (Mentor…)
   const status = rank === "alumni" ? "st_alumni" : rank === "outer-core" ? "st_outer" : rank ? "st_student" : "";
@@ -51,18 +51,18 @@ function card(pg: Page): string {
   const points = !CP ? "" : esc(f.t("profile.points_line", { earned: f.num((CP.earned || 0) + Math.max(carried, 0)), spent: f.num((CP.spent || 0) + Math.max(-carried, 0)) }));
   const figures = `<div class="modules pf-modules">` + ([
     ["level", main && M ? `<span class="tab-t">${esc(f.t("home.k_level"))}${info(f.t("profile.madrid_tip", { n: f.num(M.size) }))}</span>` : esc(f.t("home.k_level")),
-      main?.grade || "42cursus", main ? num(f, main.level, 2) : "–", level],
-    ["promo", esc(f.t("standing.promo")), P.campus_current || "", promo ? `#${num(f, promo.rank)}<small> / ${esc(f.num(promo.size))}</small>` : "–",
-      !promo ? "" : promo.size > 1 && promo.tied === promo.size - 1 ? esc(f.t("profile.promo_tied")) // the whole kickoff at your level
-        : esc(f.t("profile.promo_line", { pct: f.num(aboveShare(promo, promo.percentile), 1) }))],
-    ["wallet", esc(f.t("head.wallet")), "", has(P.wallet) ? num(f, P.wallet, 0, " ₳") : "–", has(P.wallet) ? esc(f.t("profile.wallet_line")) : ""],
+      "", main ? num(f, main.level, 2) : "–", level],
+    ["promo", esc(f.t("s3p.promo")), "", promo ? `#${num(f, promo.rank)}<small> / ${esc(f.num(promo.size))}</small>` : "–",
+      !promo ? "" : promo.size > 1 && promo.tied === promo.size - 1 ? esc(f.t("s3p.promo_tied")) // the whole kickoff at your level
+        : esc(f.t("s3p.promo_line", { pct: f.num(aboveShare(promo, promo.percentile), 1) }))],
+    ["wallet", esc(f.t("head.wallet")), "", has(P.wallet) ? num(f, P.wallet, 0, " ₳") : "–", ""],
     ["points", esc(f.t("head.points")), "", has(P.correction_point) ? num(f, P.correction_point) : "–", points]] as [string, string, string, string, string][])
     .map(([k, t, aside, v, line]) => `<article class="module" data-module="${k}"><h3 class="tab">${t}${aside ? `<span>${esc(aside)}</span>` : ""}</h3><p class="figure">${v}</p>`
       + (line ? `<p class="line">${line}</p>` : "") + "</article>").join("") + "</div>";
   return `<section id="profile" class="pf" aria-label="${esc(f.t("profile.title"))}">`
     + `<div class="pf-head"><div class="avatar-lg pf-photo"><span aria-hidden="true">${esc(initials(P.name || P.login))}</span>${P.image ? `<img src="${esc(P.image)}" alt="">` : ""}</div>`
     + `<div class="pf-id"><p class="pf-name">${esc(P.name || P.login)}${status ? `<span class="pf-status">${esc(f.t(`profile.${status}`))}</span>` : ""}</p>`
-    + `<p class="pf-sub pf-who"><span>${who}</span></p><div class="pf-sub pf-tags">${tags}</div>`
+    + `${who ? `<p class="pf-sub pf-who"><span>${who}</span></p>` : ""}<div class="pf-sub pf-tags">${tags}</div>`
     + `<p class="pf-actions"><a class="btn secondary" href="${esc(pg.url("holygraph"))}">${esc(f.t("holy.open"))}</a></p></div></div>`
     + figures
     + "</section>";
@@ -120,11 +120,11 @@ function modules(pg: Page): string {
   const f = pg.f, D = pg.D, S = D.summary, L = D.logtime;
   const mods: { key: string; label: string; aside?: string; value: string; lines: string[] }[] = [
     { key: "projects", label: f.t("home.k_projects"), aside: f.t("home.validated"), value: num(f, S.validated, 0, ` / ${f.num(S.projects)}`),
-      lines: [f.t("pr2.m_projects"), f.t("home.attempts", { attempts: S.attempts, retries: S.retries })] },
+      lines: [f.t("home.attempts", { attempts: S.attempts, retries: S.retries })] },
     { key: "evals", label: f.t("home.k_evals"), aside: f.t("home.received_given"), value: num(f, S.received, 0, ` · ${f.num(S.given)}`),
-      lines: [f.t("pr2.m_evals"), f.t("home.out", { received: S.received_outstanding, given: S.given_outstanding })] },
+      lines: [f.t("home.out", { received: S.received_outstanding, given: S.given_outstanding })] },
     { key: "hours", label: f.t("home.k_hours"), aside: f.t(`period.${pg.period}`), value: hoursFigure(f, L.total_seconds / 3600),
-      lines: [f.t("pr2.m_hours"), f.t("home.days", { days: f.plural(L.days_present, "count.days") })] },
+      lines: [f.t("home.days", { days: f.plural(L.days_present, "count.days") })] },
   ];
   return `<section id="home-kpis" class="modules-wrap"><h2 class="visually-hidden">${esc(f.t("home.title"))}</h2><div class="modules">`
     + mods.map((x) => `<article class="module" data-module="${x.key}"><h3 class="tab">${esc(x.label)}${x.aside ? `<span>${esc(x.aside)}</span>` : ""}</h3>`
