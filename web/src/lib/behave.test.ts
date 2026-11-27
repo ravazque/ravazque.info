@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { dragScroll, settle } from "./behave";
+import { dragScroll, hintScroll, settle } from "./behave";
 
 test("dragging near an edge scrolls that way, faster the closer it gets; the band counts as the top", () => {
   expect(dragScroll(500, 72, 900)).toBe(0);
@@ -29,4 +29,26 @@ test("a page draws in only on its first visit, each part when it comes into view
   draw("web-campus", '<section id="c"><div class="module"></div></section>'); // another page: Evaluations counts as seen
   [a, b] = draw("web-evaluations", two);
   expect([a.dataset.anim, b.dataset.anim, a.classList.contains("in"), b.classList.contains("in")]).toEqual([undefined, undefined, true, true]);
+});
+
+// Without scroll-driven animations (Firefox; jsdom here), a scroll box's fades follow four numbers set on every scroll,
+// 0 to 1 over the first 16 px from each edge: nothing is measured again while scrolling.
+test("a scroll sets how far each edge is, for the fades, without measuring anything again", () => {
+  document.body.innerHTML = `<div class="table-wrap"><table><tbody><tr><td>x</td></tr></tbody></table></div>`;
+  const box = document.querySelector<HTMLElement>(".table-wrap")!, supports = CSS.supports;
+  CSS.supports = () => false; // as Firefox answers for animation-timeline (jsdom says yes to everything)
+  Object.defineProperties(box, { scrollWidth: { value: 1000 }, clientWidth: { value: 300 }, scrollHeight: { value: 300 }, clientHeight: { value: 300 } });
+  hintScroll(document);
+  CSS.supports = supports;
+  expect(box.style.getPropertyValue("--sl")).toBe("0.000");
+  let measured = 0;
+  const real = window.getComputedStyle;
+  window.getComputedStyle = ((el: Element) => { measured++; return real(el); }) as typeof window.getComputedStyle;
+  box.scrollLeft = 8;
+  box.dispatchEvent(new Event("scroll"));
+  window.getComputedStyle = real;
+  expect(box.style.getPropertyValue("--sl")).toBe("0.500");
+  expect(box.style.getPropertyValue("--sr")).toBe("1.000");
+  expect(box.classList.contains("more-l")).toBe(true);
+  expect(measured).toBe(0);
 });

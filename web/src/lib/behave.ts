@@ -228,20 +228,33 @@ export function install() {
 
 /** scroll boxes fade each edge where more waits (more-t, more for the bottom, more-l, more-r), and give the CSS their
  * scrollbars' thickness and a table's sticky head height so neither is faded (a sticky first column fades by itself) */
+// browsers without scroll-driven animations (Firefox): the scroll sets four numbers, 0 to 1 over the first 16 px from each
+// edge, that the fades read; nothing measured or laid out again while scrolling, so the fade keeps up with a quick swipe
+const near = (v: number) => Math.max(0, Math.min(1, v / 16)).toFixed(3);
+
 export function hintScroll(root: ParentNode = document) {
+  const timeline = typeof CSS !== "undefined" && !!CSS.supports?.("animation-timeline: scroll()");
   $$(".list, .table-wrap, .cal-scroll, .radar-bars", root).forEach((box) => {
+    const scrolled = () => {
+      const left = box.scrollLeft, right = box.scrollWidth - left - box.clientWidth, top = box.scrollTop, bottom = box.scrollHeight - top - box.clientHeight;
+      box.classList.toggle("more-t", top > 2);
+      box.classList.toggle("more", bottom > 2);
+      box.classList.toggle("more-r", right > 2);
+      box.classList.toggle("more-l", left > 2);
+      if (!timeline) {
+        const st = box.style;
+        st.setProperty("--sl", near(left)); st.setProperty("--sr", near(right)); st.setProperty("--st", near(top)); st.setProperty("--sb", near(bottom));
+      }
+    };
     const update = () => {
-      box.classList.toggle("more-t", box.scrollTop > 2);
-      box.classList.toggle("more", box.scrollHeight - box.scrollTop - box.clientHeight > 2);
-      box.classList.toggle("more-r", box.scrollWidth - box.scrollLeft - box.clientWidth > 2);
-      box.classList.toggle("more-l", box.scrollLeft > 2);
+      scrolled();
       const cs = getComputedStyle(box), px = (v: string) => parseFloat(v) || 0;
       box.style.setProperty("--sb-w", `${Math.max(0, box.offsetWidth - box.clientWidth - px(cs.borderLeftWidth) - px(cs.borderRightWidth))}px`);
       box.style.setProperty("--sb-h", `${Math.max(0, box.offsetHeight - box.clientHeight - px(cs.borderTopWidth) - px(cs.borderBottomWidth))}px`);
       box.style.setProperty("--head-h", `${box.querySelector<HTMLElement>(":scope > table > thead")?.offsetHeight || 0}px`);
       box.style.setProperty("--wrap-w", `${box.clientWidth}px`); // what shows of a wide table: an opened comment keeps to it
     };
-    if (!box.dataset.hint) { box.dataset.hint = "1"; box.addEventListener("scroll", update, { passive: true }); }
+    if (!box.dataset.hint) { box.dataset.hint = "1"; box.addEventListener("scroll", scrolled, { passive: true }); }
     update();
   });
 }

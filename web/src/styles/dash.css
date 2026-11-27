@@ -533,7 +533,43 @@
 :where(body:not(.site)) :is(.table-wrap, .cal-scroll).more-l :is(table.sticky-first tr:not(.detail) > :first-child, .cal-year > b, .gt-group, .gt-axis > span:first-child)::after {
   content: ""; position: absolute; top: 0; bottom: 0; left: 100%; width: 40px; pointer-events: none;
   background: linear-gradient(to right, var(--stick-bg, var(--ground)), transparent); }
-:where(body:not(.site)) .table-wrap.more-l table.sticky-first tbody tr:not(.detail) > td:first-child::after { bottom: calc(-1 * var(--table-row-line)); } /* the line under the row fades too */
+:where(body:not(.site)) .table-wrap table.sticky-first tbody tr:not(.detail) > td:first-child::after { bottom: calc(-1 * var(--table-row-line)); } /* the line under the row fades too */
+/* where the browser can, the edges follow the scroll itself in the same frame (the classes come from a scroll event, a
+   frame or more late, so a quick swipe showed the content unfaded first): each edge eases in over its first 16 px of
+   scroll and the sticky column's fade is always there, shown by the same scroll; the classes stay for the others */
+@property --edge-t { syntax: "<color>"; inherits: false; initial-value: #000; }
+@property --edge-b { syntax: "<color>"; inherits: false; initial-value: #000; }
+@property --edge-l { syntax: "<color>"; inherits: false; initial-value: #000; }
+@property --edge-r { syntax: "<color>"; inherits: false; initial-value: #000; }
+@keyframes edge-t { from { --edge-t: #000; } to { --edge-t: transparent; } }
+@keyframes edge-b { from { --edge-b: transparent; } to { --edge-b: #000; } }
+@keyframes edge-l { from { --edge-l: #000; } to { --edge-l: transparent; } }
+@keyframes edge-r { from { --edge-r: transparent; } to { --edge-r: #000; } }
+@keyframes edge-show { from { opacity: 0; } to { opacity: 1; } }
+/* Firefox (no scroll-driven animations yet): the same ease from the scroll's own numbers (behave.ts sets --sl, --sr, --st,
+   --sb on every scroll, nothing else), and the sticky column's fade always there, shown by its opacity alone */
+@supports not (animation-timeline: scroll()) {
+  :where(body:not(.site)) :is(.list, .table-wrap, .cal-scroll, .radar-bars):is(.more-t, .more, .more-l, .more-r) {
+    --fade-t: color-mix(in srgb, var(--mask) calc((1 - var(--st, 1)) * 100%), transparent);
+    --fade-b: color-mix(in srgb, var(--mask) calc((1 - var(--sb, 1)) * 100%), transparent);
+    --fade-l: color-mix(in srgb, var(--mask) calc((1 - var(--sl, 1)) * 100%), transparent);
+    --fade-r: color-mix(in srgb, var(--mask) calc((1 - var(--sr, 1)) * 100%), transparent); }
+  :where(body:not(.site)) :is(.table-wrap, .cal-scroll) :is(table.sticky-first tr:not(.detail) > :first-child, .cal-year > b, .gt-group, .gt-axis > span:first-child)::after {
+    content: ""; position: absolute; top: 0; bottom: 0; left: 100%; width: 40px; pointer-events: none;
+    background: linear-gradient(to right, var(--stick-bg, var(--ground)), transparent); opacity: var(--sl, 0); }
+}
+@supports (animation-timeline: scroll()) {
+  :where(body:not(.site)) :is(.list, .table-wrap, .cal-scroll, .radar-bars) {
+    animation: edge-t linear both, edge-b linear both, edge-l linear both, edge-r linear both;
+    animation-timeline: scroll(self block), scroll(self block), scroll(self inline), scroll(self inline);
+    animation-range: 0 16px, calc(100% - 16px) 100%, 0 16px, calc(100% - 16px) 100%; }
+  :where(body:not(.site)) :is(.list, .table-wrap, .cal-scroll, .radar-bars):is(.more-t, .more, .more-l, .more-r) {
+    --fade-t: var(--edge-t); --fade-b: var(--edge-b); --fade-l: var(--edge-l); --fade-r: var(--edge-r); }
+  :where(body:not(.site)) :is(.table-wrap, .cal-scroll) :is(table.sticky-first tr:not(.detail) > :first-child, .cal-year > b, .gt-group, .gt-axis > span:first-child)::after {
+    content: ""; position: absolute; top: 0; bottom: 0; left: 100%; width: 40px; pointer-events: none;
+    background: linear-gradient(to right, var(--stick-bg, var(--ground)), transparent);
+    opacity: 0; animation: edge-show linear both; animation-timeline: scroll(nearest inline); animation-range: 0 16px; }
+}
 /* Everyone you met: a person's details open on click in a floating list (behave.ts places it) */
 :where(body:not(.site)) .who-pop > summary { text-decoration: underline dotted; text-underline-offset: 4px; }
 :where(body:not(.site)) .who-pop[open] > .pop-panel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
