@@ -40,13 +40,13 @@ test("a project's panel tells its mark, attempts with their flags, XP and how th
   const html = holyPage(pageOf([p], { quests: quests(0, 1, 2) }), stats)[0].html;
   const panel = /<template data-hg-panel="42cursus-minishell">(.*?)<\/template>/s.exec(html)![1];
   for (const s of ["Validated with bonus", "101", "14 Nov 2025", "136.9 days", "2,814 (2,842 earned)", "1 Jul 2025 → 13 Nov 2025", "Outstanding project ×2 · Ok",
-    "848 signed up · 783 passed", "60% on the first try", "median 82.2 days", "Crash 116 · Norm 6"]) expect(panel).toContain(s);
+    "848 signed up · 783 passed", "60% on the first try", "half took 82.2 days or less", "Crash 116 · Norm 6"]) expect(panel).toContain(s);
 });
 
 test("the other track's graph is only to look at: nothing of yours on it, nor in its panels", () => {
   const html = holyPage(pageOf([done("42cursus-libft", 115, { attempts: [{ n: 1, mark: 115, validated: true }] })], { quests: quests(0) }, { graph: "python" }), null)[0].html;
   expect(nodeOf(html, "42cursus-libft")).toBe("view");
-  expect(html).toContain("Not your track: only to look at");
+  expect(html).toContain("Not your path: only to look at");
   expect(/<template data-hg-panel="42cursus-libft">(.*?)<\/template>/s.exec(html)![1]).not.toContain("Attempts");
 });
 
@@ -57,10 +57,10 @@ test("a failed attempt names the negative flag that failed it, or says it had no
   ] };
   const html = holyPage(pageOf([done("42cursus-libft"), p, done("pipex")], { quests: quests(0, 1) }), null)[0].html;
   const panel = (s: string) => new RegExp(`<template data-hg-panel="${s}">(.*?)</template>`, "s").exec(html)![1];
-  expect(panel("42cursus-push_swap")).toContain("Negative flag: Norme");
-  expect(panel("42cursus-push_swap")).toContain("No negative flag: it failed on its marks");
+  expect(panel("42cursus-push_swap")).toContain("Red flag: Norme");
+  expect(panel("42cursus-push_swap")).toContain("No red flag: it failed on its marks");
   expect(panel("minitalk")).toContain("Not needed: you took pipex");
-  expect(panel("42cursus-philosophers")).toContain("Opens when you reach Milestone 3.");
+  expect(panel("42cursus-philosophers")).toContain("Opens when you reach Stage 3.");
   expect(panel("42cursus-scop")).toContain("Opens once the Common Core is done.");
 });
 
@@ -162,7 +162,7 @@ test("why attempts fail: the negative flags left of one axis in reds, the rest r
   expect(sum.lead).toBe("30%");
   expect(sum.left).toEqual(["tech", "norme"]); // the worst furthest from the axis
   expect(sum.right).toEqual(["marks", "auto"]);
-  expect(html).toMatch(/<p class="spl-side">Negative flag<\/p>/);
+  expect(html).toMatch(/<p class="spl-side">Red flag<\/p>/);
   expect(html).toMatch(/<i class="sb-norme"><\/i><span>Norm<\/span><b>10<\/b><em>10%<\/em>/);
 });
 
@@ -223,7 +223,7 @@ test("friendlier forms: admission as 100 squares with a finding, why attempts fa
   expect(adm.match(/class="wf-sq"/g)).toHaveLength(100);
   expect(adm).toContain('<p class="finding"><b>25%</b> of the 200 people');
   const why = sectionOf({ ...statsWith([{ slug: "42cursus-libft", name: "Libft", milestone: "rank-00", track: "c", registered: 50, attempts: 60, failed_attempts: 10, reasons: { norme: 8, cheat: 2 } }]) }, "why");
-  expect(why).toContain('<p class="finding">The most common [[reason]] an attempt fails: Norm, <b>80%</b> of the 10 failed attempts.');
+  expect(why).toContain('<p class="finding">The [[most common reason]] an attempt fails: Norm, <b>80%</b> of the 10 failed attempts.');
   const madrid = sectionOf(statsWith([]), "madrid");
   expect(madrid).toContain('<p class="finding">');
   expect(madrid).toContain("The count used 1 requests to 42"); // the cost lives in the tip, not the visible note

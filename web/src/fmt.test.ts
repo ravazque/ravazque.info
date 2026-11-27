@@ -36,7 +36,7 @@ test("a level always has two decimals, in each language's separator", () => {
 test("missing keys show the key; vars fill in", () => {
   const f = new Fmt("en");
   expect(f.t("no.such.key")).toBe("no.such.key");
-  expect(f.t("home.promo", { rank: "3", size: "9" })).toBe("#3 of 9 in your promo");
+  expect(f.t("home.promo", { rank: "3", size: "9" })).toBe("#3 of 9 among those who started with you");
 });
 
 test("dates read as 29 Oct 2026, with the time when there is one", () => {

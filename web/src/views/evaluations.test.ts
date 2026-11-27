@@ -92,8 +92,8 @@ test("a team you evaluated shows its leader, the rest in a list that opens", () 
   expect(summary).not.toContain("peer01");
   const panel = html.slice(html.indexOf("</summary>"));
   expect(panel).toContain("peer01");
-  expect(panel).toContain("leader · not logged · first login 5m late (est.)");
-  expect(html.slice(html.lastIndexOf("</details>"))).toContain('class="sub">not logged · first login 5m late (est.)'); // the leader's seat under the line
+  expect(panel).toContain("leader · no session open · first login 5m late (est.)");
+  expect(html.slice(html.lastIndexOf("</details>"))).toContain('class="sub">no session open · first login 5m late (est.)'); // the leader's seat under the line
   expect(teamCell(f, { other_host_checked: false, correcteds: [{ login: "peer03" }] })).not.toContain("<details");
 });
 
@@ -110,7 +110,7 @@ test("the log's title explains in its ⓘ that lateness is an estimate", async (
   const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8")), all = doc.periods.all;
   const f = new Fmt("en");
   const html = logSection(new Page(f, { period: "all", report: all, layout: doc.layout, all_projects: all.projects, all_cursus: all.extras.cursus } as any, "evaluations", {})).html;
-  expect(html).toMatch(/<h2>Evaluation \[\[log\]\] <span class="info"[^>]*data-tip="Lateness is an estimate/);
+  expect(html).toMatch(/<h2>Evaluation log <span class="info"[^>]*data-tip="Lateness is an estimate/);
   expect(html).toMatch(/<span class="count"><span class="sep"> · <\/span>\d+ evaluations<\/span><\/h2>/); // the count stays
 });
 
@@ -416,8 +416,8 @@ test("Over time's description names negative flags only when there are some, and
   const lede = (summary: any, q = {}) => evaluations(new Page(new Fmt("en"), { period: "all", report: { ...all, summary: { ...all.summary, ...summary } }, derive, layout: doc.layout,
     all_projects: all.projects, all_cursus: all.extras.cursus } as any, "evaluations", q)).find((s) => s.id === "over-time")!.html.match(/<p class="lede">([^<]*)<\/p>/)![1];
   expect(lede({ received_negative: 0 })).toMatch(/^Average mark [\d.]+ · [\d.]+% Outstanding$/);
-  expect(lede({ received_negative: 2 })).toMatch(/ Outstanding · 2 negative flags\.$/);
-  expect(lede({ received_negative: 1 })).toMatch(/ · 1 negative flag\.$/);
+  expect(lede({ received_negative: 2 })).toMatch(/ Outstanding · 2 red flags\.$/);
+  expect(lede({ received_negative: 1 })).toMatch(/ · 1 red flag\.$/);
   expect(lede({ given_negative: 0 }, { role: "given" })).toMatch(/^Average mark [\d.]+$/);
 });
 

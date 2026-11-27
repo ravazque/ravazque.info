@@ -151,7 +151,7 @@ test("the projects table is one open list like the evaluation log: no groups, it
   expect(rowsOf(first)).toEqual(["ft_printf", "get_next_line", "Libft"]); // newest first
   expect(first).toContain('class="table-wrap tall"'); // the log's box
   expect(first).toMatch(/<h2>Projects<span class="count"><span class="sep"> · <\/span>3 projects<\/span><\/h2>/);
-  expect(first).toMatch(/<option value="rank-01"[^>]*>Milestone 1</);
+  expect(first).toMatch(/<option value="rank-01"[^>]*>Stage 1</);
   expect(first).not.toMatch(/<option value="rank-02"/); // only the milestones your projects have
   expect(first).not.toContain("log-clear");
   const one = html({ milestone: "rank-01" });
@@ -273,5 +273,5 @@ test("friendlier findings: pace with the expected finish, your promo in tenths, 
   expect(html).toContain("<b>Mar 2027</b>");
   expect(html).toContain("ahead of <b>7 in 10</b>");
   expect(html).toContain("<b>Algorithms</b>, at level");
-  expect(html).toContain("<b>1 of 2</b> [[exams]]");
+  expect(html).toContain("You have [[passed]] <b>1 of 2</b> exams");
 });

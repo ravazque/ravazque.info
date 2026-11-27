@@ -16,7 +16,7 @@ test("the projects a person evaluated you on, newest first, each with the seat t
   const received = [ev("peer01", "libft", "2026-03-01 10:00", false, null), ev("peer02", "minishell", "2026-10-20 12:00", true, "c1r1s1"),
     ev("peer01", "ft_printf", "2026-10-25 16:00", true, "c3r2s4"), ev("peer01", "get_next_line", "2026-10-28 09:00", true, null)];
   const lines = evaluatedBy(new Fmt("en"), received, "peer01").split("\n");
-  expect(lines.slice(1)).toEqual(["get_next_line · 28 Oct 2026 · not logged", "ft_printf · 25 Oct 2026 · c3r2s4", "libft · 1 Mar 2026 · –"]);
+  expect(lines.slice(1)).toEqual(["get_next_line · 28 Oct 2026 · no session open", "ft_printf · 25 Oct 2026 · c3r2s4", "libft · 1 Mar 2026 · –"]);
   expect(evaluatedBy(new Fmt("en"), received, "peer09")).toBe("");
 });
 
@@ -56,7 +56,7 @@ test("the tip counts what a person gave you in Outer Core projects, nothing when
   const received = [ev("ft_transcendence", { outstanding: true }), ev("webserv", {}), ev("webserv", { negative_flag: true }), ev("webserv", { mark: null }), ev("libft", {}),
     { corrector: { login: "peer02" }, project: "webserv", mark: 100 }];
   const f = new Fmt("en"), outer = new Set(["ft_transcendence", "webserv"]);
-  expect(outerTip(f, received, "peer01", outer)).toBe("Outer projects: 1 OK, 1 outstanding");
+  expect(outerTip(f, received, "peer01", outer)).toBe("Outer Core projects: 1 passed, 1 Outstanding");
   expect(outerTip(f, received, "nobody", outer)).toBe("");
 });
 
@@ -69,8 +69,8 @@ const whoPage = (extras: any) => new Page(new Fmt("en"), { all_projects: [{ name
 
 test("Top 25: the tip tells Outer Core and what they gave you there, with no mark, no rating and no square", () => {
   const html = people(whoPage({ cursus: [{ name: "42cursus", grade: "Transcender" }], quests: [] }))[0].html;
-  expect(html).toContain("peer01 (OuterCore) · you evaluated them");
-  expect(html).toContain("Outer projects: 0 OK, 1 outstanding");
+  expect(html).toContain("peer01 (Outer Core) · you evaluated them");
+  expect(html).toContain("Outer Core projects: 0 passed, 1 Outstanding");
   expect(html).not.toContain("hb-mark");
   expect(html).not.toContain("average mark");
   expect(html).not.toContain("your rating");
@@ -140,7 +140,7 @@ test("who evaluated you: OK in light green, Outstandings in deep green, negative
   expect(clean).toContain("var(--ok-deep)");
   expect(clean).not.toContain("var(--critical)");
   expect(flagged).toContain("var(--critical)");
-  expect(flagged).toMatch(/<\/i>Ok</); // the rest named for what it is, OK
+  expect(flagged).toMatch(/<\/i>Passed \(Ok\)</); // the rest named for what it is, OK
 });
 
 test("People says first how many times the person who evaluated you most did it", async () => {

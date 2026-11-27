@@ -150,7 +150,7 @@ test("a new profile starts with five starred sections; taking them away, or havi
   loadPins("peer20");
   const first = ["coalition:coal-points", "people:crossed", "campus:seats", "evaluations:by-group", "projects:projects-table"];
   expect(pins.stars.map((p) => `${p.page}:${p.id}`)).toEqual(first);
-  expect(pins.stars.map((p) => p.label)).toEqual(["Coalition points", "People", "Where you sat", "Milestones and projects", "Projects"]);
+  expect(pins.stars.map((p) => p.label)).toEqual(["Coalition points", "People", "Where you sat", "Stages and projects", "Projects"]);
   // a profile still holding the five it was first given (2026-11-12) moves to these
   localStorage.setItem("stars:peer22", JSON.stringify(["projects:projects-table", "people:circle", "campus:seats", "coalition:coal-points", "evaluations:points"]
     .map((s) => ({ page: s.split(":")[0], id: s.split(":")[1], label: "x" }))));

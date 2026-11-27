@@ -45,7 +45,7 @@ test("with no other source left, Other goes; a report without every award stays 
 
 test("All points calls a deduction a TIG", () => {
   const html = allPoints(pageWith({ awards: [tig("2026-01-10T10:00:00Z")] }));
-  expect(html).toContain("TIGs");
+  expect(html).toContain("Community service (TIG)");
   expect(html).not.toContain(">Other<");
 });
 
