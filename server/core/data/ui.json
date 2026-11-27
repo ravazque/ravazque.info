@@ -368,7 +368,7 @@
    "fg-active": "@ground"
   },
   "kpi": {
-   "size": "56px",
+   "size": "40px",
    "rule": "2px",
    "lead-size": "56px",
    "desktop": {

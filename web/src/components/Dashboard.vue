@@ -691,7 +691,7 @@ const shownPeriod = computed(() => key.value === "coalition"
     @keydown="onKey" @dragstart="onDragStart" @dragover="onDragOver" @drop="onDrop" @dragend="onDragEnd">
     <h1 v-if="key === 'holygraph'" class="visually-hidden">{{ title }}</h1>
     <header v-else class="page-head">
-      <h1>{{ title }}</h1>
+      <h1 :class="{ 'visually-hidden': key === 'home' }">{{ title }}</h1><!-- Profile: your name on the card is the title -->
       <nav v-if="periods.length" class="seg periods" :aria-label="f.t('rail.period')">
         <a v-for="p in periods" :key="p" :href="locked ? undefined : periodHref(p)" data-keep role="button" :aria-pressed="p === pressedPeriod"
           :aria-disabled="locked && p !== view?.period ? 'true' : undefined" :title="locked ? f.t('period.student_only') : undefined">{{ f.t(`period.${p}`) }}</a>

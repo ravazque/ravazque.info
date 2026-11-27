@@ -54,7 +54,7 @@
 
 /* ---------- page head: the page's name at poster scale, who, the period ---------- */
 :where(body:not(.site)) .page-head { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px 40px; padding-top: 28px; padding-bottom: 16px; border-bottom: var(--page-line) solid var(--rule-strong); }
-:where(body:not(.site)) .page-head h1 { font: 900 clamp(56px, 9vw, 112px)/.88 var(--type-font-display); letter-spacing: -.045em; text-wrap: balance; }
+:where(body:not(.site)) .page-head h1 { font: 900 clamp(40px, 6vw, 72px)/.92 var(--type-font-display); letter-spacing: -.045em; text-wrap: balance; }
 :where(body:not(.site)) .who { display: flex; gap: 16px; align-items: center; }
 :where(body:not(.site)) .avatar-lg { position: relative; flex: none; width: 56px; height: 56px; overflow: hidden; background: var(--sunken); display: grid; place-items: center;
   font: 800 18px var(--type-font-display); color: var(--text-2); }

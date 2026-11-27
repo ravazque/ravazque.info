@@ -107,10 +107,10 @@ main[data-page="web-home"] {
 /* your card on top: each size grows with the screen between a least and a most, clamp(least, middle, most); the middle
    follows the window's width (1vw is 1% of it). A plain value (40px) fixes a size on every screen. */
 #profile, #path {
-  --card-photo: clamp(72px, 10.4vw, 150px);    /* the photo's side */
+  --card-photo: clamp(64px, 7vw, 104px);       /* the photo's side */
   --card-photo-frame: 4px;                     /* the soft grey frame around it (0: none) */
   --card-gap: clamp(16px, 2.2vw, 32px);        /* the photo → your name */
-  --card-name: clamp(28px, 5vw, 72px);         /* your name */
+  --card-name: clamp(24px, 2.8vw, 40px);       /* your name (smaller since 2026-11-27: it is the page's title now) */
   --card-sub: clamp(14px, 1.32vw, 19px);       /* the lines under it: your title or login and campus; coalition, group, track */
   --card-who-gap: 10px;                         /* your name → the line of your title (or login) and campus */
   --card-tags-gap: 10px;                        /* that line → the tags (coalition, milestone, grade, track, groups); negative brings them closer */
