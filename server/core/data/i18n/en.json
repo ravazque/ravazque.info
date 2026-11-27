@@ -1337,7 +1337,7 @@
  "pe2.k_weeks": "Weeks you came",
  "pe2.s_weeks": "out of {total} weeks since your first day",
  "pe2.k_time": "When you usually come",
- "pe2.finding_rhythm": "Most of your hours at campus are in the <b>{part}</b>.",
+ "pe2.finding_rhythm": "The part of the day you spend most hours at campus: <b>{part}</b>.",
  "pe2.seats_how": "Each square is a computer; the darker it is, the more hours you spent on it. Hover one to see its first and last day.",
  "pe2.heat_title": "Which days and hours you're at campus",
  "pe2.heat_how": "Each square is a weekday and an hour; the darker, the more time you were logged in.",

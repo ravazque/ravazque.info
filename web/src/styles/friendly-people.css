@@ -1,1 +1,3 @@
 /* friendlier people (2026-11-27): this page's own rules for the new forms */
+:where(body:not(.site)) [data-panel="correctors"] > .note, :where(body:not(.site)) [data-panel="connections"] > .note,
+:where(body:not(.site)) [data-panel="network"] > .note, :where(body:not(.site)) [data-panel="table-people"] > .note { margin: 0 0 10px; max-width: 62ch; }

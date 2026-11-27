@@ -36,8 +36,8 @@ test("Where · evaluations draws received and given apart, side by side (no swit
   const view = { period: "all", report: all, derive: {}, layout: doc.layout, all_projects: all.projects, all_cursus: all.extras.cursus, seat_days: 60 } as any;
   const html = campus(new Page(f, view, "campus", {})).find((s) => s.id === "where")!.html;
   expect(html.match(/data-panel="where-clusters"/g)?.length).toBe(2);
-  expect(html.indexOf(f.t("where.title_received"))).toBeGreaterThan(0);
-  expect(html.indexOf(f.t("where.title_given"))).toBeGreaterThan(html.indexOf(f.t("where.title_received")));
+  expect(html.indexOf(f.t("pe2.where_received"))).toBeGreaterThan(0);
+  expect(html.indexOf(f.t("pe2.where_given"))).toBeGreaterThan(html.indexOf(f.t("pe2.where_received")));
   expect(html).not.toContain('class="seg"');
   expect(html).not.toContain("col-tips");
   expect(html).toContain(f.t("where.cov_me", { me: all.place.me_located_given, n: all.summary.given }));
@@ -62,4 +62,16 @@ test("Where · evaluations with none yet: the empty note alone, no key and no se
   expect(html).not.toContain('class="legend"');
   expect(html).not.toContain("Seat known");
   expect(html.match(new RegExp(f.t("empty.period"), "g"))?.length).toBe(2);
+});
+
+test("campus opens its sections with a finding in plain words: the busiest weekday and hour, the part of the day", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { Fmt } = await import("../fmt");
+  const { Page } = await import("./page");
+  const { campus } = await import("./campus");
+  const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8"));
+  const all = { ...doc.periods.all, logtime: { ...doc.periods.all.logtime, heat: Array.from({ length: 7 }, (_, w) => Array.from({ length: 24 }, (_, h) => (w === 1 && h === 14 ? 5 : 0))) } };
+  const view = { period: "all", report: all, derive: {}, layout: doc.layout, all_projects: all.projects, all_cursus: all.extras.cursus, seat_days: 60 } as any;
+  const html = campus(new Page(new Fmt("en"), view, "campus", {})).find((s) => s.id === "days")!.html;
+  expect(html).toContain('<p class="finding">You are at campus most on <b>Tuesday</b>, and your busiest hour is <b>14–15h</b>.</p>');
 });

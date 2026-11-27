@@ -142,3 +142,16 @@ test("who evaluated you: OK in light green, Outstandings in deep green, negative
   expect(flagged).toContain("var(--critical)");
   expect(flagged).toMatch(/<\/i>Ok</); // the rest named for what it is, OK
 });
+
+test("People says first how many times the person who evaluated you most did it", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { Fmt } = await import("../fmt");
+  const { Page } = await import("./page");
+  const { people } = await import("./people");
+  const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8"));
+  const all = doc.periods.all;
+  const view = { period: "all", report: all, derive: {}, layout: doc.layout, all_projects: all.projects, all_cursus: all.extras.cursus, seat_days: 60 } as any;
+  const html = people(new Page(new Fmt("en"), view, "people", {})).find((s) => s.id === "who")!.html;
+  const n = Math.max(...all.people.filter((p: any) => p.evaluated_me).map((p: any) => p.evaluated_me));
+  expect(html).toContain(`The person who evaluated you most did it <b>${n}</b> time`);
+});

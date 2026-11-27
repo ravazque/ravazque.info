@@ -26,10 +26,11 @@ export function campus(pg: Page): Section[] {
     const tip = `${h}–${h + 1}h · ${f.nb(v, "h")}`;
     return `<i class="${partOf(h)}" style="height:${((100 * v) / peak).toFixed(1)}%" data-tip="${esc(tip)}" title="${esc(tip)}"></i>`;
   }).join("")}</span><span class="day24-axis" aria-hidden="true">${[0, 6, 12, 18, 24].map((h) => `<b style="left:${(h / 24) * 100}%">${h}</b>`).join("")}</span>`;
-  out.push({ id: "rhythm", nav: f.t("rhythm.title"), html: section("rhythm", f.t("rhythm.title"), cols(block("kpis", kpis([
-    [f.t("rhythm.k_streak"), f.num(dv.streak), [esc(f.t("rhythm.s_streak"))]],
-    [f.t("rhythm.k_weeks"), f.num(weeks), [esc(f.t("rhythm.s_weeks", { total: f.num(span) }))]],
-    [f.t("rhythm.k_time"), any ? esc(capital(f.t(`rhythm.${topPart}`))) : "–", any ? [day,
+  const rhythmFinding = any ? `<p class="finding">${f.t("pe2.finding_rhythm", { part: f.t(`rhythm.${topPart}`) })}</p>` : "";
+  out.push({ id: "rhythm", nav: f.t("rhythm.title"), html: section("rhythm", f.t("rhythm.title"), rhythmFinding + cols(block("kpis", kpis([
+    [f.t("pe2.k_streak"), f.num(dv.streak), [esc(f.t("pe2.s_streak"))]],
+    [f.t("pe2.k_weeks"), f.num(weeks), [esc(f.t("pe2.s_weeks", { total: f.num(span) }))]],
+    [f.t("pe2.k_time"), any ? esc(capital(f.t(`rhythm.${topPart}`))) : "–", any ? [day,
       `<span class="parts">${parts.map(([k, v]) => `<span class="part"><i class="${k}"></i>${esc(f.t("rhythm.s_share", { pct: v, part: f.t(`rhythm.${k}`) }))}</span>`).join("")}</span>`] : [], "wide"],
   ])))) });
 
@@ -58,22 +59,24 @@ export function campus(pg: Page): Section[] {
   }
   const peakAt = values.length && Math.max(...values) > 0 ? values.indexOf(Math.max(...values)) : -1;
   out.push({ id: "seats", nav: f.t("nav.seats"), html: section("seats", f.t("seats.title"), cols(
-    `<div class="block" data-panel="seat-plan">${plan}</div>`), { head: seatsHead, lede }) });
+    `<div class="block" data-panel="seat-plan"><p class="note">${esc(f.t("pe2.seats_how"))}</p>${plan}</div>`), { head: seatsHead, lede }) });
 
   // every day, then the hours per month beside the week hour by hour
   const cal = calendar(f, days, hours), hgrid = heat(f, L.heat, ACCENT, "h");
-  out.push({ id: "days", nav: f.t("nav.days"), html: section("days", f.t("days.title"), cols(
-    block("calendar", `<div class="cal-scroll">${cal}</div>`, f.t("days.calendar_title")),
+  const dayTotals = (L.heat || []).map((row: number[]) => row.reduce((a, b) => a + b, 0)), busyH = byHour.indexOf(peak);
+  const heatFinding = any ? `<p class="finding">${f.t("pe2.finding_heat", { day: f.t("pe2.weekdays").split(" ")[dayTotals.indexOf(Math.max(...dayTotals))], h: busyH, h2: busyH + 1 })}</p>` : "";
+  out.push({ id: "days", nav: f.t("nav.days"), html: section("days", f.t("days.title"), heatFinding + cols(
+    block("calendar", `<div class="cal-scroll">${cal}</div>`, f.t("pe2.cal_title")),
     `<div class="block" data-panel="hours-month"><div class="block-head"><h3>${esc(f.t(daily ? "seats.day_title" : "seats.month_title"))}</h3>`
-    + (peakAt >= 0 ? `<span class="head-figure">${esc(f.t("seats.peak", { v: f.hmm(values[peakAt]), label: labels[peakAt] }))}</span>` : "") + "</div>"
+    + (peakAt >= 0 ? `<span class="head-figure">${esc(f.t("seats.peak", { v: f.hmm(values[peakAt]), label: labels[peakAt] }))}</span>` : "") + `</div><p class="note">${esc(f.t("pe2.month_how"))}</p>`
     + vbars(f, labels, [[f.t("unit.hours"), values, S1]], { label: f.t("seats.month_aria"), fmt: (v) => f.nb(v, "h"), colTips: true, emptyText: f.t("empty.sessions") }) + "</div>",
-    block("heat-presence", `<div class="heat-wide">${hgrid}</div>`, f.t("days.heat_title"))),
+    block("heat-presence", `<div class="heat-wide">${hgrid}</div>`, f.t("pe2.heat_title"), f.t("pe2.heat_how"))),
   L.days_present ? { head: `<h2>${esc(f.t("days.title"))} ${info([f.t("days.l_span", { days: f.plural(L.days_present, "count.days"), first: f.day(L.first_day), last: f.day(L.last_day) }),
     f.t("days.l_avg", { avg: f.hm(L.total_seconds / L.days_present) })].join("\n"))}</h2>` } : { lede: esc(f.t("empty.sessions")) }) });
 
   const sq = pg.q("sq", "").slice(0, 80);
   const log = L.log.filter((s: any) => !sq || `${s.begin} ${s.end} ${s.host} ${f.dayTime(s.begin)} ${f.dayTime(s.end)}`.toLowerCase().includes(sq.toLowerCase()));
-  out.push({ id: "sessions", nav: f.t("nav.sessions"), html: section("sessions", f.t("sessions.title"),
+  out.push({ id: "sessions", nav: f.t("nav.sessions"), html: section("sessions", f.t("pe2.sessions_title"),
     filters("sessions", search("sq", sq, f.t("common.search"), f.t("sessions.search_placeholder")))
     + `<div id="sessions-results">`
     + cols(block("table-sessions", `<div class="table-wrap">${table(f, [
@@ -177,12 +180,14 @@ function where(pg: Page): Section {
       ? f.t(recv ? "where.cov_corrector" : "where.cov_evaluated", { x: recv ? PL.corrector_located : PL.evaluated_located, y, days: pg.seats })
       : f.t("where.cov_none", { days: pg.seats })),
     (recv ? PL.received_away : PL.given_away) ? f.plural(recv ? PL.received_away : PL.given_away, "where.away") : ""].filter(Boolean).join(". ");
+  const topC = Object.entries(series[0][1]).filter(([k]) => k !== "not logged").sort((a, b) => b[1] - a[1])[0];
+  const wf = topC && topC[1] ? `<p class="finding">${f.t("pe2.finding_where", { n: f.num(topC[1]), c: esc(topC[0]) })}</p>` : "";
   return [
     ...(WHERE_PLAN ? [`<div class="block" data-panel="where-plan"><div class="block-head">${wscale}</div>${wplan}</div>`] : []),
-    headBlock("where-clusters", f.t(`where.title_${role}`), series.length > 1 && total ? legend(series.map(([n, , c]) => [n, c])) : "",
-      vbars(f, ckeys.map(lab), series.map(([n, v, c]) => [n, ckeys.map((k) => v[k] || 0), c]), { label: f.t(`where.title_${role}`), fmt: (v) => f.num(v), barTips, emptyText: f.t("empty.period") }), total ? cover : ""), // none yet: the empty note alone
+    headBlock("where-clusters", f.t(`pe2.where_${role}`), series.length > 1 && total ? legend(series.map(([n, , c]) => [n, c])) : "",
+      wf + vbars(f, ckeys.map(lab), series.map(([n, v, c]) => [n, ckeys.map((k) => v[k] || 0), c]), { label: f.t(`pe2.where_${role}`), fmt: (v) => f.num(v), barTips, emptyText: f.t("empty.period") }), total ? cover : ""), // none yet: the empty note alone
     awayTable];
   };
   return { id: "where", nav: f.t("nav.where"), html: section("where", "", cols(...one("received"), ...one("given")),
-    { head: `<h2>${esc(f.t("where.title"))} ${info(f.t("where.inferred_note"))}</h2>` }) };
+    { head: `<h2>${esc(f.t("pe2.where_title"))} ${info(f.t("pe2.where_info"))}</h2>` }) };
 }

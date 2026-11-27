@@ -95,8 +95,10 @@ export function people(pg: Page): Section[] {
   const bySeries: [string, number[], string][] = [[f.t("flag.ok"), top.map((p: any) => Math.max(0, p.evaluated_me - p.outstanding_to_me - neg(p))), GOOD],
     [f.t("flag.outstanding"), top.map((p: any) => p.outstanding_to_me), OUTSTANDING], ...(top.some(neg) ? [[f.t("flag.negative"), top.map(neg), BAD] as [string, number[], string]] : [])];
   const lede = esc(f.t("who.lede", { correctors: S.unique_correctors, mutual: S.mutual }));
-  out.push({ id: "who", nav: f.t("nav.who"), html: section("who", f.t("who.title"), cols(
-    `<div class="block" data-panel="correctors"><div class="block-head"><h3>${esc(f.t("who.top_title"))}</h3>${legend(bySeries.map(([t, , c]) => [t, c] as [string, string]))}</div>`
+  const finding = top.length ? `<p class="finding">${f.plural(Math.max(...top.map((p: any) => p.evaluated_me)), "pe2.finding_top")}</p>` : "";
+  out.push({ id: "who", nav: f.t("nav.who"), html: section("who", f.t("who.title"), finding + cols(
+    `<div class="block" data-panel="correctors"><div class="block-head"><h3>${esc(f.t("pe2.top_title"))}</h3>${legend(bySeries.map(([t, , c]) => [t, c] as [string, string]))}</div>`
+    + `<p class="note">${esc(f.t("pe2.top_how"))}</p>`
     + hbars(f, top.map((p: any) => (erased(p.login) ? f.t("who.erased") : p.login)), bySeries,
       { label: f.t("who.top_title"), tips: top.map(tip), emptyText: f.t("empty.period"), end: (_i, v) => String(v), min: 8,
         extra: (i) => (top[i].outstanding_to_me ? `${top[i].outstanding_to_me} ${f.t("flag.outstanding")}` : "") }) + "</div>"), { lede }) });
@@ -113,9 +115,12 @@ export function people(pg: Page): Section[] {
     { k: "projects", t: f.t("col.projects"), sv: (r) => Object.keys(r.projects || {}).length,
       f: (r) => oneLineList(f, Object.entries(r.projects || {}).map(([n, c]: [string, any]) => (c > 1 ? `${n} (x${c})` : n)), f.t("col.projects")) },
   ], tm, { label: f.t("teammates.title"), sort: ["teams", -1], empty: f.t("teammates.none") })}</div>`;
-  out.push({ id: "crossed", nav: f.t("nav.crossed"), html: section("crossed", "", cols(
+  const nMe = D.people.filter((p: any) => p.evaluated_me).length, nBy = D.people.filter((p: any) => p.evaluated_by_me).length, nBoth = D.people.filter((p: any) => p.evaluated_me || p.evaluated_by_me).length;
+  const crossedFinding = nBoth ? `<p class="finding">${f.t("pe2.finding_crossed", { n: f.num(nBoth), a: f.num(nMe), b: f.num(nBy) })}</p>` : "";
+  out.push({ id: "crossed", nav: f.t("nav.crossed"), html: section("crossed", "", crossedFinding + cols(
     `<div class="block" data-panel="table-people">${metSwitch("under-title")}`
     + filters("who", search("q", q, f.t("common.search"), f.t("who.search_placeholder")))
+    + `<p class="note">${esc(f.t("pe2.crossed_how"))}</p>`
     + `<div id="who-results">${met === "teammates" ? teammates : `<div class="table-wrap">${table(f, [
       { k: "login", t: f.t("col.login"), nw: true, f: (p) => `${erased(p.login) ? "" : avatar(p)}${shownLogin(f, p.login)}` },
       { k: "name", t: f.t("col.name"), nw: true, f: (p) => (erased(p.login) ? deletedName(f) : esc(shortName(p.name))) },
@@ -142,11 +147,11 @@ export function people(pg: Page): Section[] {
   const wide = bubbles(f, conn, mode, { width: 1200, href, label });
   // by the title; on phones under its line, as Everyone you met (owner, 2026-11-24)
   const sw = (cls: string) => pg.seg("mode", [["received", f.t("connections.mode_received")], ["given", f.t("connections.mode_given")], ["mix", f.t("connections.mode_mix")]], mode, f.t("connections.mode_label"), "connections", cls);
-  out.push({ id: "connections", nav: f.t("nav.connections"), html: section("connections", "", cols(`<div class="block" data-panel="connections">${sw("under-title")}`
+  out.push({ id: "connections", nav: f.t("nav.connections"), html: section("connections", "", cols(`<div class="block" data-panel="connections">${sw("under-title")}<p class="note">${esc(f.t("pe2.conn_how"))}</p>`
     + (wide ? `<div class="graph-panel"><div class="graph-wide">${wide}</div><div class="graph-mid">${bubbles(f, conn, mode, { width: 840, href, label })}</div>`
       + `<div class="graph-narrow">${bubbles(f, conn, mode, { width: 420, href, label })}</div></div>`
       : `<p class="note">${esc(f.t("connections.empty"))}</p>`) + "</div>"),
-  { head: `<div class="panel-head"><h2>${esc(f.t("connections.title"))} ${info([f.t("stats.group_note"), connGone ? f.plural(connGone, "who.erased_note") : ""].filter(Boolean).join("\n"))}</h2>${sw("wide-only")}</div>` }) });
+  { head: `<div class="panel-head"><h2>${esc(f.t("pe2.conn_title"))} ${info([f.t("stats.group_note"), connGone ? f.plural(connGone, "who.erased_note") : ""].filter(Boolean).join("\n"))}</h2>${sw("wide-only")}</div>` }) });
 
   let net = pg.v.network || {};
   if (!net.nodes) net = net[pg.period] || {};
@@ -177,9 +182,9 @@ export function people(pg: Page): Section[] {
     + `</ul><h3>${esc(f.t("network.dir_title"))}</h3><ul>`
     + ["in", "out", "both"].map((d) => row(`<svg class="dir-key ${d}" viewBox="0 0 30 10" aria-hidden="true"><line x1="1" y1="5" x2="29" y2="5"/>`
       + (d === "both" ? '<line class="gap" x1="1" y1="5" x2="29" y2="5"/>' : "") + "</svg>", f.t(`network.dir_${d}`))).join("") + "</ul>";
-  out.push({ id: "circle", nav: f.t("nav.network"), html: section("circle", "", cols(`<div class="block" data-panel="network">`
+  out.push({ id: "circle", nav: f.t("nav.network"), html: section("circle", "", cols(`<div class="block" data-panel="network"><p class="note">${esc(f.t("pe2.circle_how"))}</p>`
     + (has ? `<div class="net-wrap"><aside class="net-side" aria-label="${esc(f.t("network.key_who"))}">${side}</aside><div class="net-plot graph-panel">`
       + `<div class="graph-wide">${ring(f, net, { width: 640, height: 640, compact: false, uid: "w", label: ringLabel })}</div><div class="graph-narrow">${ring(f, net, { width: 400, height: 400, compact: true, uid: "n", label: ringLabel })}</div></div></div>`
-      : `<p class="note">${esc(f.t("network.empty"))}</p>`) + "</div>"), { head: `<h2>${esc(f.t("network.title"))}</h2>`, lede: esc(f.t("network.lede")) }) });
+      : `<p class="note">${esc(f.t("network.empty"))}</p>`) + "</div>"), { head: `<h2>${esc(f.t("pe2.circle_title"))}</h2>`, lede: esc(f.t("network.lede")) }) });
   return out;
 }
