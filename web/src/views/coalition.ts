@@ -3,10 +3,8 @@
 import { madridParts } from "../fmt";
 import { BAD, S1, legend, vbars } from "../lib/charts";
 import { esc, safeColor, tipAttr } from "../lib/h";
-import { bonusFinding, leaving, rule, tierRows, weekFigure } from "./bonus";
+import { bonusFinding, leaving, rule, tierRows } from "./bonus";
 import { Page, Section, block, cols, fillRows, headBlock, info, monthsBetween, msOf, section } from "./page";
-
-const when = (pg: Page, iso: string) => `<span class="nw">${esc(pg.f.stamp(msOf(iso)))}</span>`;
 
 const isTig = (a: any) => a.key === "other" && a.points < 0;
 const SOURCES = ["evaluations", "projects", "exams", "logtime_50", "logtime_80", "wallet", "other", "tigs"];
@@ -127,13 +125,13 @@ export function coalition(pg: Page): Section[] {
   const W = D.logtime_bonus, tiers = dv.logtime_bonus as any[] | null, P = D.coalition_points;
   if (W && tiers && pg.period !== "piscine") {
     const sessions = W.sessions || [], week = tiers[0].window_h, drops = dv.logtime_drops || [];
-    const status = [W.open && sessions.length ? f.t("coal.s_open", { since: when(pg, sessions.reduce((a: any, b: any) => (b[1] > a[1] ? b : a))[0]) }) : esc(f.t("coal.s_closed")), f.t("coal.s_as_of", { time: when(pg, W.at) })].join(" · ");
-    const detail = `<div class="tp bonus-detail">${bonusFinding(f, tiers)}${weekFigure(f, week)}<p class="line note">${status}</p>${rule(f, week)}${tierRows(f, tiers, !!W.open, week, drops)}`
+    const status = [W.open && sessions.length ? f.t("coal.s_open", { since: pg.f.stamp(msOf(sessions.reduce((a: any, b: any) => (b[1] > a[1] ? b : a))[0])) }) : f.t("coal.s_closed"), f.t("coal.s_as_of", { time: f.stamp(msOf(W.at)) })].join(" · ");
+    const detail = `<div class="tp bonus-detail">${bonusFinding(f, tiers)}${rule(f, week)}${tierRows(f, tiers, !!W.open, week, drops)}`
       + `${leaving(f, drops, D.logtime?.log || [])}</div>`;
     const bonuses = P?.bonuses || [];
     const list = bonuses.map((b: any) => `<li><span><b>${esc(f.t("bonus.got", { hours: b.hours }))}</b><br><span class="note">${esc(f.stamp(msOf(b.at)))}</span></span>`
       + `<span class="when">+${esc(f.num(b.points))}</span></li>`).join("") || `<li class="note">${esc(f.t("bonus.none"))}</li>`;
-    out.push({ id: "bonus", nav: f.t("bonus.title"), html: section("bonus", "", cols(block("coal-bonus", detail),
+    out.push({ id: "bonus", nav: f.t("bonus.title"), html: section("bonus", "", cols(block("coal-bonus", detail, f.t("s3e.week"), status),
       block("bonus-history", `<ol class="list" tabindex="0" aria-label="${esc(f.t("bonus.history"))}">${list}${fillRows(bonuses.length, f.t("bonus.room"))}</ol>`, f.t("bonus.history"),
         bonuses.length ? f.t("bonus.history_note", { n: f.plural(bonuses.length, "coal.awards"), points: f.num(bonuses.reduce((s: number, b: any) => s + b.points, 0)) }) : "")),
     { head: `<h2>${esc(f.t("bonus.title"))} ${info(f.t("bonus.rule"))}</h2>` }) });

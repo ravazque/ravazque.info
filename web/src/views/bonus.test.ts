@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { Fmt } from "../fmt";
-import { bonusFinding, dropDays, rule, leaving, tierRows, underAt, weekFigure, type Tier } from "./bonus";
+import { bonusFinding, dropDays, rule, leaving, tierRows, underAt, type Tier } from "./bonus";
 import { coalition } from "./coalition";
 import { Page } from "./page";
 
@@ -75,7 +75,6 @@ test("Coalition: rows, the days leaving and the history, no chart of the coming 
 });
 
 test("a big figure keeps the space before its unit, the rows and days do not; hours read as hours and minutes", () => {
-  expect(weekFigure(f, 62.4)).toContain("62:24<small> h</small>");
   expect(tierRows(f, [tier("short", { need_h: 27.5 })], true, 52.5, [], NOW)).toContain("27:30h to go");
 });
 

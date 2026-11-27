@@ -472,7 +472,7 @@ test("a flag's badge: OK in green, Outstanding in deep green, a negative one in 
   expect(flagBadge(f, { flag: "Norme", negative_flag: true })).toBe('<span class="badge bad">Norme</span>');
 });
 
-test("fail rates are waffles with a finding said first; reciprocity too; no thin bars", async () => {
+test("fail rates are waffles with a title; reciprocity too; no thin bars", async () => {
   const { readFileSync } = await import("node:fs");
   const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8")), all = doc.periods.all;
   const f = new Fmt("en");
@@ -480,6 +480,6 @@ test("fail rates are waffles with a finding said first; reciprocity too; no thin
   const html = evaluations(pg).find((s) => s.id === "community")!.html;
   expect(html).not.toContain("rate-bar");
   expect(html.match(/class="waffle"/g)!.length).toBe(4);
-  expect(html).toContain('<p class="finding">');
+  expect(html).toContain("<h3>Evaluations you gave that ended in a fail</h3>");
   expect(say(f, "ev2.find_points", { earned: "5", spent: "<i>" })).toBe('<p class="finding">In this period you earned <b>5</b> [[correction points]] and spent <b>&lt;i&gt;</b>.</p>');
 });

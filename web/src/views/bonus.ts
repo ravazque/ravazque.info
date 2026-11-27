@@ -65,8 +65,6 @@ export function underAt(week: number, drops: Drop[], line: number): number | nul
   return null;
 }
 
-export const weekFigure = (f: Fmt, week: number) => `<p class="figure">${esc(f.hmm(week))}<small> h</small></p>`;
-
 /** The rule from nothing to 80h with the week on it, 50h named. */
 export function rule(f: Fmt, week: number) {
   return meter(week, 80, { label: f.t("coal.s_meter", { have: f.hmm(week), need: 80 }), marks: [{ at: 50, label: "50h" }], ends: ["0h", "80h"] });

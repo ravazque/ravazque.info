@@ -108,12 +108,12 @@ export function evaluations(pg: Page): Section[] {
   const cm = pg.v.derive?.community || { hours: 0, people: 0, correctors: 0 };
 
   // correction statistics live in Contribution
-  let statBlocks: string[] = [], byGroup = "", groupFinding = "", fails = "";
+  let statBlocks: string[] = [], byGroup = "", groupFinding = "";
   const st = D.stats;
   if (st) {
-    const rate = (r: any, key: string) => `<div class="rate"><p class="v">${r.pct === null || r.pct === undefined ? "–" : `${f.num(r.pct, 1)}<small>%</small>`}`
-      + `<span class="frac">${esc(f.t("stats.of", { n: r.n, total: r.total }))}</span></p>${waffle([{ label: f.t("ev2.failed"), value: r.n, color: BAD }, { label: f.t("ev2.rest"), value: r.total - r.n, color: NEUTRAL }], { label: f.t(key), num: (v) => f.num(v), note: f.t("wf.note") })}<p class="k">${esc(f.t(key))}</p></div>`;
-    const recip = (n: number, total: number, text: string) => `<div class="recip-row">${waffle([{ label: f.t("ev2.back"), value: n, color: OUTSTANDING }, { label: f.t("ev2.not_back"), value: total - n, color: NEUTRAL }], { label: text, num: (v) => f.num(v), note: f.t("wf.note") })}<p class="s">${esc(text)}</p></div>`;
+    const rate = (r: any, key: string, title: string) => `<div class="rate"><h3>${esc(f.t(title))}</h3><p class="v">${r.pct === null || r.pct === undefined ? "–" : `${f.num(r.pct, 1)}<small>%</small>`}`
+      + `<span class="frac">${esc(f.t("stats.of", { n: r.n, total: r.total }))}</span></p>${waffle([{ label: f.t("ev2.failed"), value: r.n, color: BAD }, { label: f.t("ev2.rest"), value: r.total - r.n, color: NEUTRAL }], { label: f.t(key), num: (v) => f.num(v) })}</div>`;
+    const recip = (n: number, total: number, text: string) => `<div class="recip-row">${waffle([{ label: f.t("ev2.back"), value: n, color: OUTSTANDING }, { label: f.t("ev2.not_back"), value: total - n, color: NEUTRAL }], { label: text, num: (v) => f.num(v) })}<p class="s">${esc(text)}</p></div>`;
     const R = st.outstanding_reciprocity;
     // every group, always, in order (as Points by source has every source): the ones with nothing greyed
     const groupOf = new Map<string, string>((pg.v.connections || []).map((c: any) => [c.login, c.group]));
@@ -123,11 +123,9 @@ export function evaluations(pg: Page): Section[] {
       in_pct: v.received ? (100 * v.received_out) / v.received : null, out_pct: v.given ? (100 * v.given_out) / v.given : null }));
     const top = [...groups].sort((a: any, b: any) => b.received - a.received)[0], totalIn = groups.reduce((s: number, g: any) => s + g.received, 0);
     if (top && top.received) groupFinding = say(f, "ev2.find_group", { n: top.received, total: totalIn, group: f.t(`groups.${top.g}`) });
-    const sentence = (r: any, key: string) => (r.total ? say(f, key, { b: f.t("ev2.of_the", { n: r.n, total: r.total }) }) : "");
-    fails = sentence(st.failed_given, "ev2.find_given") + sentence(st.failed_received, "ev2.find_received");
     const pctCell = (v: number | null) => (v === null ? "–" : `${f.num(v)}%`);
     statBlocks = [
-      block("fail-rates", `<div class="rates">${rate(st.failed_given, "stats.failed_given")}${rate(st.failed_received, "stats.failed_received")}`
+      block("fail-rates", `<div class="rates">${rate(st.failed_given, "stats.failed_given", "s3e.fail_given")}${rate(st.failed_received, "stats.failed_received", "s3e.fail_received")}`
         + `<div class="rate recip"><h3>${esc(f.t("stats.reciprocity_title"))}</h3>${recip(R.i_gave_back, R.gave_me, f.t("stats.recip_in", { back: R.i_gave_back, gave_me: R.gave_me }))}`
         + `${recip(R.they_gave_back, R.i_gave, f.t("stats.recip_out", { back: R.they_gave_back, i_gave: R.i_gave }))}</div></div>`)];
     byGroup = `<div class="block" data-panel="by-group"><h3>${esc(f.t("nav.by_group"))}</h3><div class="table-wrap">${table(f, [
@@ -139,7 +137,7 @@ export function evaluations(pg: Page): Section[] {
       ], groups, { label: f.t("stats.group_title"), sort: ["i", 1], rowCls: (r) => (r.received || r.given ? "" : "zero") })}</div></div>`;
   }
 
-  out.push({ id: "community", nav: f.t("community.title"), html: section("community", f.t("community.title"), fails + cols(block("kpis", kpis([
+  out.push({ id: "community", nav: f.t("community.title"), html: section("community", f.t("community.title"), cols(block("kpis", kpis([
     [f.t("community.k_hours"), `${esc(f.hmm(cm.hours))}&nbsp;h`, [esc(f.t("community.s_hours", { n: f.num(D.given.length) }))]],
     [f.t("community.k_people"), f.num(cm.people), [esc(f.t("community.s_people"))]],
     [f.t("community.k_correctors"), f.num(cm.correctors), [esc(f.t("community.s_correctors"))]],
@@ -169,7 +167,7 @@ export function evaluations(pg: Page): Section[] {
       legend([[f.t("flag.ok"), GOOD], [f.t("flag.outstanding"), OUTSTANDING], [f.t("flag.negative"), BAD]]),
       vbars(f, months.map((x: string) => f.monthLabel(x)), flagSeries,
         { label: f.t("received.monthly_title"), stacked: true, colTips: true, fmt: (v) => f.num(v), tips: flagTips, emptyText: f.t("empty.period") })),
-    headBlock("marks", f.t("received.marks_title"), legend(roles), vbars(f, bins.map(([b]) => b), [[f.t("role.received"), count(D.received), S1], [f.t("role.given"), count(D.given), S2]],
+    headBlock("marks", f.t("s3e.marks"), legend(roles), vbars(f, bins.map(([b]) => b), [[f.t("role.received"), count(D.received), S1], [f.t("role.given"), count(D.given), S2]],
       { label: f.t("received.marks_title"), lanes: true, fmt: (v) => f.num(v), emptyText: f.t("empty.period") })),
     headBlock("cum-evals", f.t("received.cum_title"), legend(roles), lines(f, [[f.t("role.received"), W.cum_received, S1], [f.t("role.given"), W.cum_given, S2]],
       { label: f.t("received.cum_title"), emptyText: f.t("empty.period"), to: reportDay })),
@@ -196,7 +194,7 @@ export function evaluations(pg: Page): Section[] {
   out.push({ id: "when", nav: f.t("nav.when"), html: section("when", f.t("when.title"), whenFinding + factsHtml + cols(
     block("heat-recv", heat(f, W.heat_received, ACCENT, f.t("unit.evaluations")), f.t("when.heat_recv_title")),
     block("heat-given", heat(f, W.heat_given, SLATE, f.t("unit.evaluations")), f.t("when.heat_given_title")),
-    `<div class="block" data-panel="duration"><div class="block-head"><h3>${esc(f.t("when.duration_title"))} ${info(f.t("when.duration_note"))}</h3>${legend(roles)}</div>` + vbars(f, durLabels, durSeries,
+    `<div class="block" data-panel="duration"><div class="block-head"><h3>${esc(f.t("s3e.duration"))} ${info(f.t("when.duration_note"))}</h3>${legend(roles)}</div>` + vbars(f, durLabels, durSeries,
       { label: f.t("when.duration_title"), barTips: named(durLabels, durSeries, "duration_min", W.duration_edges, 75), fmt: (v) => f.num(v), emptyText: f.t("empty.period") }) + "</div>",
     headBlock("lead", f.t("when.lead_title"), legend(roles), vbars(f, leadLabels, leadSeries,
       { label: f.t("when.lead_title"), barTips: named(leadLabels, leadSeries, "lead_h", W.lead_edges, 3), fmt: (v) => f.num(v), emptyText: f.t("empty.period") }))),
