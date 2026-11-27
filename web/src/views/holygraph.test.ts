@@ -206,11 +206,11 @@ test("the Holy graph page is the graph alone: no section title, the switch and k
 });
 
 
-test("a project 1 to 4 people did (policy v8): its slices and its whole tip with who did it, \"< 5\" in the middle", () => {
+test("a project 1 to 4 people did (policy v8): its slices and its whole tip with who did it, its share in the middle", () => {
   const html = outerOf([{ slug: "b", name: "B", milestone: "outer-core", registered: 2, passed: 1, failed: 1, first_try: 1, attempts: 3, failed_attempts: 2,
     logins: ["peer01", "peer02"], reasons: { norme: 2 } }]);
   const b = donutOf(html, "B");
-  expect(b).toContain(">&lt; 5</text>");
+  expect(b).toContain(">50%</text>"); // its exact share, like any other donut
   expect([...b.matchAll(/<path class="dn-([a-z]+)"/g)].map((m) => m[1])).toEqual(["track", "pass", "failed"]);
   const lines = b.match(/data-tip="([^"]*)"/)![1].split("\n");
   expect(lines.slice(0, 4)).toEqual(["B", "2 signed up, 3 attempts", "Who did it: peer01, peer02", "---"]);

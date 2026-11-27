@@ -202,7 +202,7 @@ function projectDonut(pg: Page, name: string, r: Row | undefined, under: string)
   if (!passed && !num(r.failed) && !num(r.lost_blackhole) && !gone) return donut([{ cls: "few", value: 1, label: "" }], few || r.passed === null ? f.t("holy.under5") : "–", name, under, donutTip(pg, name, r)); // every outcome under 5
   // passed with 3 Outstandings in deep green, the other passes in green, then failed, out of days and left unfinished; still on it: the track
   return donut([{ cls: "out", value: out, label: "" }, { cls: "pass", value: passed - out, label: "" }, { cls: "failed", value: num(r.failed), label: "" },
-    { cls: "lost", value: num(r.lost_blackhole), label: "" }, { cls: "gone", value: gone, label: "" }], few || r.passed === null ? f.t("holy.under5") : reg ? `${share}%` : "–", name, under, donutTip(pg, name, r)); // under 5: not a 0%
+    { cls: "lost", value: num(r.lost_blackhole), label: "" }, { cls: "gone", value: gone, label: "" }], r.passed === null ? f.t("holy.under5") : reg ? `${share}%` : "–", name, under, donutTip(pg, name, r)); // under 5: not a 0%
 }
 
 /** Everything the count knows of a project, worst to best (owner, 2026-11-25): out of days, failed attempts by flag and
