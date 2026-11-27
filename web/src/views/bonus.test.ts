@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { Fmt } from "../fmt";
-import { dropDays, leaving, tierRows, underAt, weekFigure, type Tier } from "./bonus";
+import { bonusFinding, dropDays, rule, leaving, tierRows, underAt, weekFigure, type Tier } from "./bonus";
 import { coalition } from "./coalition";
 import { Page } from "./page";
 
@@ -87,4 +87,11 @@ test("Every bonus so far shows templates of the rows to come while it has room, 
   expect(html([b, b])).toContain('<li class="fill" aria-hidden="true"><p>' + f.t("bonus.room") + "</p>");
   expect(html([])).toContain('class="fill"');
   expect(html(Array(24).fill(b))).not.toContain('class="fill"');
+});
+
+test("the bonus meter names 50h and the finding says what is left, only when the data gives it", () => {
+  expect(rule(f, 40)).toContain("mt-bar");
+  expect(rule(f, 40)).toContain(">50h<");
+  expect(bonusFinding(f, [tier("to_go", { need_h: 3.5 }), tier("to_go", { hours: 80, points: 1000, need_h: 43.5 })])).toContain("<b>3:30h</b>");
+  expect(bonusFinding(f, [tier("ready"), tier("cooldown")])).toBe("");
 });

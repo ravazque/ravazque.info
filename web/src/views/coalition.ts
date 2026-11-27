@@ -3,7 +3,7 @@
 import { madridParts } from "../fmt";
 import { BAD, S1, legend, vbars } from "../lib/charts";
 import { esc, safeColor, tipAttr } from "../lib/h";
-import { leaving, rule, tierRows, weekFigure } from "./bonus";
+import { bonusFinding, leaving, rule, tierRows, weekFigure } from "./bonus";
 import { Page, Section, block, cols, fillRows, headBlock, info, monthsBetween, msOf, section } from "./page";
 
 const when = (pg: Page, iso: string) => `<span class="nw">${esc(pg.f.stamp(msOf(iso)))}</span>`;
@@ -11,10 +11,25 @@ const when = (pg: Page, iso: string) => `<span class="nw">${esc(pg.f.stamp(msOf(
 const isTig = (a: any) => a.key === "other" && a.points < 0;
 const SOURCES = ["evaluations", "projects", "exams", "logtime_50", "logtime_80", "wallet", "other", "tigs"];
 
-/** Each source's colour, the same in the sources and in the months (which need no key of their own): the page's accent,
- * a tone of it toward the text for the hours (the logtime bonuses: darker in light mode, lighter in dark), red for TIGs. */
-const sourceColor = (key: string, base: string) =>
-  key === "tigs" ? BAD : key.startsWith("logtime") ? `color-mix(in oklab, ${base} 55%, var(--ink))` : base;
+/** Each source's colour, the same in the sources and in the months (which need no key of their own): the category
+ * colours in order, grey for the rest, red for TIGs. */
+const CAT: Record<string, string> = { evaluations: "var(--cat-1)", projects: "var(--cat-2)", exams: "var(--cat-3)", logtime_50: "var(--cat-4)", logtime_80: "var(--cat-5)", wallet: "var(--cat-6)", other: "var(--muted)" };
+const sourceColor = (key: string) => (key === "tigs" ? BAD : key.startsWith("logtime") && !CAT[key] ? CAT.logtime_50 : CAT[key] || "var(--muted)");
+
+/** The finding over the standings: your place and the gap to the coalition next to it (first: ahead of the second). */
+export function standingFinding(f: Page["f"], C: any[]): string {
+  const sorted = [...C].sort((a, b) => b.score - a.score), i = sorted.findIndex((c) => c.mine);
+  if (i < 0 || sorted.length < 2) return "";
+  const n = i + 1, other = i === 0 ? sorted[1] : sorted[0];
+  return `<p class="finding">${f.t(i === 0 ? "coal2.first" : "coal2.behind", { n: `<b>${f.num(n)}</b>`, points: `<b>${esc(f.num(Math.abs(sorted[i].score - other.score)))}</b>` })}</p>`;
+}
+
+/** The finding over the sources: the one that gave most, as a share of the points given. */
+export function sourceFinding(f: Page["f"], src: any[]): string {
+  const sum = src.reduce((t, s) => t + Math.max(0, s.points), 0), top = src.find((s) => s.points > 0);
+  if (!top) return "";
+  return `<p class="finding">${f.t("coal2.top_source", { pct: `<b>${esc(f.num((100 * top.points) / sum, 0))}%</b>`, source: esc(f.t(`coal.src.${top.key}`)) })}</p>`;
+}
 
 /** The sources of your points: one bar split by share (points given), then a row for every source, the ones at nothing
  * too (an empty square, grey), with its colour, points, share and awards (TIGs in red, last). */
@@ -102,7 +117,7 @@ export function coalition(pg: Page): Section[] {
       : `<li class="${c.mine ? "mine" : ""}"><span class="rank">${esc(c.rank)}</span><span class="name"><i style="background:${safeColor(c.color)}"></i>`
         + `${esc(c.name)}</span><span class="track"><b style="width:${((100 * c.score) / best).toFixed(1)}%;`
         + `background:${safeColor(c.color)}"></b></span><span class="num">${f.num(c.score)}</span></li>`).join("");
-    out.push({ id: "standing", nav: f.t("nav.standing"), html: section("standing", f.t("standing.title"), cols(
+    out.push({ id: "standing", nav: f.t("nav.standing"), html: section("standing", f.t("standing.title"), standingFinding(f, C) + cols(
       C.length ? block("coalitions", `<ol class="standings${banners ? " banners" : ""}">${coal}</ol>`, f.t("standing.coalitions")) : "",
       recent ? `<div class="block recent" data-panel="coal-recent"><h3>${esc(f.t("standing.recent"))}</h3>`
         + `<ol class="list" tabindex="0" aria-label="${esc(f.t("standing.recent"))}">${recent}</ol></div>` : ""), { head: switcher }) });
@@ -113,7 +128,7 @@ export function coalition(pg: Page): Section[] {
   if (W && tiers && pg.period !== "piscine") {
     const sessions = W.sessions || [], week = tiers[0].window_h, drops = dv.logtime_drops || [];
     const status = [W.open && sessions.length ? f.t("coal.s_open", { since: when(pg, sessions.reduce((a: any, b: any) => (b[1] > a[1] ? b : a))[0]) }) : esc(f.t("coal.s_closed")), f.t("coal.s_as_of", { time: when(pg, W.at) })].join(" · ");
-    const detail = `<div class="tp bonus-detail">${weekFigure(f, week)}<p class="line note">${status}</p>${rule(f, week)}${tierRows(f, tiers, !!W.open, week, drops)}`
+    const detail = `<div class="tp bonus-detail">${bonusFinding(f, tiers)}${weekFigure(f, week)}<p class="line note">${status}</p>${rule(f, week)}${tierRows(f, tiers, !!W.open, week, drops)}`
       + `${leaving(f, drops, D.logtime?.log || [])}</div>`;
     const bonuses = P?.bonuses || [];
     const list = bonuses.map((b: any) => `<li><span><b>${esc(f.t("bonus.got", { hours: b.hours }))}</b><br><span class="note">${esc(f.stamp(msOf(b.at)))}</span></span>`
@@ -132,7 +147,7 @@ export function coalition(pg: Page): Section[] {
     const month = (m: string) => `${f.months[+m.slice(5, 7) - 1]} ${m.slice(0, 4)}`;
     const given = src.filter((s: any) => s.points);
     const bySource = monthsBySource(P, months.map((m: any) => m.month));
-    const base = S1, tone = (k: string) => sourceColor(k, base); // the page's accent: the 42 blue, or the coalition's when chosen
+    const base = S1, tone = sourceColor;
     const minus = src.some((s: any) => s.points < 0) || months.some((m: any) => m.logtime < 0 || m.other < 0);
     const tigName = f.t("coal.src.tigs"), anyTig = months.some((m: any) => m.tigs < 0);
     // every month stacked by source, in the sources' colours (TIGs in red at their size); a report saved before every award
@@ -150,7 +165,7 @@ export function coalition(pg: Page): Section[] {
     out.push({ id: "coal-points", nav: f.t("nav.coal"), html: section("coal-points", f.t("coal.title"), cols(
       // what your points are made of: one bar split by source, then every source with its points, share and awards, in its
       // colour (the key to the months beside it)
-      block("coal-sources", sourcesShare(f, src, tone), f.t("coal.sources")),
+      block("coal-sources", sourceFinding(f, src) + sourcesShare(f, src, tone), f.t("coal.sources")),
       // stacked by source, the bars beside are its key; the older two-part chart keeps a key of its own
       ((chart: string) => (bySource ? block("coal-months", chart, f.t("coal.months")) : headBlock("coal-months", f.t("coal.months"), legend(monthSeries.map(([n, , c]) => [n, c])), chart)))(
         vbars(f, months.map((m: any) => f.monthLabel(m.month)), monthSeries,

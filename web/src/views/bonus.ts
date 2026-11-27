@@ -2,6 +2,7 @@
 // with its state and its reset, and the days the coming hours leave on, each opening to the times and sessions.
 import type { Fmt } from "../fmt";
 import { madridParts } from "../fmt";
+import { meter } from "../lib/charts";
 import { esc } from "../lib/h";
 import { info } from "./page";
 
@@ -66,14 +67,16 @@ export function underAt(week: number, drops: Drop[], line: number): number | nul
 
 export const weekFigure = (f: Fmt, week: number) => `<p class="figure">${esc(f.hmm(week))}<small> h</small></p>`;
 
-/** The rule from nothing to 80h with the week on it. */
+/** The rule from nothing to 80h with the week on it, 50h named. */
 export function rule(f: Fmt, week: number) {
-  const top = 80;
-  return `<div class="tmeter" role="img" aria-label="${esc(f.t("coal.s_meter", { have: f.hmm(week), need: top }))}">`
-    + `<i style="width:${Math.min(100, (100 * week) / top).toFixed(1)}%"></i><em style="left:62.5%"></em><em class="end"></em></div>`
-    + `<div class="tticks" aria-hidden="true"><span style="left:0">0h</span><span style="left:62.5%">50h</span><span class="end">80h</span></div>`;
+  return meter(week, 80, { label: f.t("coal.s_meter", { have: f.hmm(week), need: 80 }), marks: [{ at: 50, label: "50h" }], ends: ["0h", "80h"] });
 }
 
+/** What is left for the nearest bonus not yet won: only when the data says (a bonus waiting for its logout or resting says nothing). */
+export function bonusFinding(f: Fmt, tiers: Tier[]) {
+  const t = tiers.filter((x) => x.state !== "ready" && x.state !== "cooldown" && x.need_h > 0).sort((a, b) => a.hours - b.hours)[0];
+  return t ? `<p class="finding">${f.t("coal2.bonus_left", { n: `<b>${esc(f.hmm(t.need_h))}h</b>`, hours: t.hours, points: esc(f.num(t.points)) })}</p>` : "";
+}
 /** One row per bonus: its state, and the one date that matters in that state. */
 export function tierRows(f: Fmt, tiers: Tier[], open: boolean, week: number, drops: Drop[], now = Date.now()) {
   return `<div class="tiers">${tiers.map((t) => {

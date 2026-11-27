@@ -69,7 +69,7 @@ test("Points by source reads from its title, with every source, also for someone
   for (const k of ["evaluations", "projects", "exams", "logtime_50", "logtime_80", "wallet", "other", "tigs"]) expect(html).toContain(f.t(`coal.src.${k}`));
 });
 
-test("Points by source lists every source, the ones at nothing too, in three colours: the page's accent, a tone of it for the hours, red for TIGs", () => {
+test("Points by source lists every source, the ones at nothing too, in category colours, red for TIGs", () => {
   const P = { total: 600, count: 3, sources: [{ key: "evaluations", points: 500, count: 1 }, { key: "logtime_50", points: 400, count: 1 }, { key: "tigs", points: -300, count: 1 }],
     months: [], awards: [], bonuses: [] };
   const pg = new Page(new Fmt("en"), { report: { profile: { coalition: { name: "Ignisaria", color: "#ff6950" } }, coalition_points: P, given: [], projects: [] }, all_projects: [] } as any, "coalition", {});
@@ -78,8 +78,7 @@ test("Points by source lists every source, the ones at nothing too, in three col
   expect(list.match(/<li/g)?.length).toBe(8);
   expect(html).not.toContain("none_from");
   const colours = new Set([...list.matchAll(/class="sw" style="background:([^"]+)"/g)].map((m) => m[1]));
-  expect(colours.size).toBe(3);
-  expect(colours).toContain("var(--accent-data)"); // the 42 blue, or the coalition's colour when that accent is chosen
+  expect(colours).toEqual(new Set(["var(--cat-1)", "var(--cat-4)", "var(--critical)"]));
   expect(list.match(/<li class="zero"[^>]*><i class="sw"><\/i>/g)?.length).toBe(5); // the ones at nothing: an empty square
 });
 
@@ -98,4 +97,15 @@ test("the Piscine coalition only for whoever had one: the chosen period decides,
   expect(coalitionMode("student", true, "piscine")).toBe("student");
   expect(coalitionMode("all", true, "piscine")).toBe("piscine");
   expect(coalitionMode("all", true, "student")).toBe("student");
+});
+
+test("the standings open with a finding: your place and the gap to the next coalition", async () => {
+  const { standingFinding, sourceFinding } = await import("./coalition");
+  const f = new Fmt("en");
+  const C = [{ name: "A", score: 5000, mine: false }, { name: "B", score: 3770, mine: true }, { name: "C", score: 100, mine: false }];
+  expect(standingFinding(f, C)).toContain("<b>2</b>");
+  expect(standingFinding(f, C)).toContain("1,230");
+  expect(standingFinding(f, [{ score: 9, mine: true }, { score: 4, mine: false }])).toContain("first");
+  expect(standingFinding(f, [{ score: 9, mine: false }])).toBe("");
+  expect(sourceFinding(f, [{ key: "exams", points: 300 }, { key: "projects", points: 100 }])).toContain("<b>75%</b>");
 });
