@@ -1,3 +1,5 @@
 /* friendlier people (2026-11-27): this page's own rules for the new forms */
 :where(body:not(.site)) [data-panel="correctors"] > .note, :where(body:not(.site)) [data-panel="connections"] > .note,
 :where(body:not(.site)) [data-panel="network"] > .note, :where(body:not(.site)) [data-panel="table-people"] > .note { margin: 0 0 10px; max-width: 62ch; }
+:where(body:not(.site)) .conn-key { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-size: 14px; color: var(--text-2); }
+:where(body:not(.site)) .conn-key svg { width: 40px; height: 20px; flex: none; fill: var(--text-2); }

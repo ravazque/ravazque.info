@@ -10,6 +10,7 @@ import "./styles/friendly-coalition.css";
 import "./styles/friendly-projects.css";
 import "./styles/friendly-people.css";
 import "./styles/friendly-madrid.css";
+import "./styles/friendly-campus.css";
 import "./styles/spacing.css";
 import "./styles/zoom.css";
 import "./devsim";

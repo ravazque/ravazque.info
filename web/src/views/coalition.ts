@@ -112,7 +112,7 @@ export function coalition(pg: Page): Section[] {
         + (c.cover ? `<img class="cover" src="${esc(img(c.cover))}" alt="" loading="lazy" data-fallback>` : "")
         + `<span class="rank">${esc(c.rank)}</span>`
         + (c.logo ? `<img class="logo" src="${esc(img(c.logo))}" alt="" data-fallback>` : `<i class="logo" aria-hidden="true"></i>`)
-        + `<span class="name">${esc(c.name)}</span><span class="num">${f.num(c.score)}</span>`
+        + `<span class="name">${esc(c.name)}</span>${c.mine ? `<span class="you-tag">${esc(f.t("standing.mine"))}</span>` : ""}<span class="num">${f.num(c.score)}</span>`
         + `<span class="track" aria-hidden="true"><b style="width:${((100 * c.score) / best).toFixed(1)}%"></b></span></li>`
       : `<li class="${c.mine ? "mine" : ""}"><span class="rank">${esc(c.rank)}</span><span class="name"><i style="background:${safeColor(c.color)}"></i>`
         + `${esc(c.name)}</span><span class="track"><b style="width:${((100 * c.score) / best).toFixed(1)}%;`
@@ -167,7 +167,7 @@ export function coalition(pg: Page): Section[] {
       // colour (the key to the months beside it)
       block("coal-sources", sourceFinding(f, src) + sourcesShare(f, src, tone), f.t("coal.sources")),
       // stacked by source, the bars beside are its key; the older two-part chart keeps a key of its own
-      ((chart: string) => (bySource ? block("coal-months", chart, f.t("coal.months")) : headBlock("coal-months", f.t("coal.months"), legend(monthSeries.map(([n, , c]) => [n, c])), chart)))(
+      ((chart: string) => headBlock("coal-months", f.t("coal.months"), legend(monthSeries.map(([n, , c]) => [n, c])), chart))(
         vbars(f, months.map((m: any) => f.monthLabel(m.month)), monthSeries,
           { label: f.t("coal.months"), stacked: true, tight: true, colTips: !!bySource, fmt: (v) => f.num(v), tips: monthTips, every: Math.ceil(months.length / 6) || 1, emptyText: f.t("empty.period") }))),
     { lede: esc(total) + (minus ? ` ${esc(f.t("coal.minus"))}` : "") }) });

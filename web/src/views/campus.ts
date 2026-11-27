@@ -66,7 +66,7 @@ export function campus(pg: Page): Section[] {
   const dayTotals = (L.heat || []).map((row: number[]) => row.reduce((a, b) => a + b, 0)), busyH = byHour.indexOf(peak);
   const heatFinding = any ? `<p class="finding">${f.t("pe2.finding_heat", { day: f.t("pe2.weekdays").split(" ")[dayTotals.indexOf(Math.max(...dayTotals))], h: busyH, h2: busyH + 1 })}</p>` : "";
   out.push({ id: "days", nav: f.t("nav.days"), html: section("days", f.t("days.title"), heatFinding + cols(
-    block("calendar", `<div class="cal-scroll">${cal}</div>`, f.t("pe2.cal_title")),
+    block("calendar", `<div class="cal-scroll">${cal}</div><div class="cal-key" aria-hidden="true"><span>${esc(f.t("fx.cal_less"))}</span>${[0, .25, .5, .75, 1].map((v) => `<i class="d on" style="--v:${v}"></i>`).join("")}<span>${esc(f.t("fx.cal_more"))}</span></div>`, f.t("pe2.cal_title")),
     `<div class="block" data-panel="hours-month"><div class="block-head"><h3>${esc(f.t(daily ? "seats.day_title" : "seats.month_title"))}</h3>`
     + (peakAt >= 0 ? `<span class="head-figure">${esc(f.t("seats.peak", { v: f.hmm(values[peakAt]), label: labels[peakAt] }))}</span>` : "") + `</div><p class="note">${esc(f.t("pe2.month_how"))}</p>`
     + vbars(f, labels, [[f.t("unit.hours"), values, S1]], { label: f.t("seats.month_aria"), fmt: (v) => f.nb(v, "h"), colTips: true, emptyText: f.t("empty.sessions") }) + "</div>",
@@ -184,7 +184,7 @@ function where(pg: Page): Section {
   const wf = topC && topC[1] ? `<p class="finding">${f.t("pe2.finding_where", { n: f.num(topC[1]), c: esc(topC[0]) })}</p>` : "";
   return [
     ...(WHERE_PLAN ? [`<div class="block" data-panel="where-plan"><div class="block-head">${wscale}</div>${wplan}</div>`] : []),
-    headBlock("where-clusters", f.t(`pe2.where_${role}`), series.length > 1 && total ? legend(series.map(([n, , c]) => [n, c])) : "",
+    headBlock("where-clusters", f.t(`pe2.where_${role}`), series.length && total ? legend(series.map(([n, , c]) => [n, c])) : "",
       wf + vbars(f, ckeys.map(lab), series.map(([n, v, c]) => [n, ckeys.map((k) => v[k] || 0), c]), { label: f.t(`pe2.where_${role}`), fmt: (v) => f.num(v), barTips, emptyText: f.t("empty.period") }), total ? cover : ""), // none yet: the empty note alone
     awayTable];
   };

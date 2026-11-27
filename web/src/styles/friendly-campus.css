@@ -1,0 +1,7 @@
+/* friendlier campus (2026-11-27) */
+:where(body:not(.site)) h2 { overflow-wrap: anywhere; text-wrap: balance; }
+:where(body:not(.site)) .cal-key { display: flex; align-items: center; gap: 4px; margin-top: 8px; font-size: 13px; color: var(--text-2); }
+:where(body:not(.site)) .cal-key .d { display: block; width: 14px; height: 14px; aspect-ratio: auto; }
+:where(body:not(.site)) .cal-key span:first-child { margin-right: 4px; }
+:where(body:not(.site)) .cal-key span:last-child { margin-left: 4px; }
+:where(body:not(.site)) .drop-day b small { display: block; font: 500 12px var(--type-font-display); color: var(--text-2); }

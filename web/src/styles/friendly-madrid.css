@@ -1,3 +1,5 @@
 /* friendlier madrid (2026-11-27): this page's own rules for the new forms */
 :where(body:not(.site)) .wf-title { margin: 28px 0 0; font-size: 16px; font-weight: 700; }
 :where(body:not(.site)) .hg-funnel-text .finding { margin-top: 0; }
+:where(body:not(.site)) .ring-funnel .rf-label { font-size: 15px; font-weight: 700; fill: var(--text-2); }
+:where(body:not(.site)) .split-bars .sb-label { max-width: none; overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; line-height: 1.2; }

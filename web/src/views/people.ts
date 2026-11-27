@@ -148,6 +148,7 @@ export function people(pg: Page): Section[] {
   // by the title; on phones under its line, as Everyone you met (owner, 2026-11-24)
   const sw = (cls: string) => pg.seg("mode", [["received", f.t("connections.mode_received")], ["given", f.t("connections.mode_given")], ["mix", f.t("connections.mode_mix")]], mode, f.t("connections.mode_label"), "connections", cls);
   out.push({ id: "connections", nav: f.t("nav.connections"), html: section("connections", "", cols(`<div class="block" data-panel="connections">${sw("under-title")}<p class="note">${esc(f.t("pe2.conn_how"))}</p>`
+    + (wide ? `<p class="conn-key"><svg viewBox="0 0 40 20" aria-hidden="true"><circle cx="8" cy="10" r="4"/><circle cx="28" cy="10" r="9"/></svg><span>${esc(f.t("fx.conn_key"))}</span></p>` : "")
     + (wide ? `<div class="graph-panel"><div class="graph-wide">${wide}</div><div class="graph-mid">${bubbles(f, conn, mode, { width: 840, href, label })}</div>`
       + `<div class="graph-narrow">${bubbles(f, conn, mode, { width: 420, href, label })}</div></div>`
       : `<p class="note">${esc(f.t("connections.empty"))}</p>`) + "</div>"),

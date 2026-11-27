@@ -1,1 +1,6 @@
 /* friendlier projects (2026-11-27): this page's own rules for the new forms */
+/* phones: the bars carry every skill; the radar's ~20 labels do not fit */
+@media (max-width: 599.98px) {
+  :where(body:not(.site)) .radar-pair .radar-fig, :where(body:not(.site)) .seg.skills-sw { display: none; }
+  :where(body:not(.site)) .radar-pair[data-show] .radar-bars { display: block; border-top: 0; padding-top: 0; }
+}

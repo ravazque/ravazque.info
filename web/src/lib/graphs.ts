@@ -337,7 +337,7 @@ export function ring(f: Fmt, net: Net, o: { width: number; height: number; compa
     const d = degree[n.login] || 0;
     const tip = n.group === "me" ? n.login : [show(n.login), f.t(`groups.${n.group}`), f.t("network.tip", { count: d, n: d })].join(" · ");
     let text = "";
-    const meText = n.group === "me" ? `<text y="${(n.r + 18).toFixed(1)}" text-anchor="middle">${esc(n.login)}</text>` : "";
+    const meText = n.group === "me" ? `<text y="${(n.r + 18).toFixed(1)}" text-anchor="middle">${esc(f.t("network.key_me"))}</text>` : "";
     if (n.group !== "me" && !o.compact) {
       const anchor = Math.cos(n.a) > 0.15 ? "start" : Math.cos(n.a) < -0.15 ? "end" : "middle";
       // clear of its node: under it the cap height, over it the descenders also need room

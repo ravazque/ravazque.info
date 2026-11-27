@@ -102,7 +102,7 @@ export function tierRows(f: Fmt, tiers: Tier[], open: boolean, week: number, dro
 export function leaving(f: Fmt, drops: Drop[], log: LogRow[] = []) {
   const days = dropDays(f, drops, log);
   if (!days.length) return "";
-  const list = days.map((d) => `<details class="drop-day"><summary><span>${esc(d.day)}</span><b>−${esc(f.nb(d.hours, "h"))}</b>`
+  const list = days.map((d) => `<details class="drop-day"><summary><span>${esc(d.day)}</span><b>−${esc(f.nb(d.hours, "h"))}<small>${esc(f.t("fx.leaves"))}</small></b>`
     + `<span class="left">${esc(f.t("bonus.left", { n: f.hmm(d.left) }))}</span></summary><ul>`
     + d.rows.map((r) => `<li><span class="nw">${esc(r.from)}–${esc(r.to)}</span><span>${esc(f.t("bonus.session", { day: r.session }))}</span><b>−${esc(f.nb(r.hours, "h"))}</b></li>`).join("")
     + "</ul></details>").join("");

@@ -186,7 +186,7 @@ export function projects(pg: Page, stats: any = null): Section[] {
     skills = (best.level > 0 ? `<p class="finding">${f.t("pr2.skills_finding", { name: esc(best.name), level: f.level(best.level) })}</p>` : "")
       + `<div class="radar-pair" data-show="${show}"><div class="radar-fig">${radar(f, items, f.t("extras.skills_title"))}</div><div class="radar-bars">${bars}</div></div>`;
   }
-  const sw = items.length ? pg.seg("skills", [["radar", f.t("skills.radar")], ["bars", f.t("skills.bars")]], show, f.t("skills.view"), "skills", "phone-only title-line") : "";
+  const sw = items.length ? pg.seg("skills", [["radar", f.t("skills.radar")], ["bars", f.t("skills.bars")]], show, f.t("skills.view"), "skills", "phone-only title-line skills-sw") : "";
   out.push({ id: "skills", nav: f.t("extras.skills_title"), html: section("skills", "", cols(block("skills", skills)),
     { head: `<div class="panel-head"><h2>${esc(f.t("pr2.skills_title"))} ${info(f.t("pr2.skills_info"))}</h2>${sw}</div>` }) });
 

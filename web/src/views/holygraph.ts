@@ -307,10 +307,11 @@ function campusSections(pg: Page, kind: "c" | "python", stats: any): Section[] {
   const bhTotal = RANKS.map((m) => num(S.blackhole.by_milestone[m]));
   const rings: Ring[] = RANKS.map((m, i) => {
     const reached = people ? num(F.reached[i]) / people : 0, lost = num(S.funnel.c.people) + num(S.funnel.python.people) ? bhTotal[i] / (num(S.funnel.c.people) + num(S.funnel.python.people)) : 0;
-    return { label: `${i}`, reached, lost, tip: f.t("holy.ring_tip", { m: f.t(`groups.${m}`), reached: n(F.reached[i]), share: Math.round(reached * 100), bh: n(S.blackhole.by_milestone[m]) }) };
+    return { label: `M${i}`, reached, lost, tip: f.t("holy.ring_tip", { m: f.t(`groups.${m}`), reached: n(F.reached[i]), share: Math.round(reached * 100), bh: n(S.blackhole.by_milestone[m]) }) };
   });
   const funnel = `<div class="hg-funnel">${ringFunnel(rings, f.num(people), f.t("holy.funnel"))}<div class="hg-funnel-text">`
     + `<p class="finding">${f.t("holy.funnel_lead", { people: esc(n(F.people)), track: esc(f.t(`holy.track_${kind}`)), m6: `<b>${Math.round((100 * num(F.reached[6])) / Math.max(1, people))}%</b>` })}</p>`
+    + `<p class="note">${esc(f.t("fx.ring_key"))}</p>`
     + `<ul class="sb-key"><li><i class="rf-reached"></i>${esc(f.t("holy.key_reached"))}</li><li><i class="rf-lost"></i>${esc(f.t("holy.key_bh"))}</li></ul>`
     + `<p class="note">${esc(f.t("holy.people_line", { total: n(S.people.total), active: n(S.people.by_state.active), bh: n(S.people.by_state.blackholed), tr: n(S.people.by_state.transcender), al: n(S.people.by_state.alumni) }))}</p>`
     + (S.people.excluded !== undefined && S.people.excluded !== 0 ? `<p class="note">${esc(f.t("holy.excluded", { n: n(S.people.excluded) }))}</p>` : "")

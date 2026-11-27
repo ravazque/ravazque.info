@@ -3,3 +3,5 @@
 :where(body:not(.site)) .standings:not(.banners) .track { height: 24px; }
 :where(body:not(.site)) .standings:not(.banners) .num { font: 700 17px var(--type-font-display); color: var(--ink); font-variant-numeric: tabular-nums; }
 :where(body:not(.site)) .standings:not(.banners) li:not(.mine) .name { font-weight: 500; }
+:where(body:not(.site)) .standings.banners .you-tag { font: 700 12px var(--type-font-display); text-transform: uppercase; letter-spacing: .06em; padding: 3px 8px; background: var(--on-image); color: var(--wash); }
+:where(body:not(.site)) .standings.banners li.mine { outline: 4px solid var(--ink); outline-offset: -4px; }
