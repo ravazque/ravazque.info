@@ -36,3 +36,4 @@ web/dist-offline/
 .update-check.tmp
 /.holygraph-raw.json
 server/core/data/i18n/.lock
+.branches/
