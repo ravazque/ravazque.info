@@ -108,7 +108,7 @@ test("a donut's tip in sections: the shares first (passed, failed, out of days, 
   const rules = lines.map((l, i) => (l === "---" ? i : -1)).filter((i) => i > 0);
   expect(rules.length).toBe(3);
   expect(lines[rules[1] + 1]).toBe("# Failed attempts: 41");
-  expect(lines.slice(rules[1] + 2, rules[2])).toEqual(["· flag Norm: 7", "· flag Leaks: < 5", "· no flag, Evaluation marks: 12", "· no flag, Automatic grading (inferred): 5"]);
+  expect(lines.slice(rules[1] + 2, rules[2])).toEqual(["· flag Norm: 7", "· flag Leaks: < 5", "· no flag, Evaluation marks: 12", "· no flag, Automatic tests (best guess): 5"]);
   expect(lines[rules[2] + 1]).toBe("# How they passed");
   for (const s of ["first try: 99", "3 Outstandings: 40", "Outstandings given: 210"]) expect(lines.slice(rules[2]).some((l) => l.includes(s))).toBe(true);
   expect(tip).not.toContain("Cheat"); // nothing to say: no line
@@ -215,4 +215,17 @@ test("a project 1 to 4 people did (policy v8): its slices and its whole tip with
   const lines = b.match(/data-tip="([^"]*)"/)![1].split("\n");
   expect(lines.slice(0, 4)).toEqual(["B", "2 signed up, 3 attempts", "Who did it: peer01, peer02", "---"]);
   for (const s of ["50% passed · 1", "50% failed, never passed · 1", "· flag Norm: 2", "Passed on the first try: 1"]) expect(lines).toContain(s);
+});
+
+test("friendlier forms: admission as 100 squares with a finding, why attempts fail opens with its most common reason, details of the count in a tip", () => {
+  const stats = { ...statsWith([]), piscine: { people: { total: 200, admitted: 50 }, piscines: [], projects: [] } };
+  const adm = sectionOf(stats, "madrid", "piscine");
+  expect(adm.match(/class="wf-sq"/g)).toHaveLength(100);
+  expect(adm).toContain('<p class="finding"><b>25%</b> of the 200 people');
+  const why = sectionOf({ ...statsWith([{ slug: "42cursus-libft", name: "Libft", milestone: "rank-00", track: "c", registered: 50, attempts: 60, failed_attempts: 10, reasons: { norme: 8, cheat: 2 } }]) }, "why");
+  expect(why).toContain('<p class="finding">The most common reason an attempt fails: Norm, <b>80%</b> of the 10 failed attempts.');
+  const madrid = sectionOf(statsWith([]), "madrid");
+  expect(madrid).toContain('<p class="finding">');
+  expect(madrid).toContain("The count used 1 requests to 42"); // the cost lives in the tip, not the visible note
+  expect(madrid).not.toMatch(/<p class="note">[^<]*requests/);
 });

@@ -48,8 +48,13 @@ test("each exam: who signed up, passed, how many sittings failed, passed the fir
   expect(rows[0][7]).toBe("21.5");
   expect(rows[0][8]).toBe("Passed, sitting 2");
   expect(rows[1][8]).toBe("1 sitting, not passed");
-  expect(c.html).toContain("The hardest: Exam Rank 02. 75% of its sittings fail");
-  expect(tips(c.html).find((t) => t.startsWith("Exam Rank 02\nMedian sitting: 2"))).toContain("Sitting 4 or later: 331 (33%)");
+  expect(c.html).toContain("Exam Rank 02 is the hardest exam: <b>75%</b> of the times it is sat end in a fail");
+  expect(c.html).toContain("Of every 100 who pass Exam Rank 02, on which try"); // the hardest exam's waffle
+  expect(c.html.match(/class="wf-sq"/g)).toHaveLength(100);
+  expect(c.html).toContain("Half pass by try 2"); // each row: the median try, plain
+  expect(c.html).not.toContain("tries-bar");
+  expect(c.html).toContain("shows &lt; 5 instead of the number"); // under 5, said once per page
+  expect(tips(c.html).find((t) => t.startsWith("Exam Rank 02: the try on which students passed it\nMedian sitting: 2"))).toContain("Sitting 4 or later: 331 (33%)");
   expect(py.id).toBe("exams-python"); // 1 to 4 signed up: exact figures (policy v8)
   expect(py.html).toContain("67% · 2");
 });

@@ -2,7 +2,7 @@
 // week, the twelve before it, who is here) and Exams (how each exam of both tracks and of the Piscine goes, and you);
 // Projects and Piscine are holygraph.ts' campus figures. Every figure under 5 people says so; every tip says how it counts.
 import { esc, tipAttr } from "../lib/h";
-import { vbars, legend, S1, GOOD, BAD } from "../lib/charts";
+import { vbars, legend, waffle, S1, GOOD, BAD } from "../lib/charts";
 import { table, type Col } from "../lib/table";
 import { cohortsSection } from "./holygraph";
 import { type Page, type Section, cols, block, info, section } from "./page";
@@ -30,17 +30,19 @@ export function summaryPage(pg: Page, S: any): Section[] {
     const how = (key: string) => ["---", `# ${f.t("campus.how")}`, ...(f.raw(key) as string[]), f.t("campus.how_optout"), f.t("campus.how_under5")];
     const mod = (title: string, value: string, sub: string, tip: string[]) =>
       `<div${tipAttr([`${title} · ${span(pg, W.from, W.to)}`, ...tip].join("\n"))}><h3>${esc(title)}</h3><p class="v">${value}</p>${sub ? `<p class="s">${esc(sub)}</p>` : ""}</div>`;
-    const exams = num(W.exams_passed) + num(W.exams_failed);
+    const exams = num(W.exams_passed) + num(W.exams_failed), marks = num(W.passed) + num(W.failed);
+    // "6 in 10 of the projects marked": no share when either figure is under 5
+    const marked = (v: Count) => (v == null || W.passed == null || W.failed == null || !marks ? "" : f.t("md2.w_share", { share: f.pct(v, marks) }));
     const mods = [
       mod(f.t("campus.w_evals"), esc(n(W.evaluations)), W.per_student != null ? f.t("campus.w_per", { n: f.num(W.per_student, 1) }) : "",
         [f.t("campus.t_evals", { n: n(W.evaluations), per: W.per_student != null ? f.num(W.per_student, 1) : f.t("holy.under5"), students: n(W.students) }), ...how("campus.how_evals")]),
-      mod(f.t("campus.w_passed"), esc(n(W.passed)), "", [f.t("campus.t_passed", { n: n(W.passed) }), ...how("campus.how_projects")]),
-      mod(f.t("campus.w_failed"), esc(n(W.failed)), "", [f.t("campus.t_failed", { n: n(W.failed) }), ...how("campus.how_projects")]),
+      mod(f.t("campus.w_passed"), esc(n(W.passed)), marked(W.passed), [f.t("campus.t_passed", { n: n(W.passed) }), ...how("campus.how_projects")]),
+      mod(f.t("campus.w_failed"), esc(n(W.failed)), marked(W.failed), [f.t("campus.t_failed", { n: n(W.failed) }), ...how("campus.how_projects")]),
       mod(f.t("campus.w_exams"), esc(n(W.exams_passed)), f.t("campus.w_exams_sub", { failed: n(W.exams_failed) }),
         [f.t("campus.t_exams", { passed: n(W.exams_passed), failed: n(W.exams_failed), share: W.exams_passed != null && W.exams_failed != null && exams ? f.pct(num(W.exams_passed), exams) : "–" }), ...how("campus.how_exams")]),
       mod(f.t("campus.w_out"), esc(n(W.outstanding)), f.t("campus.w_flags", { n: n(W.negative_flags) }),
         [f.t("campus.t_out", { out: n(W.outstanding), flags: n(W.negative_flags) }), ...how("campus.how_flags")]),
-      mod(f.t("campus.w_bh"), esc(n(W.blackholed)), "", [f.t("campus.t_bh", { n: n(W.blackholed) }), ...how("campus.how_bh")]),
+      mod(f.t("campus.w_bh"), esc(n(W.blackholed)), f.t("md2.w_bh_sub"), [f.t("campus.t_bh", { n: n(W.blackholed) }), ...how("campus.how_bh")]),
     ];
     out.push({ id: "week", nav: f.t("campus.week"), html: section("week", f.t("campus.week"), `<div class="kpis six">${mods.join("")}</div>${when(pg, S)}`, { count: span(pg, W.from, W.to) }) });
   } else out.push({ id: "week", nav: f.t("campus.week"), html: section("week", f.t("campus.week"), `<p class="note">${esc(f.t("campus.week_pending"))}</p>${when(pg, S)}`) });
@@ -95,12 +97,19 @@ export function examsPage(pg: Page, S: any): Section[] {
     const at = p.attempts.findIndex((a: any) => a.validated === true);
     return at >= 0 ? f.t("campus.you_passed", { n: at + 1 }) : f.plural(p.attempts.length, "campus.you_sat");
   };
-  const triesBar = (e: Exam) => {
+  // the sitting half of those who passed needed at most, with the shares of every sitting in the tip
+  const triesText = (e: Exam) => {
     const t = (e.tries || []).map(num), total = t.reduce((a, b) => a + b, 0);
     if (!total || (e.tries || []).some((x) => x === null)) return `<span class="note">${esc(total ? f.t("holy.under5") : "–")}</span>`;
-    const lines = [e.name, f.t("campus.t_tries", { median: medianTries(e.tries!) }), "---",
+    const lines = [f.t("md2.tries_tip", { exam: e.name }), f.t("campus.t_tries", { median: medianTries(e.tries!) }), "---",
       ...t.map((v, i) => f.t(i === 3 ? "campus.t_try_more" : "campus.t_try", { n: i + 1, count: f.num(v), share: f.pct(v, total) })), "---", `# ${f.t("campus.how")}`, f.t("campus.how_tries")];
-    return `<span class="tries-bar"${tipAttr(lines.join("\n"))} role="img" aria-label="${esc(lines.slice(0, 2).join(". "))}">${t.map((v, i) => `<i class="t${i + 1}" style="flex-grow:${v}"></i>`).join("")}</span>`;
+    return `<span${tipAttr(lines.join("\n"))}>${esc(f.t("md2.tries_median", { n: medianTries(e.tries!) }))}</span>`;
+  };
+  const triesWaffle = (e: Exam) => {
+    const t = (e.tries || []).map(num);
+    if (!t.some((v) => v) || (e.tries || []).some((x) => x === null)) return "";
+    return `<h3 class="wf-title">${esc(f.t("md2.waffle_title", { exam: e.name }))}</h3>`
+      + waffle(t.map((v, i) => ({ label: f.t(i === 3 ? "campus.k_try_more" : "campus.k_try", { n: i + 1 }), value: v, color: `var(--cat-${i + 1})` })), { label: f.t("md2.waffle_title", { exam: e.name }) });
   };
   const colsOf = (withYou: boolean): Col<Exam>[] => [
     { k: "name", t: f.t("col.exam"), nw: true },
@@ -109,22 +118,24 @@ export function examsPage(pg: Page, S: any): Section[] {
     { k: "attempts", t: f.t("campus.c_sittings"), num: true, f: (e) => esc(n(e.attempts)) },
     { k: "failed_attempts", t: f.t("campus.c_failed"), num: true, sv: (e) => ratio(e.failed_attempts, e.attempts), f: (e) => esc(share(e.failed_attempts, e.attempts)) },
     { k: "first_try", t: f.t("campus.c_first"), num: true, sv: (e) => ratio(e.first_try, e.passed), f: (e) => esc(share(e.first_try, e.passed)) },
-    { k: "tries", t: f.t("campus.c_tries"), ph: true, sv: (e) => medianTries(e.tries || []), f: triesBar },
+    { k: "tries", t: f.t("campus.c_tries"), ph: true, sv: (e) => medianTries(e.tries || []), f: triesText },
     { k: "median_days", t: f.t("campus.c_days"), num: true, f: (e) => esc(e.median_days == null ? "–" : f.num(e.median_days, Number.isInteger(e.median_days) ? 0 : 1)) },
     ...(withYou ? [{ k: "you", t: f.t("campus.c_you"), nw: true, sv: (e: Exam) => you(e), f: (e: Exam) => esc(you(e) || "–") }] : []),
   ];
   const head = (title: string, note: string) => `<h2>${esc(title)} ${info(note)}</h2>`;
   const out: Section[] = [];
-  const tries = `<ul class="sb-key">${[1, 2, 3, 4].map((i) => `<li><i class="tries-key t${i}"></i>${esc(f.t(i === 4 ? "campus.k_try_more" : "campus.k_try", { n: i }))}</li>`).join("")}</ul>`;
+  let first = true;
   for (const track of ["c", "python"] as const) {
     const rows: Exam[] = (S.projects || []).filter((p: any) => p.track === track && RANK.test(p.slug)).sort((a: any, b: any) => a.slug.localeCompare(b.slug));
     if (!rows.length) continue;
     // the hardest: the most sittings that failed, among the exams with a share to show
     const hard = rows.filter((e) => ratio(e.failed_attempts, e.attempts) !== null).sort((a, b) => ratio(b.failed_attempts, b.attempts)! - ratio(a.failed_attempts, a.attempts)!)[0];
-    const lede = hard ? f.t("campus.exams_lede", { exam: hard.name, failed: share(hard.failed_attempts, hard.attempts), first: share(hard.first_try, hard.passed), days: hard.median_days == null ? "–" : f.num(hard.median_days, 1) }) : "";
+    const lede = hard ? f.t("campus.exams_lede", { exam: esc(hard.name), failed: `<b>${esc(share(hard.failed_attempts, hard.attempts))}</b>`, first: esc(share(hard.first_try, hard.passed)), days: esc(hard.median_days == null ? "–" : f.num(hard.median_days, 1)) }) : "";
     const tbl = table(f, colsOf(true), rows, { label: f.t(`campus.exams_${track}`), sort: ["name", 1] });
+    const showFirst = first;
+    first = false;
     out.push({ id: `exams-${track}`, nav: f.t(`campus.exams_${track}`), html: section(`exams-${track}`, "",
-      (lede ? `<p class="lede">${esc(lede)}</p>` : "") + tries + `<div class="table-wrap">${tbl}</div>`, { head: head(f.t(`campus.exams_${track}`), f.t("campus.exams_note")) }) });
+      (lede ? `<p class="finding">${lede}</p>` : "") + (showFirst ? `<p class="note">${esc(f.t("md2.under5"))}</p>` : "") + `<div class="table-wrap">${tbl}</div>` + (hard ? triesWaffle(hard) : ""), { head: head(f.t(`campus.exams_${track}`), f.t("campus.exams_note")) }) });
   }
   const pis: any[] = (S.piscine?.projects || []).filter((p: any) => /^c-piscine-(?:exam-0\d|final-exam)$/.test(p.slug)).sort((a: any, b: any) => a.slug.localeCompare(b.slug));
   if (pis.length) {

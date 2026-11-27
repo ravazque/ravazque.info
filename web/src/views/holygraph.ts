@@ -3,7 +3,8 @@
 // campus figures of that graph.
 import data from "@data/holygraph.json";
 import { cursusGraph, piscineGraph, type HolyData, type HolyState, type Item } from "../lib/holy";
-import { esc } from "../lib/h";
+import { esc, tipAttr } from "../lib/h";
+import { waffle } from "../lib/charts";
 import { donut, ringFunnel, splitBars, type Bar, type Ring, type Side } from "../lib/campusviz";
 import { Page, type Section, filters, info, myRank, myTrack, search, section, select } from "./page";
 
@@ -257,7 +258,9 @@ function whyBars(pg: Page, groups: [string, (Row | undefined)[]][]): string {
     return { label, count: f.num(parts.reduce((a, p) => a + p.value, 0)), parts, tip: (k, v, sh) => `${label} · ${f.t(`holy.rg.${k}`)}: ${f.num(v)} (${Math.round(sh * 100)}%)` };
   };
   const side = (label: string, gs: [string, string[]][]): Side => ({ label: f.t(label), keys: gs.map(([key]) => ({ key, label: f.t(`holy.rg.${key}`) })) });
-  return splitBars(bar(f.t("holy.sum"), groups.flatMap(([, rs]) => rs)), groups.map(([label, rs]) => bar(label, rs)), side("holy.side_flag", REASON_GROUPS.slice(0, FLAG_GROUPS)),
+  const parts = reasonParts(groups.flatMap(([, rs]) => rs)), total = parts.reduce((a, p) => a + p.value, 0), top = parts.reduce((a, p) => (p.value > a.value ? p : a), parts[0]);
+  const finding = total ? `<p class="finding">${f.t("md2.why_finding", { why: esc(f.t(`holy.rg.${top.key}`)), share: `<b>${Math.round((100 * top.value) / total)}%</b>`, n: esc(f.num(total)) })}</p>` : "";
+  return finding + `<p class="note">${esc(f.t("holy.why_note"))}</p>` + splitBars(bar(f.t("holy.sum"), groups.flatMap(([, rs]) => rs)), groups.map(([label, rs]) => bar(label, rs)), side("holy.side_flag", REASON_GROUPS.slice(0, FLAG_GROUPS)),
     side("holy.side_noflag", REASON_GROUPS.slice(FLAG_GROUPS)), { lead: f.t("holy.h_flag"), count: f.t("holy.h_failed") }, f.t("holy.why"), f.num);
 }
 
@@ -298,7 +301,8 @@ function campusSections(pg: Page, kind: "c" | "python", stats: any): Section[] {
   if (!S?.people || !S.generated_at) return []; // no count yet, or one of another shape
   const n = (v: number | null | undefined) => (v === null ? f.t("holy.under5") : v === undefined ? "–" : f.num(v));
   const row = campusRow(S, kind), F = S.funnel[kind], people = num(F.people);
-  const note = f.t("holy.campus_note", { date: f.stamp(Date.parse(S.generated_at)), requests: f.num(S.requests), minutes: f.num(Math.max(1, Math.round(S.seconds / 60))) });
+  const note = f.t("holy.campus_note", { date: f.stamp(Date.parse(S.generated_at)) });
+  const noteTip = tipAttr([f.t("md2.count_tip"), "---", `# ${f.t("campus.how")}`, f.t("md2.how_run", { requests: f.num(S.requests), minutes: f.num(Math.max(1, Math.round(S.seconds / 60))) })].join("\n"));
   // where they got: a ring per milestone, filled to the share of the track that reached it, then the black hole on it
   const bhTotal = RANKS.map((m) => num(S.blackhole.by_milestone[m]));
   const rings: Ring[] = RANKS.map((m, i) => {
@@ -306,11 +310,11 @@ function campusSections(pg: Page, kind: "c" | "python", stats: any): Section[] {
     return { label: `${i}`, reached, lost, tip: f.t("holy.ring_tip", { m: f.t(`groups.${m}`), reached: n(F.reached[i]), share: Math.round(reached * 100), bh: n(S.blackhole.by_milestone[m]) }) };
   });
   const funnel = `<div class="hg-funnel">${ringFunnel(rings, f.num(people), f.t("holy.funnel"))}<div class="hg-funnel-text">`
-    + `<p class="hg-lead">${esc(f.t("holy.funnel_lead", { people: n(F.people), track: f.t(`holy.track_${kind}`), m6: Math.round((100 * num(F.reached[6])) / Math.max(1, people)) }))}</p>`
+    + `<p class="finding">${f.t("holy.funnel_lead", { people: esc(n(F.people)), track: esc(f.t(`holy.track_${kind}`)), m6: `<b>${Math.round((100 * num(F.reached[6])) / Math.max(1, people))}%</b>` })}</p>`
     + `<ul class="sb-key"><li><i class="rf-reached"></i>${esc(f.t("holy.key_reached"))}</li><li><i class="rf-lost"></i>${esc(f.t("holy.key_bh"))}</li></ul>`
     + `<p class="note">${esc(f.t("holy.people_line", { total: n(S.people.total), active: n(S.people.by_state.active), bh: n(S.people.by_state.blackholed), tr: n(S.people.by_state.transcender), al: n(S.people.by_state.alumni) }))}</p>`
     + (S.people.excluded !== undefined && S.people.excluded !== 0 ? `<p class="note">${esc(f.t("holy.excluded", { n: n(S.people.excluded) }))}</p>` : "")
-    + `<p class="note">${esc(note)}</p></div></div>`;
+    + `<p class="note"${noteTip}>${esc(note)}</p></div></div>`;
   // every project of the track's milestones as a donut; alternatives side by side; a series of modules as one
   const strips = G.common_core[kind].map((items, k) => {
     const donuts = items.map((it) => {
@@ -350,7 +354,7 @@ function campusSections(pg: Page, kind: "c" | "python", stats: any): Section[] {
     { id: "madrid", nav: f.t("holy.campus"), html: section("madrid", f.t("holy.campus"), funnel, { head: kindSwitch(pg, kind, f.t("holy.campus"), ["c", "python"]) }) },
     { id: "by-milestone", nav: f.t("holy.by_milestone"), html: section("by-milestone", f.t("holy.by_milestone"), donutKey + strips) },
     { id: "outer-core", nav: f.t("groups.outer-core"), html: section("outer-core", f.t("groups.outer-core"), donutKey + outerHtml) },
-    { id: "why", nav: f.t("holy.why"), html: section("why", f.t("holy.why"), `<p class="note">${esc(f.t("holy.why_note"))}</p>${reasonBars}`) },
+    { id: "why", nav: f.t("holy.why"), html: section("why", f.t("holy.why"), reasonBars) },
   ];
 }
 
@@ -372,7 +376,9 @@ export function cohortsSection(pg: Page, S: any): Section | null {
     { label: f.t("holy.side_still"), keys: STILL.map((k) => ({ key: `st-${k}`, label: f.t(`holy.state.${k}`) })) },
     { label: f.t("holy.state.blackholed"), keys: [{ key: "st-blackholed", label: f.t("holy.state.blackholed") }] },
     { lead: f.t("holy.h_still"), count: f.t("holy.h_people") }, f.t("holy.cohorts"), f.num);
-  return { id: "cohorts", nav: f.t("holy.cohorts"), html: section("cohorts", f.t("holy.cohorts"), `<p class="note">${esc(f.t("holy.cohorts_note"))}</p>${yearBars}`) };
+  const everyone = Object.values(allYears).reduce((a, v) => a + v, 0);
+  const finding = everyone ? `<p class="finding">${f.t("md2.cohorts_finding", { share: `<b>${Math.round((100 * (allYears.blackholed || 0)) / everyone)}%</b>`, n: esc(f.num(everyone)) })}</p>` : "";
+  return { id: "cohorts", nav: f.t("holy.cohorts"), html: section("cohorts", f.t("holy.cohorts"), `${finding}<p class="note">${esc(f.t("holy.cohorts_note"))}</p>${yearBars}`) };
 }
 
 /** The Piscine's figures: everyone who did it in Madrid, admitted or not: who got in per Piscine, and every day, rush and
@@ -383,8 +389,9 @@ function piscineSections(pg: Page, stats: any): Section[] {
   const n = (v: number | null | undefined) => (v === null ? f.t("holy.under5") : v === undefined ? "–" : f.num(v));
   const row = campusRow(stats, "piscine");
   const share = num(P.people.total) ? Math.round((100 * num(P.people.admitted)) / num(P.people.total)) : 0;
-  const summary = `<div class="hg-funnel">${ringFunnel([{ label: "", reached: share / 100, lost: 0, tip: f.t("holy.adm_tip", { adm: n(P.people.admitted), total: n(P.people.total), share }) }], `${share}%`, f.t("holy.admission"))}`
-    + `<div class="hg-funnel-text"><p class="hg-lead">${esc(f.t("holy.piscine_lead", { total: n(P.people.total), adm: n(P.people.admitted), share }))}</p>`
+  const admitted = num(P.people.admitted), tot = num(P.people.total);
+  const summary = `<div class="hg-funnel"><div>${waffle([{ label: f.t("holy.admitted"), value: admitted, color: "var(--accent-data)" }, { label: f.t("holy.not_admitted"), value: Math.max(0, tot - admitted), color: "var(--slate)" }], { label: f.t("holy.admission") })}</div>`
+    + `<div class="hg-funnel-text"><p class="finding">${f.t("holy.piscine_lead", { total: esc(n(P.people.total)), adm: esc(n(P.people.admitted)), share: `<b>${share}%</b>` })}</p>`
     + (P.people.excluded !== undefined && P.people.excluded !== 0 ? `<p class="note">${esc(f.t("holy.excluded", { n: n(P.people.excluded) }))}</p>` : "")
     + (stats.generated_at ? `<p class="note">${esc(f.t("holy.piscine_note", { date: f.stamp(Date.parse(stats.generated_at)) }))}</p>` : "") + "</div></div>";
   const strip = (title: string, slugs: string[]) => `<div class="hg-strip"><h3>${esc(title)}</h3><ol class="donuts">${slugs.map((s) => projectDonut(pg, G.projects[s]?.name.replace(/^C Piscine /, "") || s, row(s),
@@ -401,7 +408,7 @@ function piscineSections(pg: Page, stats: any): Section[] {
   return [
     { id: "madrid", nav: f.t("holy.campus"), html: section("madrid", f.t("holy.campus"), summary, { head: kindSwitch(pg, "piscine", f.t("holy.campus"), []) }) },
     { id: "by-milestone", nav: f.t("holy.by_project"), html: section("by-milestone", f.t("holy.by_project"), donutKey + strip(f.t("holy.pi_days"), days) + strip(f.t("holy.pi_rushes"), rushes) + strip(f.t("holy.pi_exams"), exams)) },
-    { id: "why", nav: f.t("holy.why"), html: section("why", f.t("holy.why"), `<p class="note">${esc(f.t("holy.why_note"))}</p>` + whyBars(pg, [[f.t("holy.pi_days"), days.map(row)], [f.t("holy.pi_rushes"), rushes.map(row)], [f.t("holy.pi_exams"), exams.map(row)]])) },
+    { id: "why", nav: f.t("holy.why"), html: section("why", f.t("holy.why"), whyBars(pg, [[f.t("holy.pi_days"), days.map(row)], [f.t("holy.pi_rushes"), rushes.map(row)], [f.t("holy.pi_exams"), exams.map(row)]])) },
     { id: "piscines", nav: f.t("holy.piscines"), html: section("piscines", f.t("holy.piscines"), adm) },
   ];
 }
