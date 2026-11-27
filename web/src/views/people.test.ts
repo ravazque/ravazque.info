@@ -153,5 +153,5 @@ test("People says first how many times the person who evaluated you most did it"
   const view = { period: "all", report: all, derive: {}, layout: doc.layout, all_projects: all.projects, all_cursus: all.extras.cursus, seat_days: 60 } as any;
   const html = people(new Page(new Fmt("en"), view, "people", {})).find((s) => s.id === "who")!.html;
   const n = Math.max(...all.people.filter((p: any) => p.evaluated_me).map((p: any) => p.evaluated_me));
-  expect(html).toContain(`The person who evaluated you most did it <b>${n}</b> time`);
+  expect(html).toContain(`The person who [[evaluated you most]] did it <b>${n}</b> time`);
 });

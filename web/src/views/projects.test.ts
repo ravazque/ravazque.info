@@ -273,5 +273,5 @@ test("friendlier findings: pace with the expected finish, your promo in tenths, 
   expect(html).toContain("<b>Mar 2027</b>");
   expect(html).toContain("ahead of <b>7 in 10</b>");
   expect(html).toContain("<b>Algorithms</b>, at level");
-  expect(html).toContain("<b>1 of 2</b> exams");
+  expect(html).toContain("<b>1 of 2</b> [[exams]]");
 });

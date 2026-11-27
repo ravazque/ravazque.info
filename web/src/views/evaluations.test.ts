@@ -110,7 +110,7 @@ test("the log's title explains in its ⓘ that lateness is an estimate", async (
   const doc = JSON.parse(readFileSync("../server/core/testdata/golden/mid.report.json", "utf8")), all = doc.periods.all;
   const f = new Fmt("en");
   const html = logSection(new Page(f, { period: "all", report: all, layout: doc.layout, all_projects: all.projects, all_cursus: all.extras.cursus } as any, "evaluations", {})).html;
-  expect(html).toMatch(/<h2>Evaluation log <span class="info"[^>]*data-tip="Lateness is an estimate/);
+  expect(html).toMatch(/<h2>Evaluation \[\[log\]\] <span class="info"[^>]*data-tip="Lateness is an estimate/);
   expect(html).toMatch(/<span class="count"><span class="sep"> · <\/span>\d+ evaluations<\/span><\/h2>/); // the count stays
 });
 
@@ -481,5 +481,5 @@ test("fail rates are waffles with a finding said first; reciprocity too; no thin
   expect(html).not.toContain("rate-bar");
   expect(html.match(/class="waffle"/g)!.length).toBe(4);
   expect(html).toContain('<p class="finding">');
-  expect(say(f, "ev2.find_points", { earned: "5", spent: "<i>" })).toBe('<p class="finding">In this period you earned <b>5</b> correction points and spent <b>&lt;i&gt;</b>.</p>');
+  expect(say(f, "ev2.find_points", { earned: "5", spent: "<i>" })).toBe('<p class="finding">In this period you earned <b>5</b> [[correction points]] and spent <b>&lt;i&gt;</b>.</p>');
 });

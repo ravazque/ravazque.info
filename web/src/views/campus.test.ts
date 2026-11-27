@@ -73,5 +73,5 @@ test("campus opens its sections with a finding in plain words: the busiest weekd
   const all = { ...doc.periods.all, logtime: { ...doc.periods.all.logtime, heat: Array.from({ length: 7 }, (_, w) => Array.from({ length: 24 }, (_, h) => (w === 1 && h === 14 ? 5 : 0))) } };
   const view = { period: "all", report: all, derive: {}, layout: doc.layout, all_projects: all.projects, all_cursus: all.extras.cursus, seat_days: 60 } as any;
   const html = campus(new Page(new Fmt("en"), view, "campus", {})).find((s) => s.id === "days")!.html;
-  expect(html).toContain('<p class="finding">You are at campus most on <b>Tuesday</b>, and your busiest hour is <b>14–15h</b>.</p>');
+  expect(html).toContain('<p class="finding">You are at campus most on <b>Tuesday</b>, and your [[busiest hour]] is <b>14–15h</b>.</p>');
 });

@@ -223,7 +223,7 @@ test("friendlier forms: admission as 100 squares with a finding, why attempts fa
   expect(adm.match(/class="wf-sq"/g)).toHaveLength(100);
   expect(adm).toContain('<p class="finding"><b>25%</b> of the 200 people');
   const why = sectionOf({ ...statsWith([{ slug: "42cursus-libft", name: "Libft", milestone: "rank-00", track: "c", registered: 50, attempts: 60, failed_attempts: 10, reasons: { norme: 8, cheat: 2 } }]) }, "why");
-  expect(why).toContain('<p class="finding">The most common reason an attempt fails: Norm, <b>80%</b> of the 10 failed attempts.');
+  expect(why).toContain('<p class="finding">The most common [[reason]] an attempt fails: Norm, <b>80%</b> of the 10 failed attempts.');
   const madrid = sectionOf(statsWith([]), "madrid");
   expect(madrid).toContain('<p class="finding">');
   expect(madrid).toContain("The count used 1 requests to 42"); // the cost lives in the tip, not the visible note

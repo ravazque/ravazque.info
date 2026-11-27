@@ -70,7 +70,7 @@ test("Coalition: rows, the days leaving and the history, no chart of the coming 
   const html = coalition(pg).map((s) => s.html).join("");
   expect(html).not.toContain('class="fc');
   expect(html).toContain('<details class="drop-day">');
-  expect(html).toContain("Every bonus so far");
+  expect(html).toContain("Every [[bonus]] so far");
   expect(html).not.toContain(f.t("bonus.got", { hours: 50 }) + "</b><p");
 });
 
