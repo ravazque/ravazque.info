@@ -63,7 +63,7 @@ const drawn = computed<Section[]>(() => {
 // take one away)
 const toc = computed(() => key.value !== "home" ? sections.value.filter((s) => s.nav) : [
   ...sections.value.filter((s) => s.id === "profile"),
-  ...pins.widgets.flatMap((w) => { const d = WIDGETS.find(([p, i]) => p === w.page && i === w.id); return d ? [{ id: w.id, nav: f.value.t(d[2]) }] : []; })]);
+  ...pins.widgets.flatMap((w) => { const d = WIDGETS.find(([p, i]) => p === w.page && i === w.id); return d ? [{ id: w.id, nav: plain(f.value.t(d[2])) }] : []; })]);
 const me = computed(() => state.session?.user);
 
 const title = computed(() => {

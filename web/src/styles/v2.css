@@ -852,7 +852,7 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
 :where(body:not(.site)) .wf-key b { font: 800 20px/1 var(--type-font-display); font-variant-numeric: tabular-nums; }
 @media (max-width: 599.98px) { :where(body:not(.site)) .waffle { grid-template-columns: minmax(0, 1fr); } :where(body:not(.site)) .wf-grid { max-width: 280px; } }
 /* a meter: a thick bar towards a goal, its marks named under it */
-:where(body:not(.site)) .meter { margin: 14px 0 0; }
+:where(body:not(.site)) .meter { margin: 14px 0 20px; }
 :where(body:not(.site)) .mt-bar { position: relative; height: 26px; background: var(--sunken); }
 :where(body:not(.site)) .mt-bar i { position: absolute; inset: 0 auto 0 0; background: var(--accent-data); }
 :where(body:not(.site)) .mt-bar u { position: absolute; top: -6px; bottom: -6px; width: 2px; margin-left: -1px; background: var(--ink); }
