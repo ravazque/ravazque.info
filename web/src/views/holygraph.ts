@@ -390,7 +390,7 @@ function piscineSections(pg: Page, stats: any): Section[] {
   const row = campusRow(stats, "piscine");
   const share = num(P.people.total) ? Math.round((100 * num(P.people.admitted)) / num(P.people.total)) : 0;
   const admitted = num(P.people.admitted), tot = num(P.people.total);
-  const summary = `<div class="hg-funnel"><div>${waffle([{ label: f.t("holy.admitted"), value: admitted, color: "var(--accent-data)" }, { label: f.t("holy.not_admitted"), value: Math.max(0, tot - admitted), color: "var(--slate)" }], { label: f.t("holy.admission") })}</div>`
+  const summary = `<div class="hg-funnel"><div>${waffle([{ label: f.t("holy.admitted"), value: admitted, color: "var(--accent-data)" }, { label: f.t("holy.not_admitted"), value: Math.max(0, tot - admitted), color: "var(--slate)" }], { label: f.t("holy.admission"), num: (v) => f.num(v), note: f.t("wf.note") })}</div>`
     + `<div class="hg-funnel-text"><p class="finding">${f.t("holy.piscine_lead", { total: esc(n(P.people.total)), adm: esc(n(P.people.admitted)), share: `<b>${share}%</b>` })}</p>`
     + (P.people.excluded !== undefined && P.people.excluded !== 0 ? `<p class="note">${esc(f.t("holy.excluded", { n: n(P.people.excluded) }))}</p>` : "")
     + (stats.generated_at ? `<p class="note">${esc(f.t("holy.piscine_note", { date: f.stamp(Date.parse(stats.generated_at)) }))}</p>` : "") + "</div></div>";

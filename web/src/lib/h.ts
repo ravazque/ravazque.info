@@ -28,5 +28,7 @@ export const ARROW = '<span class="arr">➜</span>';
 // (owner, 2026-11-27): in the page's text they become <span class="kw">; in a tag (a tip, a label) the marks just go.
 const MARK = /\[\[([^\]]+?)\]\]/g;
 export const plain = (s: string) => s.replace(MARK, "$1");
+// the text around a key word stays one piece: in a flex title each loose run would lose its spaces at the edges
 export const keywords = (html: string) =>
-  html.split(/(<[^>]*>)/).map((part) => (part.startsWith("<") ? plain(part) : part.replace(MARK, '<span class="kw">$1</span>'))).join("");
+  html.split(/(<[^>]*>)/).map((part) => (part.startsWith("<") ? plain(part)
+    : part.search(MARK) < 0 ? part : `<span class="kwt">${part.replace(MARK, '<span class="kw">$1</span>')}</span>`)).join("");

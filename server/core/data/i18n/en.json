@@ -1383,13 +1383,13 @@
  "coal2.behind": "Your [[coalition]] is number {n} of Madrid, {points} points behind the 1st.",
  "coal2.top_source": "{pct} of your [[points]] came from {source}.",
  "coal2.bonus_left": "{n} left to reach the {hours}h [[bonus]] (+{points} points).",
- "ev2.failed": "Failed",
- "ev2.rest": "Not failed",
+ "ev2.failed": "Project failed",
+ "ev2.rest": "Project passed",
  "ev2.back": "Gave one back",
  "ev2.not_back": "Did not",
  "ev2.of_the": "{n} of the {total}",
- "ev2.find_given": "{b} [[evaluations you gave]] ended failed.",
- "ev2.find_received": "{b} [[evaluations you received]] ended failed.",
+ "ev2.find_given": "In {b} [[evaluations you gave]], the project you marked failed (under 50 or a negative flag).",
+ "ev2.find_received": "In {b} [[evaluations you received]], your project failed (under 50 or a negative flag).",
  "ev2.find_group": "{n} of the {total} [[evaluations you received]] came from {group}.",
  "ev2.find_month_received": "{month} was the [[month]] you received the most evaluations: {n}.",
  "ev2.find_month_given": "{month} was the [[month]] you gave the most evaluations: {n}.",
@@ -1406,5 +1406,6 @@
  "md2.tries_tip": "{exam}: the try on which students passed it",
  "md2.tries_median": "Half pass by try {n}",
  "md2.waffle_title": "Of every 100 who pass {exam}, on which [[try]]",
- "md2.under5": "When fewer than 5 people did something, the page shows < 5 instead of the number, so no one can be picked out."
+ "md2.under5": "When fewer than 5 people did something, the page shows < 5 instead of the number, so no one can be picked out.",
+ "wf.note": "Each square is 1 in 100; the numbers are the real counts."
 }

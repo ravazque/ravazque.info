@@ -112,8 +112,8 @@ export function evaluations(pg: Page): Section[] {
   const st = D.stats;
   if (st) {
     const rate = (r: any, key: string) => `<div class="rate"><p class="v">${r.pct === null || r.pct === undefined ? "–" : `${f.num(r.pct, 1)}<small>%</small>`}`
-      + `<span class="frac">${esc(f.t("stats.of", { n: r.n, total: r.total }))}</span></p>${waffle([{ label: f.t("ev2.failed"), value: r.n, color: BAD }, { label: f.t("ev2.rest"), value: r.total - r.n, color: NEUTRAL }], { label: f.t(key) })}<p class="k">${esc(f.t(key))}</p></div>`;
-    const recip = (n: number, total: number, text: string) => `<div class="recip-row">${waffle([{ label: f.t("ev2.back"), value: n, color: OUTSTANDING }, { label: f.t("ev2.not_back"), value: total - n, color: NEUTRAL }], { label: text })}<p class="s">${esc(text)}</p></div>`;
+      + `<span class="frac">${esc(f.t("stats.of", { n: r.n, total: r.total }))}</span></p>${waffle([{ label: f.t("ev2.failed"), value: r.n, color: BAD }, { label: f.t("ev2.rest"), value: r.total - r.n, color: NEUTRAL }], { label: f.t(key), num: (v) => f.num(v), note: f.t("wf.note") })}<p class="k">${esc(f.t(key))}</p></div>`;
+    const recip = (n: number, total: number, text: string) => `<div class="recip-row">${waffle([{ label: f.t("ev2.back"), value: n, color: OUTSTANDING }, { label: f.t("ev2.not_back"), value: total - n, color: NEUTRAL }], { label: text, num: (v) => f.num(v), note: f.t("wf.note") })}<p class="s">${esc(text)}</p></div>`;
     const R = st.outstanding_reciprocity;
     // every group, always, in order (as Points by source has every source): the ones with nothing greyed
     const groupOf = new Map<string, string>((pg.v.connections || []).map((c: any) => [c.login, c.group]));

@@ -27,7 +27,7 @@ test("last week in six modules, each tip saying the figures, then how it counts 
 test("the twelve weeks as two charts, and who is here; a count from before the weekly figures shows what it has", () => {
   const weeks = Array.from({ length: 12 }, (_, i) => ({ from: `2026-09-${String(i + 1).padStart(2, "0")}`, evaluations: 100 + i, passed: 20, failed: 5 }));
   const ids = summaryPage(pageOf("madrid"), { ...base, weeks }).map((s) => s.id);
-  expect(ids).toEqual(["week", "trend", "people"]); // week: "comes with the next count"
+  expect(ids).toEqual(["trend", "people"]); // no empty week section before the weekly figures
   expect(summaryPage(pageOf("madrid"), null)[0].html).toContain("No campus count yet");
 });
 

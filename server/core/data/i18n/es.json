@@ -1383,13 +1383,13 @@
  "coal2.behind": "Tu [[coalición]] es la n.º {n} de Madrid, {points} puntos por detrás de la 1.ª.",
  "coal2.top_source": "El {pct} de tus [[puntos]] vino de {source}.",
  "coal2.bonus_left": "Te quedan {n} para el [[bonus]] de {hours}h (+{points} puntos).",
- "ev2.failed": "Suspendidas",
- "ev2.rest": "No suspendidas",
+ "ev2.failed": "Proyecto suspendido",
+ "ev2.rest": "Proyecto aprobado",
  "ev2.back": "Devolvieron uno",
  "ev2.not_back": "No",
  "ev2.of_the": "{n} de las {total}",
- "ev2.find_given": "{b} [[evaluaciones que hiciste]] acabaron suspendidas.",
- "ev2.find_received": "{b} [[evaluaciones que recibiste]] acabaron suspendidas.",
+ "ev2.find_given": "En {b} [[evaluaciones que hiciste]], el proyecto que corregiste suspendió (menos de 50 o un flag negativo).",
+ "ev2.find_received": "En {b} [[evaluaciones que recibiste]], tu proyecto suspendió (menos de 50 o un flag negativo).",
  "ev2.find_group": "{n} de las {total} [[evaluaciones que recibiste]] vinieron de {group}.",
  "ev2.find_month_received": "{month} fue el [[mes]] en que más evaluaciones recibiste: {n}.",
  "ev2.find_month_given": "{month} fue el [[mes]] en que más evaluaciones hiciste: {n}.",
@@ -1406,5 +1406,6 @@
  "md2.tries_tip": "{exam}: el intento en el que se aprobó",
  "md2.tries_median": "La mitad aprueba en el intento {n}",
  "md2.waffle_title": "De cada 100 que aprueban {exam}, en qué [[intento]]",
- "md2.under5": "Cuando menos de 5 personas hicieron algo, la página muestra < 5 en vez del número, para que nadie pueda ser identificado."
+ "md2.under5": "Cuando menos de 5 personas hicieron algo, la página muestra < 5 en vez del número, para que nadie pueda ser identificado.",
+ "wf.note": "Cada cuadro es 1 de cada 100; los números son las cifras reales."
 }

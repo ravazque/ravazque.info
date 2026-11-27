@@ -45,7 +45,7 @@ export function summaryPage(pg: Page, S: any): Section[] {
       mod(f.t("campus.w_bh"), esc(n(W.blackholed)), f.t("md2.w_bh_sub"), [f.t("campus.t_bh", { n: n(W.blackholed) }), ...how("campus.how_bh")]),
     ];
     out.push({ id: "week", nav: f.t("campus.week"), html: section("week", f.t("campus.week"), `<div class="kpis six">${mods.join("")}</div>${when(pg, S)}`, { count: span(pg, W.from, W.to) }) });
-  } else out.push({ id: "week", nav: f.t("campus.week"), html: section("week", f.t("campus.week"), `<p class="note">${esc(f.t("campus.week_pending"))}</p>${when(pg, S)}`) });
+  } // a count from before the weekly figures: no empty section (user test, 2026-11-27); they come with the next count
   const weeks: any[] = S.weeks || [];
   if (weeks.length) {
     const labels = weeks.map((w) => f.day(w.from).replace(/ \d{4}$/, ""));
@@ -109,7 +109,7 @@ export function examsPage(pg: Page, S: any): Section[] {
     const t = (e.tries || []).map(num);
     if (!t.some((v) => v) || (e.tries || []).some((x) => x === null)) return "";
     return `<h3 class="wf-title">${esc(f.t("md2.waffle_title", { exam: e.name }))}</h3>`
-      + waffle(t.map((v, i) => ({ label: f.t(i === 3 ? "campus.k_try_more" : "campus.k_try", { n: i + 1 }), value: v, color: `var(--cat-${i + 1})` })), { label: f.t("md2.waffle_title", { exam: e.name }) });
+      + waffle(t.map((v, i) => ({ label: f.t(i === 3 ? "campus.k_try_more" : "campus.k_try", { n: i + 1 }), value: v, color: `var(--cat-${i + 1})` })), { label: f.t("md2.waffle_title", { exam: e.name }), num: (v) => f.num(v), note: f.t("wf.note") });
   };
   const colsOf = (withYou: boolean): Col<Exam>[] => [
     { k: "name", t: f.t("col.exam"), nw: true },
@@ -131,7 +131,7 @@ export function examsPage(pg: Page, S: any): Section[] {
     // the hardest: the most sittings that failed, among the exams with a share to show
     const hard = rows.filter((e) => ratio(e.failed_attempts, e.attempts) !== null).sort((a, b) => ratio(b.failed_attempts, b.attempts)! - ratio(a.failed_attempts, a.attempts)!)[0];
     const lede = hard ? f.t("campus.exams_lede", { exam: esc(hard.name), failed: `<b>${esc(share(hard.failed_attempts, hard.attempts))}</b>`, first: esc(share(hard.first_try, hard.passed)), days: esc(hard.median_days == null ? "–" : f.num(hard.median_days, 1)) }) : "";
-    const tbl = table(f, colsOf(true), rows, { label: f.t(`campus.exams_${track}`), sort: ["name", 1] });
+    const tbl = table(f, colsOf(rows.some((e) => mine.has(e.slug))), rows, { label: f.t(`campus.exams_${track}`), sort: ["name", 1] });
     const showFirst = first;
     first = false;
     out.push({ id: `exams-${track}`, nav: f.t(`campus.exams_${track}`), html: section(`exams-${track}`, "",

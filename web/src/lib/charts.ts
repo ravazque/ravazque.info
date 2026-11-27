@@ -264,17 +264,20 @@ export function gantt(f: Fmt, groups: [string, GanttItem[]][], o: { label: strin
 
 export type Part = { label: string; value: number; color: string };
 
-/** Shares of a whole as 100 squares, one per cent, in the parts' order, with a key naming each part and its share:
- * "of every 100…" reads for anyone. The shares are rounded so the squares add up to 100 (largest remainder). */
-export function waffle(parts: Part[], o: { label: string }): string {
+/** Shares of a whole as 100 squares, one per cent, in the parts' order, with a key naming each part and its real count
+ * (the squares are shares: the note under them says so). The shares are rounded so the squares add up to 100 (largest
+ * remainder). */
+export function waffle(parts: Part[], o: { label: string; num?: (v: number) => string; note?: string }): string {
   const total = parts.reduce((s, p) => s + Math.max(0, p.value), 0);
   if (!total) return "";
   const raw = parts.map((p) => (100 * Math.max(0, p.value)) / total), n = raw.map(Math.floor);
   raw.map((r, i) => [r - n[i], i]).sort((a, b) => b[0] - a[0]).slice(0, 100 - n.reduce((s, v) => s + v, 0)).forEach(([, i]) => n[i]++);
   const squares = parts.flatMap((p, i) => Array.from({ length: n[i] }, () => `<i class="wf-sq" style="background:${p.color}"></i>`)).join("");
-  const key = parts.map((p, i) => `<li><i style="background:${p.color}"></i><span>${esc(p.label)}</span><b>${n[i]}</b></li>`).join("");
-  const said = `${o.label}: ${parts.map((p, i) => `${p.label} ${n[i]}`).join(", ")}`;
-  return `<figure class="waffle"><div class="wf-grid" role="img" aria-label="${esc(said)}">${squares}</div><ul class="wf-key">${key}</ul></figure>`;
+  const num = o.num || ((v: number) => String(v));
+  const key = parts.map((p) => `<li><i style="background:${p.color}"></i><span>${esc(p.label)}</span><b>${esc(num(p.value))}</b></li>`).join("");
+  const said = `${o.label}: ${parts.map((p) => `${p.label} ${num(p.value)}`).join(", ")}`;
+  return `<figure class="waffle"><div class="wf-grid" role="img" aria-label="${esc(said)}">${squares}</div><div><ul class="wf-key">${key}</ul>`
+    + `${o.note ? `<p class="note wf-note">${esc(o.note)}</p>` : ""}</div></figure>`;
 }
 
 /** A quantity on its way to a goal: a thick bar to `value` of `max`, a tick at each mark, each mark named under it. */
