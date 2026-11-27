@@ -870,3 +870,7 @@ html body:not(.site) .graph .bubble.net-node.staff circle { fill: var(--sunken);
 /* a section's finding, said first in plain words */
 :where(body:not(.site)) .finding { font-size: clamp(18px, 2vw, 21px); line-height: 1.4; max-width: 62ch; margin: 14px 0 4px; color: var(--ink); }
 :where(body:not(.site)) .finding b { font-weight: 800; }
+
+/* a title's key words in the accent (owner, 2026-11-27): the eye goes from one to the next down the page; accent-ink is
+   the accent made readable on the ground, the coalition's too */
+:where(body:not(.site)) .kw { color: var(--accent-ink); }

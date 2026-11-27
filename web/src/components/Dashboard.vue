@@ -6,7 +6,7 @@ import { useRoute, useRouter } from "vue-router";
 import { HttpError, api, fmt, hasPin, loadPins, loadSession, moveWidget, pins, relabelStars, setWidget, settings, state, togglePin, untilQuarter, type Status } from "../state";
 import { VIEW_TTL, viewCache } from "../viewcache";
 import { closePops, dragScroll, hideTip, settle } from "../lib/behave";
-import { esc, initials } from "../lib/h";
+import { esc, initials, keywords, plain } from "../lib/h";
 import { parseCsv } from "../lib/table";
 import { CAMPUS_TABS, PATHS, Page, keptParams, onCampus, pagePeriod, type PageKey, type Section, type View } from "../views/page";
 import { WIDGETS, profile as profileSections } from "../views/profile";
@@ -47,7 +47,8 @@ watch([key, examsPinned], ([k, pinned]) => {
   if (!campusStats.value) api<{ stats: any }>("/api/campus-stats").then((r) => { campusStats.value = r.stats; }).catch(() => {});
   if (graph) api<any>("/api/holygraph").then((g) => { holyDrawn.value = g || null; }).catch(() => {});
 }, { immediate: true });
-const sections = computed<Section[]>(() => {
+const sections = computed<Section[]>(() => drawn.value.map((s) => ({ ...s, html: keywords(s.html), nav: plain(s.nav) }))); // key words in the accent
+const drawn = computed<Section[]>(() => {
   if (!pg.value) return [];
   const pv = pg.value;
   if (key.value === "home") return profileSections(pv, pins.widgets, campusStats.value);
